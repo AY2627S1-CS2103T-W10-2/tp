@@ -24,6 +24,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](http://github.com/Yukino2711)]
 
 * Role: Developer
+* Responsibilities: Requirements, Developer Guide, and testing
 
 ### Johnny Doe
 
