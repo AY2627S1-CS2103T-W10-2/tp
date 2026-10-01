@@ -9,14 +9,6 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### Tony
-
-<img src="images/totonyny511.png" width="200px">
-
-[[github](https://github.com/Totonyny511)]
-
-* Role: Project Advisor
-
 ### Yang Qirui
 
 <img src="images/yukino2711.png" width="200px">
@@ -35,22 +27,29 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Developer
 * Responsibilities: Feature implementation and testing
 
-### Jean Doe
+### Rajkumar Srivishnu
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/vishnuroxx.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/vishnuroxx)]
+
+* Role: Developer
+* Responsibilities: Backend
+
+### Ryan
+
+<img src="images/ryan24chua.png" width="200px">
+
+[[github](http://github.com/ryan24chua)]
 
 * Role: Developer
 * Responsibilities: Dev Ops + Threading
 
-### James Doe
+### Tony
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/totonyny511.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/Totonyny511)]
 
 * Role: Developer
 * Responsibilities: UI
