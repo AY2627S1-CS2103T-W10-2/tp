@@ -57,3 +57,12 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Developer
 * Responsibilities: UI
+
+### Tony
+
+<img src="images/totonyny511.png" width="200px">
+
+[[github](http://github.com/Totonyny511)]
+
+* Role: Developer
+* Responsibilities: UI
