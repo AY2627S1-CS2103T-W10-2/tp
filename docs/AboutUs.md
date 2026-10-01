@@ -9,14 +9,6 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### Tony
-
-<img src="images/totonyny511.png" width="200px">
-
-[[github](https://github.com/Totonyny511)]
-
-* Role: Project Advisor
-
 ### Yang Qirui
 
 <img src="images/yukino2711.png" width="200px">
