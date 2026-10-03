@@ -261,13 +261,17 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
+* is a Computer Science (CS) student at university
+* actively builds and maintains academic and professional networks through modules, project teams, hackathons, tech communities, internships and other collaborative activities
+* accumulates contacts across many overlapping academic and professional contexts
+* often remembers the context in which they know someone, but not the person's exact details
 * has a need to manage a significant number of contacts
 * prefers desktop apps over other types of applications
 * can type fast
 * prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: Help CS students organise and retrieve people in their academic and professional network, especially when they remember the context in which they know someone but not the person's exact details. Each contact is saved with one or more contexts (e.g. a module, project team, hackathon or internship), so users can find the right person by name or context, faster than with a typical mouse-driven contact app.
 
 
 ### User stories
