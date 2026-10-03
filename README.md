@@ -2,15 +2,26 @@
 
 ![Ui](docs/images/Ui.png)
 
-* This is **a sample project for Software Engineering (SE) students**.<br>
-  Example usages:
-  * as a starting point of a course project (as opposed to writing everything from scratch)
-  * as a case study
-* The project simulates an ongoing software project for a desktop application (called _AddressBook_) used for managing contact details.
-  * It is **written in an object-oriented programming (OOP) style** and provides a **reasonably well-written** codebase of about 6 KLoC. It is **larger** than what students typically write in beginner-level software-engineering modules, without being overwhelming.
-  * It comes with a **reasonable level of user and developer documentation**.
-* It is named `AddressBook Level 3` (`AB3` for short) because it was initially created as a part of a series of `AddressBook` projects (`Level 1`, `Level 2`, `Level 3` ...).
-* For the detailed documentation of this project, see the **[Address Book Product Website](https://se-education.org/addressbook-level3)**.
+# UniContacts
+
+**UniContacts is a desktop contact manager for university students who meet many people across modules, projects, CCAs, internships and events.**
+Every contact is saved with one or more *contexts* describing how you know them (e.g. `CS2103T`, `Hack&Roll 2026`, `Google internship`), so you can find people by where you met them, not just by name.
+
+UniContacts is optimised for fast typists: you work through a command box, while the GUI shows your contacts as cards.
+
+## Features
+
+* Add a contact with a name, at least one context, and an optional phone and email
+* List all contacts, with every context shown on each card
+* Find contacts by part of their name or context
+* Delete a contact by its index in the list
+* Save data automatically after every change
+
+## Links
+
+* [User Guide](https://ay2627s1-cs2103t-w10-2.github.io/tp/UserGuide.html)
+* [Developer Guide](https://ay2627s1-cs2103t-w10-2.github.io/tp/DeveloperGuide.html)
+* [About Us](https://ay2627s1-cs2103t-w10-2.github.io/tp/AboutUs.html)
 
 ## Acknowledgements
 
