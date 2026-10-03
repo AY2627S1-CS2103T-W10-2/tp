@@ -7,8 +7,8 @@ title: UniContacts
 
 ![Ui](images/Ui.png)
 
-**UniContacts is a desktop contact manager for university students who meet many people across modules, projects, CCAs, internships and events.**
-Every contact is saved with one or more *contexts* describing how you know them (e.g. `CS2103T`, `Hack&Roll 2026`, `Google internship`), so you can find people by where you met them, not just by name. 
+**UniContacts is a desktop contact manager for CS students who meet many people across modules, project teams, hackathons, tech communities and internships.**
+Every contact is saved with one or more *contexts* describing how you know them (e.g. `CS2103T`, `Hack&Roll 2026`, `Google internship`), so you can find people by where you met them, not just by name.
 
 While it has a GUI, most of the user interactions happen using a CLI (Command Line Interface).
 
