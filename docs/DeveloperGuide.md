@@ -316,11 +316,16 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1.  UniContacts should work on Windows, Linux, and macOS computers with Java `25` installed.
+2.  UniContacts should be distributed as a single JAR file no larger than 100 MB and should not require an installer.
+3.  All features should remain usable without an Internet connection, a user account, or a remote server.
+4.  Contact data should be stored locally in a human-editable text file without using a database management system. Correctly formatted manual edits to the data file should be loaded by the application.
+5.  UniContacts should support a single user per installation and should not require its data file to be shared or accessed concurrently.
+6.  Contact data should not be transmitted outside the user's computer.
+7.  UniContacts should be able to hold up to 1000 contacts. Commands used during typical operation, such as adding, editing, deleting, listing, and finding contacts, should complete within one second.
+8.  A user with above-average typing speed for regular English text should be able to perform all primary contact-management tasks using only the keyboard and faster than with an equivalent mouse-driven interface.
+9.  The GUI should work well at resolutions of `1920x1080` and above with screen scales of 100% and 125%. It should remain usable at resolutions of `1280x720` and above with a screen scale of 150%.
+10. Invalid commands and invalid contact details should not modify existing contact data or cause the application to stop responding. The application should display an error message and remain usable.
 
 ### Glossary
 
