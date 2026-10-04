@@ -324,8 +324,12 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Hackathon**: a collaborative event for programmers to work intensively to build functional software or hardware prototypes.
+* **Datathon**: a collaborative competition—similar to a hackathon—where participants analyze complex, real-world datasets to build data-driven applications, machine learning models, or strategic insights within a set timeframe
+* **Duplicate**: The input is considered as a duplicate when the email/phone number inputted matches one of stored emails/phone numbers in the database. Inputs with same name matched is allowed and will not be considered as a duplicate.
+* **Capitalisation**: whether the letters in a context name are uppercase or lowercase.
+
+*{More to be added}*
 
 --------------------------------------------------------------------------------------------------------------------
 
