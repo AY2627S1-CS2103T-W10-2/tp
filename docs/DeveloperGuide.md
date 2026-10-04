@@ -287,32 +287,201 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `UniContacts` and the **Actor** is the `user`. Steps state the user's intention rather than command syntax; command formats and error messages are specified in the User Guide.)
 
-**Use case: Delete a person**
+**Use case: UC01 - Add a contact**
+
+**Guarantees**
+
+* If the entered data is invalid or duplicates an existing contact, no contact is added.
+* Otherwise, the new contact is stored with its name and at least one context.
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1.  User requests to add a contact, providing the contact's name, at least one context, and optionally a phone number and email
+2.  System adds the contact and shows the details of the new contact
 
     Use case ends.
 
 **Extensions**
 
+* 1a. System detects an error in the entered data.
+
+    * 1a1. System shows an error message with the correct format.
+
+    * 1a2. User enters new data.
+
+      Steps 1a1-1a2 are repeated until the data entered are correct.
+
+      Use case resumes at step 2.
+
+* 1b. The phone number or email matches an existing contact.
+
+    * 1b1. System informs the user that the contact already exists.
+
+      Use case ends.
+
+* 2a. System is unable to save the change.
+
+    * 2a1. System adds the contact for the current session and warns the user that the change may be lost when the app is closed.
+
+      Use case ends.
+
+
+**Use case: UC02 - Find contacts by context**
+
+**Guarantees**
+
+* No contact data is changed.
+* Every saved contact with a context matching the request is shown, regardless of capitalisation.
+
+**MSS**
+
+1.  User requests to find contacts linked to a specific context
+2.  System shows the matching contacts filtered by that specific context
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. User does not remember the exact context.
+
+    * 1a1. User views all contexts (UC05).
+
+      Use case resumes at step 1.
+
+* 1b. User does not specify a context.
+
+    * 1b1. System shows an error message with the correct format.
+
+      Use case resumes at step 1.
+
+* 2a. No contacts match the context.
+
+    * 2a1. System shows an empty list and informs the user that no contacts were found.
+
+      Use case ends.
+
+**Use case: UC03 - Find contacts by name**
+
+**Guarantees**
+
+* No contact data is changed.
+* Every saved contact whose name contains the requested name is shown, regardless of capitalisation.
+
+**MSS**
+
+1.  User requests to find contacts by a full or partial name
+2.  System shows the matching contacts, each with its contexts
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. User does not specify a name.
+
+    * 1a1. System shows an error message with the correct format.
+
+      Use case resumes at step 1.
+
+* 2a. No contacts match the name.
+
+    * 2a1. System shows an empty list and informs the user that no contacts were found.
+
+      Use case ends.
+
+**Use case: UC04 - Delete a contact**
+
+**Guarantees**
+
+* If the user does not identify a contact in the displayed list, no contact is deleted.
+* Only the identified contact is deleted; other contacts, including ones with the same name, are unchanged.
+* The deleted contact no longer appears in the contact list.
+
+**MSS**
+
+1.  User requests to list contacts
+2.  System shows a list of contacts
+3.  User requests to delete a specific contact in the list
+4.  System deletes the contact and shows the details of the deleted contact
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. User finds the contact by context (UC02) or by name (UC03) instead.
+
+  Use case resumes at step 3.
+
 * 2a. The list is empty.
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The requested contact is not in the displayed list.
 
-    * 3a1. AddressBook shows an error message.
+    * 3a1. System shows an error message.
 
       Use case resumes at step 2.
 
-*{More to be added}*
+* 4a. System is unable to save the change.
+
+    * 4a1. System deletes the contact for the current session and warns the user that the change may be lost when the app is closed.
+
+      Use case ends.
+
+**Use case: UC05 - View all contexts**
+
+**Guarantees**
+
+* No contact data is changed, and the displayed contact list is unchanged.
+* Each context appears once, regardless of capitalisation or extra spaces.
+
+**MSS**
+
+1.  User requests to view all contexts
+2.  System shows each context in alphabetical order, with the number of contacts linked to it
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. No contacts have been saved.
+
+    * 2a1. System informs the user that there are no contexts yet.
+
+      Use case ends.
+
+**Use case: UC06 - View a contact**
+
+**Guarantees**
+
+* No contact data is changed.
+* All of the contact's details are shown, including every context.
+
+**MSS**
+
+1.  User requests to list contacts
+2.  System shows a list of contacts
+3.  User requests to view a specific contact in the list
+4.  System shows all details of the contact, including every context
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. User finds the contact by context (UC02) or by name (UC03) instead.
+
+  Use case resumes at step 3.
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The requested contact is not in the displayed list.
+
+    * 3a1. System shows an error message.
+
+      Use case resumes at step 2.
 
 ### Non-Functional Requirements
 
