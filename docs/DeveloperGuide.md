@@ -324,10 +324,16 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Glossary
 
-* **Hackathon**: a collaborative event for programmers to work intensively to build functional software or hardware prototypes.
-* **Datathon**: a collaborative competition—similar to a hackathon—where participants analyze complex, real-world datasets to build data-driven applications, machine learning models, or strategic insights within a set timeframe
+* **Hackathon**: A collaborative event for programmers to work intensively to build functional software or hardware prototypes.
+* **Datathon**: A collaborative competition—similar to a hackathon—where participants analyze complex, real-world datasets to build data-driven applications, machine learning models, or strategic insights within a set timeframe
 * **Duplicate**: The input is considered as a duplicate when the email/phone number inputted matches one of stored emails/phone numbers in the database. Inputs with same name matched is allowed and will not be considered as a duplicate.
-* **Capitalisation**: whether the letters in a context name are uppercase or lowercase.
+* **Capitalisation**: Whether the letters in a context name are uppercase or lowercase.
+* **Contact**: A saved record representing a specific person within the user's academic, professional, or social network.
+* **Context**: A descriptive tag representing the shared environment, activity, or relationship (such as a school module, project team, CCA, internship, or event) that explains how or where the user knows a specific person.
+* **Index**: A numerical value used to identify and select a specific contact based on its position in the currently displayed contact list.
+* **Partial-match**: A name/context input can match to multiple contacts in the local JSON.
+* **Case-insensitive**: No distinctions between uppercase and lowercase inputs including commands, names and contexts.
+* **Session**: A single continuous period of using UniContacts, starting when the application is opened and ending when it is closed.
 
 *{More to be added}*
 
