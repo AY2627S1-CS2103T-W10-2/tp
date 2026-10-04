@@ -140,5 +140,4 @@ public class RemarkCommandTest {
         String expected = RemarkCommand.class.getCanonicalName() + "{index=" + index + ", remark=" + remark + "}";
         assertEquals(expected, remarkCommand.toString());
     }
-
 }
