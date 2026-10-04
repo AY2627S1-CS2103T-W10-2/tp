@@ -451,37 +451,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
-**Use case: UC06 - View a contact**
 
-**Guarantees**
-
-* No contact data is changed.
-* All of the contact's details are shown, including every context.
-
-**MSS**
-
-1.  User requests to list contacts
-2.  System shows a list of contacts
-3.  User requests to view a specific contact in the list
-4.  System shows all details of the contact, including every context
-
-    Use case ends.
-
-**Extensions**
-
-* 1a. User finds the contact by context (UC02) or by name (UC03) instead.
-
-  Use case resumes at step 3.
-
-* 2a. The list is empty.
-
-  Use case ends.
-
-* 3a. The requested contact is not in the displayed list.
-
-    * 3a1. System shows an error message.
-
-      Use case resumes at step 2.
 
 ### Non-Functional Requirements
 
