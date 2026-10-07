@@ -261,71 +261,267 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
+* is a Computer Science (CS) student at university
+* actively builds and maintains academic and professional networks through modules, project teams, hackathons, tech communities, internships and other collaborative activities
+* accumulates contacts across many overlapping academic and professional contexts
+* often remembers the context in which they know someone, but not the person's exact details
 * has a need to manage a significant number of contacts
 * prefers desktop apps over other types of applications
 * can type fast
 * prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: Help CS students organise and retrieve people in their academic and professional network, especially when they remember the context in which they know someone but not the person's exact details. Each contact is saved with one or more contexts (e.g. a module, project team, hackathon or internship), so users can find the right person by name or context, faster than with a typical mouse-driven contact app.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
+The stories below cover UniContacts' core requirements, future candidates, and ideas considered but excluded from the product scope. They describe user needs, not the implementation status of features. Future candidates are outside the MVP and are not commitments for the final release.
 
-*{More to be added}*
+US1 to US22 retain the identifiers from the Project Notes.
+
+#### Core requirements
+
+| ID | Priority | As a ... | I want to ... | So that I can ... |
+| --- | --- | --- | --- | --- |
+| US1 | `* * *` | CS student who meets people at hackathons or datathons | record where and how I met someone when adding their contact | recall the connection even if I later forget their name |
+| US4 | `* * *` | CS student with limited time | quickly add a contact with a name and context, even when I do not yet have their phone number or email | capture people I meet before I forget their details |
+| US5 | `* * *` | CS student who meets people through different activities | organise contacts using contexts such as modules, clubs, internships, and events | remember which parts of my network each person belongs to |
+| US10 | `* * *` | CS student who remembers an activity but not someone's name | search contacts by their associated module, event, project, or organisation | find the right person using the context I remember |
+| US11 | `* * *` | CS student who knows someone through several activities | associate multiple contexts with the same contact | keep those connections together without creating a separate entry for each context |
+| US15 | `* * *` | CS student who remembers only part of a name | search contacts using a full or partial name regardless of capitalisation | find someone without remembering their exact full name |
+| US16 | `* * *` | CS student who knows people with similar names | see contextual information alongside search results | distinguish between the matching contacts |
+| US18 | `* * *` | CS student reconnecting with people from a particular activity | view contacts associated with a module, event, project, or organisation | rediscover people from that group |
+
+Context-based search (US10) is a core requirement because it directly supports UniContacts' value proposition: retrieving people through the contexts in which the user knows them.
+
+#### Future candidates
+
+These stories record useful extensions beyond the MVP. Their priorities express their relative importance; inclusion here does not mean they will all be implemented.
+
+| ID | Priority | As a ... | I want to ... | So that I can ... |
+| --- | --- | --- | --- | --- |
+| US3 | `* *` | CS student looking for teammates or collaborators | filter contacts by skills, interests, or past project experience | find suitable people for future projects or hackathons |
+| US6 | `* *` | CS student maintaining relationships | set reminders to check in with contacts | avoid losing touch with people in my network |
+| US7 | `*` | CS student building a network | record and view which of my contacts know each other | understand the connections within my network |
+| US8 | `* *` | CS student keeping track of friends' activities | record and view notes about a contact's current role, project, or location | recall what they are doing without asking for the same information again |
+| US9 | `* *` | CS student exploring career paths | search or filter contacts by role, company, or field | identify people whose experience is relevant to my career interests |
+| US12 | `* *` | CS student who connects with people through different channels | store additional contact channels, such as Telegram handles, alongside phone numbers and email addresses | choose an appropriate way to reach each person |
+| US13 | `* *` | CS student whose project team or module has ended | archive contacts I no longer actively need | keep my active list relevant while retaining past connections |
+| US14 | `* *` | CS student who regularly contacts a few key people | mark contacts as favourites | access them quickly without searching the whole list |
+| US17 | `* *` | CS student who remembers several partial details about someone | narrow search results to contacts matching all the clues I provide | identify the person from the combination of details I remember |
+| US19 | `* *` | CS student who met someone through another person | record who introduced me to a contact | remember how the connection was formed |
+| US20 | `* *` | CS student whose contacts' details and shared activities change | edit contact details and add or remove contexts | keep records accurate without deleting and recreating contacts |
+| US21 | `* *` | CS student who knows someone by more than one name | record and search a contact's nickname or alternative name | find them using the name I remember |
+| US22 | `* *` | CS student who needs to remember additional details about a person | attach a short personal note to a contact | retain useful information that does not fit the standard contact fields |
+
+The MVP already allows optional phone and email details; US12 extends this to additional channels. The MVP's multi-keyword search matches any supplied keyword, whereas US17 requires matching all supplied clues to narrow the results. Editing (US20) remains a future candidate as described in the MVP discussions.
+
+#### Considered but excluded
+
+The following story is retained to document the scope decision. UniContacts manages a student's personal contacts; social discovery is outside its intended scope. The priority records the desirability of the idea, not a commitment to implement it.
+
+| ID | Priority | As a ... | I want to ... | So that I can ... |
+| --- | --- | --- | --- | --- |
+| US2 | `* *` | CS student seeking social connections | discover and start conversations with other students who share my interests | make friends beyond my existing contacts |
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `UniContacts` and the **Actor** is the `user`. Steps state the user's intention rather than command syntax; command formats and error messages are specified in the User Guide.)
 
-**Use case: Delete a person**
+**Use case: UC01 - Add a contact**
+
+**Guarantees**
+
+* If the entered data is invalid or duplicates an existing contact, no contact is added.
+* Otherwise, the new contact is stored with its name and at least one context.
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1.  User requests to add a contact, providing the contact's name, at least one context, and optionally a phone number and email
+2.  System adds the contact and shows the details of the new contact
 
     Use case ends.
 
 **Extensions**
 
+* 1a. System detects an error in the entered data.
+
+    * 1a1. System shows an error message with the correct format.
+
+    * 1a2. User enters new data.
+
+      Steps 1a1-1a2 are repeated until the data entered are correct.
+
+      Use case resumes at step 2.
+
+* 1b. The phone number or email matches an existing contact.
+
+    * 1b1. System informs the user that the contact already exists.
+
+      Use case ends.
+
+* 2a. System is unable to save the change.
+
+    * 2a1. System adds the contact for the current session and warns the user that the change may be lost when the app is closed.
+
+      Use case ends.
+
+
+**Use case: UC02 - Find contacts by context**
+
+**Guarantees**
+
+* No contact data is changed.
+* Every saved contact with a context matching the request is shown, regardless of capitalisation.
+
+**MSS**
+
+1.  User requests to find contacts linked to a specific context
+2.  System shows the matching contacts filtered by that specific context
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. User does not remember the exact context.
+
+    * 1a1. User views all contexts (UC05).
+
+      Use case resumes at step 1.
+
+* 1b. User does not specify a context.
+
+    * 1b1. System shows an error message with the correct format.
+
+      Use case resumes at step 1.
+
+* 2a. No contacts match the context.
+
+    * 2a1. System shows an empty list and informs the user that no contacts were found.
+
+      Use case ends.
+
+**Use case: UC03 - Find contacts by name**
+
+**Guarantees**
+
+* No contact data is changed.
+* Every saved contact whose name contains the requested name is shown, regardless of capitalisation.
+
+**MSS**
+
+1.  User requests to find contacts by a full or partial name
+2.  System shows the matching contacts, each with its contexts
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. User does not specify a name.
+
+    * 1a1. System shows an error message with the correct format.
+
+      Use case resumes at step 1.
+
+* 2a. No contacts match the name.
+
+    * 2a1. System shows an empty list and informs the user that no contacts were found.
+
+      Use case ends.
+
+**Use case: UC04 - Delete a contact**
+
+**Guarantees**
+
+* If the user does not identify a contact in the displayed list, no contact is deleted.
+* Only the identified contact is deleted; other contacts, including ones with the same name, are unchanged.
+* The deleted contact no longer appears in the contact list.
+
+**MSS**
+
+1.  User requests to list contacts
+2.  System shows a list of contacts
+3.  User requests to delete a specific contact in the list
+4.  System deletes the contact and shows the details of the deleted contact
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. User finds the contact by context (UC02) or by name (UC03) instead.
+
+  Use case resumes at step 3.
+
 * 2a. The list is empty.
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The requested contact is not in the displayed list.
 
-    * 3a1. AddressBook shows an error message.
+    * 3a1. System shows an error message.
 
       Use case resumes at step 2.
 
-*{More to be added}*
+* 4a. System is unable to save the change.
+
+    * 4a1. System deletes the contact for the current session and warns the user that the change may be lost when the app is closed.
+
+      Use case ends.
+
+**Use case: UC05 - View all contexts**
+
+**Guarantees**
+
+* No contact data is changed, and the displayed contact list is unchanged.
+* Each context appears once, regardless of capitalisation or extra spaces.
+
+**MSS**
+
+1.  User requests to view all contexts
+2.  System shows each context in alphabetical order, with the number of contacts linked to it
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. No contacts have been saved.
+
+    * 2a1. System informs the user that there are no contexts yet.
+
+      Use case ends.
+
+
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1.  UniContacts should work on Windows, Linux, and macOS computers with Java `25` installed.
+2.  UniContacts should be distributed as a single JAR file no larger than 100 MB and should not require an installer.
+3.  All features should remain usable without an Internet connection, a user account, or a remote server.
+4.  Contact data should be stored locally in a human-editable text file without using a database management system. Correctly formatted manual edits to the data file should be loaded by the application.
+5.  UniContacts should support a single user per installation and should not require its data file to be shared or accessed concurrently.
+6.  Contact data should not be transmitted outside the user's computer.
+7.  UniContacts should be able to hold up to 1000 contacts. Commands used during typical operation, such as adding, editing, deleting, listing, and finding contacts, should complete within one second.
+8.  A user with above-average typing speed for regular English text should be able to perform all primary contact-management tasks using only the keyboard and faster than with an equivalent mouse-driven interface.
+9.  The GUI should work well at resolutions of `1920x1080` and above with screen scales of 100% and 125%. It should remain usable at resolutions of `1280x720` and above with a screen scale of 150%.
+10. Invalid commands and invalid contact details entered by the user should not modify existing contact data or cause the application to stop responding. The application should display an error message and remain usable.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Hackathon**: A collaborative event for programmers to work intensively to build functional software or hardware prototypes.
+* **Datathon**: A collaborative competition—similar to a hackathon—where participants analyze complex, real-world datasets to build data-driven applications, machine learning models, or strategic insights within a set timeframe
+* **Duplicate**: The input is considered as a duplicate when the email/phone number inputted matches one of stored emails/phone numbers in the database. Inputs with same name matched is allowed and will not be considered as a duplicate.
+* **Capitalisation**: Whether the letters in a context name are uppercase or lowercase.
+* **Contact**: A saved record representing a specific person within the user's academic, professional, or social network.
+* **Context**: A descriptive tag representing the shared environment, activity, or relationship (such as a school module, project team, CCA, internship, or event) that explains how or where the user knows a specific person.
+* **Index**: A numerical value used to identify and select a specific contact based on its position in the currently displayed contact list.
+* **Partial-match**: A name/context input can match to multiple contacts in the local JSON.
+* **Case-insensitive**: No distinctions between uppercase and lowercase inputs including commands, names and contexts.
+* **Session**: A single continuous period of using UniContacts, starting when the application is opened and ending when it is closed.
+
+*{More to be added}*
 
 --------------------------------------------------------------------------------------------------------------------
 
