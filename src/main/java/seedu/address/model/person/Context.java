@@ -1,4 +1,5 @@
 package seedu.address.model.person;
+
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
 import java.util.Locale;
@@ -10,14 +11,18 @@ import java.util.Locale;
  */
 public class Context {
 
-    public static final String MESSAGE_CONSTRAINTS = "Context descriptions should not be blank";
+    public static final String MESSAGE_CONSTRAINTS = "Contexts should start with a letter or digit, "
+            + "contain only letters, digits, spaces and & - . ' #, and be at most 50 characters long.";
+
+    /** Matches 1 to 50 characters, starting with a letter or digit, then letters, digits, spaces or & - . ' #. */
+    public static final String VALIDATION_REGEX = "[A-Za-z0-9][A-Za-z0-9 &.'#-]{0,49}";
 
     public final String description;
 
     /**
      * Constructs a {@code Context}.
      *
-     * @param description A valid description.
+     * @param description A valid description. Surrounding spaces are removed; the casing is kept as typed.
      */
     public Context(String description) {
         checkArgument(isValidDescription(description), MESSAGE_CONSTRAINTS);
@@ -25,10 +30,10 @@ public class Context {
     }
 
     /**
-     * Returns true if a given string is a valid context description.
+     * Returns true if a given string is a valid context description once trimmed.
      */
     public static boolean isValidDescription(String test) {
-        return test != null && !test.isBlank();
+        return test != null && test.trim().matches(VALIDATION_REGEX);
     }
 
     @Override
