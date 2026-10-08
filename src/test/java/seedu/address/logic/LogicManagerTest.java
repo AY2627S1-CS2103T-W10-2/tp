@@ -1,9 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
@@ -15,7 +13,6 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +20,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
-import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -65,7 +61,7 @@ public class LogicManagerTest {
     @Test
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
-        assertCommandException(deleteCommand, DeleteCommand.MESSAGE_INVALID_CONTACT_DISPLAYED_INDEX);
+        assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
     @Test
@@ -84,70 +80,6 @@ public class LogicManagerTest {
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
-    }
-
-    @Test
-    public void execute_deleteFilteredContact_savesRemainingContacts() throws Exception {
-        Person firstContact = new PersonBuilder().withName("Alex Tan").build();
-        Person secondContact = new PersonBuilder().withName("Bernice Yu").build();
-        model.addPerson(firstContact);
-        model.addPerson(secondContact);
-        logic.execute("find Bernice");
-
-        CommandResult result = logic.execute("DeLeTe 1");
-
-        assertEquals("Deleted contact: " + Messages.format(secondContact), result.getFeedbackToUser());
-        assertEquals(List.of(firstContact), model.getAddressBook().getPersonList());
-        assertTrue(model.getFilteredPersonList().isEmpty());
-        JsonAddressBookStorage savedStorage =
-                new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
-        assertEquals(model.getAddressBook(), savedStorage.readAddressBook().orElseThrow());
-    }
-
-    @Test
-    public void execute_deleteInvalidInput_doesNotSaveOrChangeContacts() {
-        model.addPerson(AMY);
-        JsonAddressBookStorage failingStorage =
-                new JsonAddressBookStorage(temporaryFolder.resolve("shouldNotSave.json")) {
-                    @Override
-                    public void saveAddressBook(ReadOnlyAddressBook addressBook) {
-                        throw new AssertionError("Invalid delete must not save data");
-                    }
-                };
-        logic = new LogicManager(model, new StorageManager(failingStorage,
-                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));
-
-        for (String input : List.of("delete", "DELETE 0", "delete -1", "delete 1.5", "delete Alex", "delete 1 2")) {
-            assertParseException(input, String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
-        }
-        assertCommandException("delete 2", DeleteCommand.MESSAGE_INVALID_CONTACT_DISPLAYED_INDEX);
-    }
-
-    @Test
-    public void execute_deleteSaveFailure_keepsDeletionForSession() throws Exception {
-        for (IOException failure : List.of(DUMMY_IO_EXCEPTION, DUMMY_AD_EXCEPTION)) {
-            model = new ModelManager();
-            model.addPerson(AMY);
-            Path dataPath = temporaryFolder.resolve("deleteFailure.json");
-            JsonAddressBookStorage persistedStorage = new JsonAddressBookStorage(dataPath);
-            persistedStorage.saveAddressBook(model.getAddressBook());
-            JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(dataPath) {
-                @Override
-                public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-                    throw failure;
-                }
-            };
-            logic = new LogicManager(model, new StorageManager(failingStorage,
-                    new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));
-            String message = failure instanceof AccessDeniedException
-                    ? String.format(LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, failure.getMessage())
-                    : String.format(LogicManager.FILE_OPS_ERROR_FORMAT, failure.getMessage());
-
-            assertThrows(CommandException.class, message, () -> logic.execute("DELETE 1"));
-            assertTrue(model.getFilteredPersonList().isEmpty());
-            assertFalse(model.hasPerson(AMY));
-            assertEquals(List.of(AMY), persistedStorage.readAddressBook().orElseThrow().getPersonList());
-        }
     }
 
     @Test

@@ -36,13 +36,16 @@ public class ParserUtilTest {
 
     @Test
     public void parseIndex_invalidInput_throwsParseException() {
-        assertThrows(ParseException.class, () -> ParserUtil.parseIndex("10 a"));
+        for (String input : List.of("", " ", "0", "-1", "1.5", "Alex", "+1", "#", "1 2", "1 abc")) {
+            assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex(input));
+        }
     }
 
     @Test
     public void parseIndex_outOfRangeInput_throwsParseException() {
-        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, ()
-            -> ParserUtil.parseIndex(Long.toString(Integer.MAX_VALUE + 1)));
+        for (String input : List.of(Long.toString((long) Integer.MAX_VALUE + 1), "999999999999999999999")) {
+            assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex(input));
+        }
     }
 
     @Test
@@ -51,7 +54,7 @@ public class ParserUtilTest {
         assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("1"));
 
         // Leading and trailing whitespaces
-        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  "));
+        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex(WHITESPACE + "1" + WHITESPACE));
     }
 
     @Test
