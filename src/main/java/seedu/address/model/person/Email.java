@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Locale;
+
 /**
  * Represents a Person's email in the address book.
  * Guarantees: immutable; is valid as declared in {@link #isValidEmail(String)}
@@ -67,12 +69,12 @@ public class Email {
             return false;
         }
 
-        return value.equals(otherEmail.value);
+        return value.equalsIgnoreCase(otherEmail.value);
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        return value.toLowerCase(Locale.ROOT).hashCode();
     }
 
 }

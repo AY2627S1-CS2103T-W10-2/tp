@@ -3,6 +3,9 @@
 /build/
 src/main/resources/docs/
 
+# Java toolingß
+/bin/
+
 # IDEA files
 /.idea/
 /out/
@@ -29,3 +32,4 @@ CLAUDE.md
 
 # Temp files
 _temp/
+
