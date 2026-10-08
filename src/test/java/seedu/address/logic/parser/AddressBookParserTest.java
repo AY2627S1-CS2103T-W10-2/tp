@@ -53,6 +53,21 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_deleteDifferentCaseAndWhitespace_success() throws Exception {
+        for (String input : List.of("DELETE 1", "DeLeTe 1", "  delete   1  ", "\tDELETE\t1\t")) {
+            assertEquals(new DeleteCommand(INDEX_FIRST_PERSON), parser.parseCommand(input));
+        }
+    }
+
+    @Test
+    public void parseCommand_deleteInvalidArguments_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE);
+        for (String input : List.of("DELETE", "DeLeTe 0", "DELETE 1 2")) {
+            assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand(input));
+        }
+    }
+
+    @Test
     public void parseCommand_edit() throws Exception {
         Person person = new PersonBuilder().build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
