@@ -19,21 +19,34 @@ public class ListCommandTest {
 
     private Model model;
     private Model expectedModel;
+    private String expectedMessage;
 
     @BeforeEach
     public void setUp() {
         model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedMessage = String.format(
+                ListCommand.MESSAGE_SUCCESS,
+                expectedModel.getFilteredPersonList().size());
     }
 
     @Test
     public void execute_listIsNotFiltered_showsSameList() {
-        assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_SUCCESS, expectedModel);
+        assertCommandSuccess(new ListCommand(), model, expectedMessage, expectedModel);
     }
 
     @Test
     public void execute_listIsFiltered_showsEverything() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_SUCCESS, expectedModel);
+        assertCommandSuccess(new ListCommand(), model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_emptyList_showsZeroContacts() {
+        Model emptyModel = new ModelManager();
+        Model expectedModel = new ModelManager();
+        String expectedMessage = String.format(ListCommand.MESSAGE_SUCCESS, 0);
+
+        assertCommandSuccess(new ListCommand(), emptyModel, expectedMessage, expectedModel);
     }
 }
