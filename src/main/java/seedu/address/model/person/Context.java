@@ -5,7 +5,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import java.util.Locale;
 
 /**
- * Represents a context (e.g. a module, club or event) that a {@code Contact} is linked to.
+ * Represents a context (e.g. a module, club or event) that a {@code Person} is linked to.
  * Guarantees: immutable; description is valid as declared in {@link #isValidDescription(String)}.
  * Two contexts are equal if their descriptions match, ignoring capitalisation and surrounding spaces.
  */
