@@ -25,6 +25,25 @@ public class PersonTest {
     }
 
     @Test
+    public void getContexts_modify_throwsUnsupportedOperationException() {
+        Person person = new PersonBuilder().withContexts("CS2103T").build();
+        assertThrows(UnsupportedOperationException.class, () -> person.getContexts().remove(new Context("CS2103T")));
+    }
+
+    @Test
+    public void constructor_withoutContexts_createsEmptyContextSet() {
+        Person person = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), ALICE.getTags());
+        assertTrue(person.getContexts().isEmpty());
+    }
+
+    @Test
+    public void constructor_nullContexts_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), ALICE.getTags(), null));
+    }
+
+    @Test
     public void isSamePerson() {
         // same object -> returns true
         assertTrue(ALICE.isSamePerson(ALICE));
@@ -88,12 +107,23 @@ public class PersonTest {
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different contexts -> returns false
+        editedAlice = new PersonBuilder(ALICE).withContexts("CS2103T").build();
+        assertFalse(ALICE.equals(editedAlice));
+
+        // contexts differing only in case -> returns true
+        Person personWithContext = new PersonBuilder(ALICE).withContexts("CS2103T").build();
+        Person personWithSameContext = new PersonBuilder(ALICE).withContexts("cs2103t").build();
+        assertEquals(personWithContext, personWithSameContext);
+        assertEquals(personWithContext.hashCode(), personWithSameContext.hashCode());
     }
 
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
+                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
+                + ", contexts=" + ALICE.getContexts() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }
