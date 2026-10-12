@@ -31,16 +31,42 @@ public class PersonTest {
     }
 
     @Test
+    public void getPhone_present_returnsPhone() {
+        assertTrue(ALICE.getPhone().isPresent());
+    }
+
+    @Test
+    public void getPhone_absent_returnsEmptyOptional() {
+        Person withoutPhone = new PersonBuilder(ALICE).withoutPhone().build();
+        assertTrue(withoutPhone.getPhone().isEmpty());
+    }
+
+    @Test
+    public void getEmail_absent_returnsEmptyOptional() {
+        Person withoutEmail = new PersonBuilder(ALICE).withoutEmail().build();
+        assertTrue(withoutEmail.getEmail().isEmpty());
+    }
+
+    @Test
+    public void equals_phoneAbsentVersusPresent() {
+        Person withoutPhone = new PersonBuilder(ALICE).withoutPhone().build();
+        assertFalse(ALICE.equals(withoutPhone));
+        assertTrue(withoutPhone.equals(new PersonBuilder(ALICE).withoutPhone().build()));
+        assertEquals(withoutPhone.hashCode(), new PersonBuilder(ALICE).withoutPhone().build().hashCode());
+    }
+
+    @Test
     public void constructor_withoutContexts_createsEmptyContextSet() {
-        Person person = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
-                ALICE.getAddress(), ALICE.getTags());
+        Person person = new Person(ALICE.getName(), ALICE.getPhone().orElse(null),
+                ALICE.getEmail().orElse(null), ALICE.getAddress(), ALICE.getTags());
         assertTrue(person.getContexts().isEmpty());
     }
 
     @Test
     public void constructor_nullContexts_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
-                ALICE.getAddress(), ALICE.getTags(), null));
+        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(),
+                ALICE.getPhone().orElse(null), ALICE.getEmail().orElse(null), ALICE.getAddress(),
+                ALICE.getTags(), null));
     }
 
     @Test
@@ -121,8 +147,10 @@ public class PersonTest {
 
     @Test
     public void toStringMethod() {
-        String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
+        String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName()
+                + ", phone=" + ALICE.getPhone().orElse(null)
+                + ", email=" + ALICE.getEmail().orElse(null)
+                + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
                 + ", contexts=" + ALICE.getContexts() + "}";
         assertEquals(expected, ALICE.toString());
     }

@@ -38,9 +38,9 @@ public class Messages {
         final StringBuilder builder = new StringBuilder();
         builder.append(person.getName())
                 .append("; Phone: ")
-                .append(person.getPhone())
+                .append(person.getPhone().map(Object::toString).orElse(""))
                 .append("; Email: ")
-                .append(person.getEmail())
+                .append(person.getEmail().map(Object::toString).orElse(""))
                 .append("; Address: ")
                 .append(person.getAddress())
                 .append("; Tags: ");
