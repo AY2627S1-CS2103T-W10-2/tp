@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
+import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
@@ -24,6 +25,7 @@ public class ParserUtilTest {
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TAG = "#friend";
+    private static final String INVALID_CONTEXT = "(orbital)";
 
     private static final String VALID_NAME = "Rachel Walker";
     private static final String VALID_PHONE = "123456";
@@ -31,6 +33,8 @@ public class ParserUtilTest {
     private static final String VALID_EMAIL = "rachel@example.com";
     private static final String VALID_TAG_1 = "friend";
     private static final String VALID_TAG_2 = "neighbour";
+    private static final String VALID_CONTEXT_1 = "CS2103T";
+    private static final String VALID_CONTEXT_2 = "Hiking club";
 
     private static final String WHITESPACE = " \t\r\n";
 
@@ -190,5 +194,56 @@ public class ParserUtilTest {
         Set<Tag> expectedTagSet = Set.of(new Tag(VALID_TAG_1), new Tag(VALID_TAG_2));
 
         assertEquals(expectedTagSet, actualTagSet);
+    }
+
+    @Test
+    public void parseContext_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseContext(null));
+    }
+
+    @Test
+    public void parseContext_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, Context.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseContext(INVALID_CONTEXT));
+        assertThrows(ParseException.class, Context.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseContext("   "));
+    }
+
+    @Test
+    public void parseContext_validValueWithoutWhitespace_returnsContext() throws Exception {
+        assertEquals(new Context(VALID_CONTEXT_1), ParserUtil.parseContext(VALID_CONTEXT_1));
+    }
+
+    @Test
+    public void parseContext_validValueWithWhitespace_returnsTrimmedContext() throws Exception {
+        String contextWithWhitespace = WHITESPACE + VALID_CONTEXT_1 + WHITESPACE;
+        assertEquals(new Context(VALID_CONTEXT_1), ParserUtil.parseContext(contextWithWhitespace));
+    }
+
+    @Test
+    public void parseContexts_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseContexts(null));
+    }
+
+    @Test
+    public void parseContexts_collectionWithInvalidContexts_throwsParseException() {
+        assertThrows(ParseException.class, () ->
+                ParserUtil.parseContexts(List.of(VALID_CONTEXT_1, INVALID_CONTEXT)));
+    }
+
+    @Test
+    public void parseContexts_emptyCollection_returnsEmptySet() throws Exception {
+        assertTrue(ParserUtil.parseContexts(List.of()).isEmpty());
+    }
+
+    @Test
+    public void parseContexts_collectionWithValidContexts_returnsContextSet() throws Exception {
+        Set<Context> actualContextSet = ParserUtil.parseContexts(List.of(VALID_CONTEXT_1, VALID_CONTEXT_2));
+        Set<Context> expectedContextSet = Set.of(new Context(VALID_CONTEXT_1), new Context(VALID_CONTEXT_2));
+
+        assertEquals(expectedContextSet, actualContextSet);
+    }
+
+    @Test
+    public void parseContexts_duplicatesDifferingOnlyInCase_returnsSingleContext() throws Exception {
+        assertEquals(1, ParserUtil.parseContexts(List.of("CS2103T", "cs2103t")).size());
     }
 }

@@ -16,7 +16,7 @@ import seedu.address.commons.util.ToStringBuilder;
  */
 public class Person {
 
-    public static final String MESSAGE_CONTEXT_REQUIRED = "A contact needs at least one context";
+    public static final String MESSAGE_CONTEXT_REQUIRED = "A person needs at least one context";
 
     // Identity fields
     private final Name name;
