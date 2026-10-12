@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -18,8 +19,8 @@ public class Person {
 
     // Identity fields
     private final Name name;
-    private final Phone phone;
-    private final Email email;
+    private final Optional<Phone> phone;
+    private final Optional<Email> email;
 
     // Data fields
     private final Address address;
@@ -27,20 +28,22 @@ public class Person {
     private final Set<Context> contexts = new HashSet<>();
 
     /**
-     * Every field must be present and not null.
+     * Every field except {@code phone} and {@code email} must be present and not null.
+     * {@code phone} and {@code email} may be null if absent.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
         this(name, phone, email, address, tags, Collections.emptySet());
     }
 
     /**
-     * Every field must be present and not null.
+     * Every field except {@code phone} and {@code email} must be present and not null.
+     * {@code phone} and {@code email} may be null if absent.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Context> contexts) {
-        requireAllNonNull(name, phone, email, address, tags, contexts);
+        requireAllNonNull(name, address, tags, contexts);
         this.name = name;
-        this.phone = phone;
-        this.email = email;
+        this.phone = Optional.ofNullable(phone);
+        this.email = Optional.ofNullable(email);
         this.address = address;
         this.tags.addAll(tags);
         this.contexts.addAll(contexts);
@@ -50,11 +53,11 @@ public class Person {
         return name;
     }
 
-    public Phone getPhone() {
+    public Optional<Phone> getPhone() {
         return phone;
     }
 
-    public Email getEmail() {
+    public Optional<Email> getEmail() {
         return email;
     }
 
@@ -124,8 +127,8 @@ public class Person {
     public String toString() {
         return new ToStringBuilder(this)
                 .add("name", name)
-                .add("phone", phone)
-                .add("email", email)
+                .add("phone", phone.orElse(null))
+                .add("email", email.orElse(null))
                 .add("address", address)
                 .add("tags", tags)
                 .add("contexts", contexts)
