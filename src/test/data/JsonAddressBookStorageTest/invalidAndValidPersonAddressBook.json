@@ -1,13 +1,20 @@
 {
-  "persons": [ {
-    "name": "Valid Person",
-    "phone": "9482424",
-    "email": "hans@example.com",
-    "address": "4th street"
-  }, {
-    "name": "Person With Invalid Phone Field",
-    "phone": "948asdf2424",
-    "email": "hans@example.com",
-    "address": "4th street"
-  } ]
+  "persons": [
+    {
+      "name": "Valid Person",
+      "phone": "9482424",
+      "email": "hans@example.com",
+      "contexts": [
+        "CS2103T"
+      ]
+    },
+    {
+      "name": "Person With Invalid Phone Field",
+      "phone": "ryan_donkey_kong",
+      "email": "hans@example.com",
+      "contexts": [
+        "CS2103T"
+      ]
+    }
+  ]
 }

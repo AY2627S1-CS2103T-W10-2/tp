@@ -10,6 +10,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
+import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
@@ -120,5 +121,32 @@ public class ParserUtil {
             tagSet.add(parseTag(tagName));
         }
         return tagSet;
+    }
+
+    /**
+     * Parses a {@code String context} into a {@code Context}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code context} is invalid.
+     */
+    public static Context parseContext(String context) throws ParseException {
+        requireNonNull(context);
+        String trimmedContext = context.trim();
+        if (!Context.isValidDescription(trimmedContext)) {
+            throw new ParseException(Context.MESSAGE_CONSTRAINTS);
+        }
+        return new Context(trimmedContext);
+    }
+
+    /**
+     * Parses {@code Collection<String> contexts} into a {@code Set<Context>}.
+     */
+    public static Set<Context> parseContexts(Collection<String> contexts) throws ParseException {
+        requireNonNull(contexts);
+        final Set<Context> contextSet = new HashSet<>();
+        for (String context : contexts) {
+            contextSet.add(parseContext(context));
+        }
+        return contextSet;
     }
 }
