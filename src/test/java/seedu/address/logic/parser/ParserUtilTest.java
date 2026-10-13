@@ -3,7 +3,9 @@ package seedu.address.logic.parser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_EMPTY_CONTEXT;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_EMPTY_EMAIL;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_EMPTY_NAME;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_EMPTY_PHONE;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -100,6 +102,12 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parsePhone_emptyValue_throwsParseException() {
+        assertThrows(ParseException.class, MESSAGE_EMPTY_PHONE, () -> ParserUtil.parsePhone(""));
+        assertThrows(ParseException.class, MESSAGE_EMPTY_PHONE, () -> ParserUtil.parsePhone(WHITESPACE));
+    }
+
+    @Test
     public void parsePhone_validValueWithoutWhitespace_returnsPhone() throws Exception {
         Phone expectedPhone = new Phone(VALID_PHONE);
         assertEquals(expectedPhone, ParserUtil.parsePhone(VALID_PHONE));
@@ -143,6 +151,12 @@ public class ParserUtilTest {
     @Test
     public void parseEmail_invalidValue_throwsParseException() {
         assertThrows(ParseException.class, () -> ParserUtil.parseEmail(INVALID_EMAIL));
+    }
+
+    @Test
+    public void parseEmail_emptyValue_throwsParseException() {
+        assertThrows(ParseException.class, MESSAGE_EMPTY_EMAIL, () -> ParserUtil.parseEmail(""));
+        assertThrows(ParseException.class, MESSAGE_EMPTY_EMAIL, () -> ParserUtil.parseEmail(WHITESPACE));
     }
 
     @Test

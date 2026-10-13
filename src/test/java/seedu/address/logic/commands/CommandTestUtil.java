@@ -48,6 +48,8 @@ public class CommandTestUtil {
     public static final String INVALID_CONTEXT_DESC = " " + PREFIX_CONTEXT + "(orbital)"; // '(' not allowed in contexts
 
     public static final String EMPTY_NAME_DESC = " " + PREFIX_NAME;
+    public static final String EMPTY_PHONE_DESC = " " + PREFIX_PHONE;
+    public static final String EMPTY_EMAIL_DESC = " " + PREFIX_EMAIL;
     public static final String EMPTY_CONTEXT_DESC = " " + PREFIX_CONTEXT;
 
     public static final String PREAMBLE_WHITESPACE = "\t  \r  \n";

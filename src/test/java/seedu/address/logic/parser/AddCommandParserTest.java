@@ -6,7 +6,9 @@ import static seedu.address.logic.commands.CommandTestUtil.CONTEXT_DESC_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.EMPTY_CONTEXT_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.EMPTY_EMAIL_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.EMPTY_NAME_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.EMPTY_PHONE_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_CONTEXT_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_EMAIL_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_NAME_DESC;
@@ -124,6 +126,14 @@ public class AddCommandParserTest {
         // empty name
         assertParseFailure(parser, EMPTY_NAME_DESC + PHONE_DESC_BOB + EMAIL_DESC_BOB + CONTEXT_DESC_FRIEND,
                 ParserUtil.MESSAGE_EMPTY_NAME);
+
+        // empty phone
+        assertParseFailure(parser, NAME_DESC_BOB + EMPTY_PHONE_DESC + EMAIL_DESC_BOB + CONTEXT_DESC_FRIEND,
+                ParserUtil.MESSAGE_EMPTY_PHONE);
+
+        // empty email
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMPTY_EMAIL_DESC + CONTEXT_DESC_FRIEND,
+                ParserUtil.MESSAGE_EMPTY_EMAIL);
 
         // empty context
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + EMPTY_CONTEXT_DESC,

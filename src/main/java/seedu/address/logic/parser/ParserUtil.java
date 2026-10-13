@@ -1,6 +1,8 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -24,6 +26,10 @@ public class ParserUtil {
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
     public static final String MESSAGE_EMPTY_CONTEXT = "Contexts cannot be empty.";
+    public static final String MESSAGE_EMPTY_PHONE =
+            "Phone number cannot be empty. Leave out " + PREFIX_PHONE + " if there is no phone number.";
+    public static final String MESSAGE_EMPTY_EMAIL =
+            "Email cannot be empty. Leave out " + PREFIX_EMAIL + " if there is no email.";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -64,6 +70,9 @@ public class ParserUtil {
      */
     public static Phone parsePhone(String phone) throws ParseException {
         requireNonNull(phone);
+        if (phone.isBlank()) {
+            throw new ParseException(MESSAGE_EMPTY_PHONE);
+        }
         String trimmedPhone = phone.trim();
         if (!Phone.isValidPhone(trimmedPhone)) {
             throw new ParseException(Phone.MESSAGE_CONSTRAINTS);
@@ -94,6 +103,9 @@ public class ParserUtil {
      */
     public static Email parseEmail(String email) throws ParseException {
         requireNonNull(email);
+        if (email.isBlank()) {
+            throw new ParseException(MESSAGE_EMPTY_EMAIL);
+        }
         String trimmedEmail = email.trim();
         if (!Email.isValidEmail(trimmedEmail)) {
             throw new ParseException(Email.MESSAGE_CONSTRAINTS);
