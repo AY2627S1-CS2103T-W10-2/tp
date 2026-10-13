@@ -37,7 +37,6 @@ public class UniquePersonList implements Iterable<Person> {
         return findDuplicate(toCheck).isPresent();
     }
 
-
     /**
      * Returns the first person in the list with the same identity as the given argument,
      * or an empty {@code Optional} if there is none.
@@ -45,6 +44,17 @@ public class UniquePersonList implements Iterable<Person> {
     public Optional<Person> findDuplicate(Person toCheck) {
         requireNonNull(toCheck);
         return internalList.stream().filter(toCheck::isSamePerson).findFirst();
+    }
+
+    /**
+     * Returns the first person in the list other than {@code toSkip} with the same identity as {@code toCheck},
+     * or an empty {@code Optional} if there is none.
+     */
+    public Optional<Person> findDuplicate(Person toCheck, Person toSkip) {
+        requireAllNonNull(toCheck, toSkip);
+        return internalList.stream()
+                .filter(person -> person != toSkip && toCheck.isSamePerson(person))
+                .findFirst();
     }
 
     /**
@@ -72,7 +82,7 @@ public class UniquePersonList implements Iterable<Person> {
             throw new PersonNotFoundException();
         }
 
-        if (!target.isSamePerson(editedPerson) && contains(editedPerson)) {
+        if (findDuplicate(editedPerson, target).isPresent()) {
             throw new DuplicatePersonException();
         }
 

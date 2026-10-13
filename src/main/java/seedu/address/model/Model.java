@@ -49,6 +49,12 @@ public interface Model {
     Optional<Person> findDuplicate(Person person);
 
     /**
+     * Returns the first person other than {@code toSkip} with the same identity as {@code toCheck}
+     * in the address book, or an empty {@code Optional} if there is none.
+     */
+    Optional<Person> findDuplicate(Person toCheck, Person toSkip);
+
+    /**
      * Deletes the given person.
      * The person must exist in the address book.
      */

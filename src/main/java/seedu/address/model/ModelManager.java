@@ -83,6 +83,12 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public Optional<Person> findDuplicate(Person toCheck, Person toSkip) {
+        requireAllNonNull(toCheck, toSkip);
+        return addressBook.findDuplicate(toCheck, toSkip);
+    }
+
+    @Override
     public void deletePerson(Person target) {
         addressBook.removePerson(target);
     }
