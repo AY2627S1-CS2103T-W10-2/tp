@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.Optional;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
@@ -55,6 +56,16 @@ public class AddressBook implements ReadOnlyAddressBook {
         requireNonNull(person);
         return persons.contains(person);
     }
+
+    /**
+     * Returns the first person with the same identity as {@code toCheck} in the address book,
+     * or an empty {@code Optional} if there is none.
+     */
+    public Optional<Person> findDuplicate(Person toCheck) {
+        requireNonNull(toCheck);
+        return persons.findDuplicate(toCheck);
+    }
+
 
     /**
      * Adds a person to the address book.
