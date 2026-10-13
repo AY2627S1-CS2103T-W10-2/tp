@@ -30,7 +30,6 @@ public class Messages {
 
         return MESSAGE_DUPLICATE_FIELDS + String.join(" ", duplicateFields);
     }
-
     /**
      * Formats the {@code person} for display to the user.
      */
@@ -41,10 +40,11 @@ public class Messages {
                 .append(person.getPhone().map(Object::toString).orElse(""))
                 .append("; Email: ")
                 .append(person.getEmail().map(Object::toString).orElse(""))
-                .append("; Address: ")
-                .append(person.getAddress())
-                .append("; Tags: ");
-        person.getTags().forEach(builder::append);
+                .append("; Contexts: ")
+                .append(person.getContexts().stream()
+                        .map(Object::toString)
+                        .sorted(String.CASE_INSENSITIVE_ORDER)
+                        .collect(Collectors.joining(", ")));
         return builder.toString();
     }
 

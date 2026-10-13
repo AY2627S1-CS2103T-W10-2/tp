@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.model.tag.Tag;
 
 /**
  * Represents a Person in the address book.
@@ -17,35 +16,30 @@ import seedu.address.model.tag.Tag;
  */
 public class Person {
 
+    public static final String MESSAGE_CONTEXT_REQUIRED = "A person needs at least one context";
+
     // Identity fields
     private final Name name;
     private final Optional<Phone> phone;
     private final Optional<Email> email;
 
     // Data fields
-    private final Address address;
-    private final Set<Tag> tags = new HashSet<>();
     private final Set<Context> contexts = new HashSet<>();
 
     /**
      * Every field except {@code phone} and {@code email} must be present and not null.
      * {@code phone} and {@code email} may be null if absent.
+     *
+     * @throws IllegalArgumentException if {@code contexts} is empty.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, tags, Collections.emptySet());
-    }
-
-    /**
-     * Every field except {@code phone} and {@code email} must be present and not null.
-     * {@code phone} and {@code email} may be null if absent.
-     */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Context> contexts) {
-        requireAllNonNull(name, address, tags, contexts);
+    public Person(Name name, Phone phone, Email email, Set<Context> contexts) {
+        requireAllNonNull(name, contexts);
+        if (contexts.isEmpty()) {
+            throw new IllegalArgumentException(MESSAGE_CONTEXT_REQUIRED);
+        }
         this.name = name;
         this.phone = Optional.ofNullable(phone);
         this.email = Optional.ofNullable(email);
-        this.address = address;
-        this.tags.addAll(tags);
         this.contexts.addAll(contexts);
     }
 
@@ -61,18 +55,6 @@ public class Person {
         return email;
     }
 
-    public Address getAddress() {
-        return address;
-    }
-
-    /**
-     * Returns an immutable tag set, which throws {@code UnsupportedOperationException}
-     * if modification is attempted.
-     */
-    public Set<Tag> getTags() {
-        return Collections.unmodifiableSet(tags);
-    }
-
     /**
      * Returns an immutable context set, which throws {@code UnsupportedOperationException}
      * if modification is attempted.
@@ -82,7 +64,8 @@ public class Person {
     }
 
     /**
-     * Returns true if both persons have the same name.
+     * Returns true if both persons share a phone number or an email.
+     * A missing phone or email never matches another missing one, and the name is not considered.
      * This defines a weaker notion of equality between two persons.
      */
     public boolean isSamePerson(Person otherPerson) {
@@ -91,7 +74,8 @@ public class Person {
         }
 
         return otherPerson != null
-                && otherPerson.getName().equals(getName());
+                && ((phone.isPresent() && phone.equals(otherPerson.phone))
+                || (email.isPresent() && email.equals(otherPerson.email)));
     }
 
     /**
@@ -112,15 +96,13 @@ public class Person {
         return name.equals(otherPerson.name)
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
-                && address.equals(otherPerson.address)
-                && tags.equals(otherPerson.tags)
                 && contexts.equals(otherPerson.contexts);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags, contexts);
+        return Objects.hash(name, phone, email, contexts);
     }
 
     @Override
@@ -129,8 +111,6 @@ public class Person {
                 .add("name", name)
                 .add("phone", phone.orElse(null))
                 .add("email", email.orElse(null))
-                .add("address", address)
-                .add("tags", tags)
                 .add("contexts", contexts)
                 .toString();
     }
