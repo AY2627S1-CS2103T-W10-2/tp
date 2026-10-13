@@ -50,7 +50,7 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(person.getPhone().map(p -> p.value).orElse(""));
         email.setText(person.getEmail().map(e -> e.value).orElse(""));
         person.getContexts().stream()
-                .sorted(Comparator.comparing(context -> context.description.toLowerCase()))
+                .sorted(Comparator.comparing(context -> context.description, String.CASE_INSENSITIVE_ORDER))
                 .forEach(context -> contexts.getChildren().add(new Label(context.description)));
     }
 }
