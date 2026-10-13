@@ -24,18 +24,40 @@ public class NameTest {
         // null name
         assertThrows(NullPointerException.class, () -> Name.isValidName(null));
 
-        // invalid name
+        // invalid name: blank
         assertFalse(Name.isValidName("")); // empty string
         assertFalse(Name.isValidName(" ")); // spaces only
-        assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
-        assertFalse(Name.isValidName("peter*")); // contains non-alphanumeric characters
 
-        // valid name
-        assertTrue(Name.isValidName("peter jack")); // alphabets only
-        assertTrue(Name.isValidName("12345")); // numbers only
-        assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
-        assertTrue(Name.isValidName("Capital Tan")); // with capital letters
-        assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
+        // invalid name: does not start with a letter
+        assertFalse(Name.isValidName("-Alex")); // starts with hyphen
+        assertFalse(Name.isValidName("'Alex")); // starts with apostrophe
+        assertFalse(Name.isValidName(".Alex")); // starts with period
+
+        // invalid name: contains disallowed characters
+        assertFalse(Name.isValidName("peter*")); // contains *
+        assertFalse(Name.isValidName("peter 123")); // contains digits
+        assertFalse(Name.isValidName("Raj s/o Kumar")); // contains /
+        assertFalse(Name.isValidName("@alex")); // contains @
+        assertFalse(Name.isValidName("Alex\tTan")); // tab is not a space
+
+        // invalid name: too long
+        assertFalse(Name.isValidName("A".repeat(101))); // 101 characters, one over the limit
+
+        // valid name: allowed characters
+        assertTrue(Name.isValidName("peter jack")); // letters and space only
+        assertTrue(Name.isValidName("Alex Tan")); // with capital letters
+        assertTrue(Name.isValidName("Jean-Luc")); // with hyphen
+        assertTrue(Name.isValidName("O'Brien")); // with apostrophe
+        assertTrue(Name.isValidName("J.H.")); // with periods
+        assertTrue(Name.isValidName("Jean--Luc O''Brien J.H..")); // repeated symbols
+
+        // valid name: examples from spec
+        assertTrue(Name.isValidName("Jean-Luc O'Brien"));
+        assertTrue(Name.isValidName("Muhammad bin Abdullah"));
+
+        // valid name: length boundaries
+        assertTrue(Name.isValidName("A")); // 1 character, minimum
+        assertTrue(Name.isValidName("A".repeat(100))); // 100 characters, maximum
     }
 
     @Test

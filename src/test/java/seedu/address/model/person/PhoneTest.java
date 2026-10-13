@@ -24,18 +24,43 @@ public class PhoneTest {
         // null phone number
         assertThrows(NullPointerException.class, () -> Phone.isValidPhone(null));
 
-        // invalid phone numbers
+        // invalid phone numbers: blank
         assertFalse(Phone.isValidPhone("")); // empty string
         assertFalse(Phone.isValidPhone(" ")); // spaces only
+        assertFalse(Phone.isValidPhone("+")); // plus only
         assertFalse(Phone.isValidPhone("91")); // less than 3 numbers
         assertFalse(Phone.isValidPhone("phone")); // non-numeric
         assertFalse(Phone.isValidPhone("9011p041")); // alphabets within digits
         assertFalse(Phone.isValidPhone("9312 1534")); // spaces within digits
+        assertFalse(Phone.isValidPhone("1234567890123456")); // 16 numbers
 
-        // valid phone numbers
-        assertTrue(Phone.isValidPhone("911")); // exactly 3 numbers
-        assertTrue(Phone.isValidPhone("93121534"));
-        assertTrue(Phone.isValidPhone("124293842033123")); // long phone numbers
+        // invalid phone numbers: disallowed characters
+        assertFalse(Phone.isValidPhone("phone")); // letters only
+        assertFalse(Phone.isValidPhone("9011p041")); // letter within digits
+        assertFalse(Phone.isValidPhone("9312 1534")); // space within digits
+        assertFalse(Phone.isValidPhone("9123-4567")); // hyphen within digits
+
+        // invalid phone numbers: misplaced plus
+        assertFalse(Phone.isValidPhone("+")); // plus only
+        assertFalse(Phone.isValidPhone("9123+4567")); // plus not at start
+        assertFalse(Phone.isValidPhone("++6591234567")); // more than one plus
+
+        // invalid phone numbers: wrong number of digits
+        assertFalse(Phone.isValidPhone("91")); // 2 digits, one under the minimum
+        assertFalse(Phone.isValidPhone("+12")); // plus does not count as a digit
+        assertFalse(Phone.isValidPhone("1234567890123456")); // 16 digits, one over the maximum
+        assertFalse(Phone.isValidPhone("+1234567890123456")); // 16 digits with plus
+
+        // valid phone numbers: examples from spec
+        assertTrue(Phone.isValidPhone("91234567"));
+        assertTrue(Phone.isValidPhone("+6591234567"));
+        assertTrue(Phone.isValidPhone("+14155550123"));
+
+        // valid phone numbers: length boundaries
+        assertTrue(Phone.isValidPhone("911")); // 3 digits, minimum
+        assertTrue(Phone.isValidPhone("123456789012345")); // 15 digits, maximum
+        assertTrue(Phone.isValidPhone("+911")); // minimum with plus
+        assertTrue(Phone.isValidPhone("+123456789012345")); // maximum with plus
     }
 
     @Test
