@@ -10,6 +10,7 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +44,33 @@ public class UniquePersonListTest {
         Person editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).withContexts(VALID_CONTEXT_HUSBAND)
                 .build();
         assertTrue(uniquePersonList.contains(editedAlice));
+    }
+
+    @Test
+    public void findDuplicate_nullPerson_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniquePersonList.findDuplicate(null));
+    }
+
+    @Test
+    public void findDuplicate_noDuplicate_returnsEmpty() {
+        uniquePersonList.add(ALICE);
+        assertEquals(Optional.empty(), uniquePersonList.findDuplicate(BOB));
+    }
+
+    @Test
+    public void findDuplicate_samePhone_returnsExistingPerson() {
+        uniquePersonList.add(ALICE);
+        Person samePhone = new PersonBuilder(BOB).withPhone(ALICE.getPhone().get().value).build();
+        assertEquals(Optional.of(ALICE), uniquePersonList.findDuplicate(samePhone));
+    }
+
+    @Test
+    public void findDuplicate_clashesWithSeveralPersons_returnsFirstInList() {
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(BOB);
+        // phone matches BOB, email matches ALICE; ALICE comes first in the list
+        Person clashesWithBoth = new PersonBuilder(BOB).withEmail(ALICE.getEmail().get().value).build();
+        assertEquals(Optional.of(ALICE), uniquePersonList.findDuplicate(clashesWithBoth));
     }
 
     @Test
