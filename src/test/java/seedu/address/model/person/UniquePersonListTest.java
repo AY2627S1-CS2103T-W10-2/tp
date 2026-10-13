@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_HUSBAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -74,6 +75,28 @@ public class UniquePersonListTest {
     }
 
     @Test
+    public void findDuplicate_nullPersonWithSkip_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniquePersonList.findDuplicate(null, ALICE));
+        assertThrows(NullPointerException.class, () -> uniquePersonList.findDuplicate(ALICE, null));
+    }
+
+    @Test
+    public void findDuplicate_onlyMatchIsSkippedPerson_returnsEmpty() {
+        uniquePersonList.add(ALICE);
+        Person editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).build();
+        assertEquals(Optional.empty(), uniquePersonList.findDuplicate(editedAlice, ALICE));
+    }
+
+    @Test
+    public void findDuplicate_matchesPersonOtherThanSkipped_returnsOtherPerson() {
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(BOB);
+        // keeps ALICE's phone but takes BOB's email
+        Person editedAlice = new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build();
+        assertEquals(Optional.of(BOB), uniquePersonList.findDuplicate(editedAlice, ALICE));
+    }
+
+    @Test
     public void add_nullPerson_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> uniquePersonList.add(null));
     }
@@ -133,6 +156,15 @@ public class UniquePersonListTest {
         uniquePersonList.add(ALICE);
         uniquePersonList.add(BOB);
         assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, BOB));
+    }
+
+    @Test
+    public void setPerson_editedPersonSharesOneFieldWithAnother_throwsDuplicatePersonException() {
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(BOB);
+        // keeps ALICE's phone but takes BOB's email
+        Person editedAlice = new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build();
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, editedAlice));
     }
 
     @Test

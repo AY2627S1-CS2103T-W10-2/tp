@@ -123,6 +123,30 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_duplicateEmailKeepingOwnPhone_failure() {
+        // keeps Alice's own phone but takes Benson's email
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withEmail("johnd@example.com").build());
+
+        assertCommandFailure(editCommand, model,
+                "This person already exists: Benson Meier has the same email (johnd@example.com).");
+    }
+
+    @Test
+    public void execute_samePhoneAsBefore_success() {
+        // the person being edited is not counted as a duplicate of itself
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone("94351253").build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(firstPerson));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_invalidPersonIndexUnfilteredList_failure() {
         Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();
