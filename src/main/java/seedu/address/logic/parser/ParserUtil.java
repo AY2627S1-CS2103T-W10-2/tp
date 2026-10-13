@@ -22,6 +22,8 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
+    public static final String MESSAGE_EMPTY_CONTEXT = "Contexts cannot be empty.";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -44,6 +46,9 @@ public class ParserUtil {
      */
     public static Name parseName(String name) throws ParseException {
         requireNonNull(name);
+        if (name.isBlank()) {
+            throw new ParseException(MESSAGE_EMPTY_NAME);
+        }
         String trimmedName = name.trim();
         if (!Name.isValidName(trimmedName)) {
             throw new ParseException(Name.MESSAGE_CONSTRAINTS);
@@ -131,6 +136,9 @@ public class ParserUtil {
      */
     public static Context parseContext(String context) throws ParseException {
         requireNonNull(context);
+        if (context.isBlank()) {
+            throw new ParseException(MESSAGE_EMPTY_CONTEXT);
+        }
         String trimmedContext = context.trim();
         if (!Context.isValidDescription(trimmedContext)) {
             throw new ParseException(Context.MESSAGE_CONSTRAINTS);

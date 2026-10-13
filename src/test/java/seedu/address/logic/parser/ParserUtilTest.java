@@ -2,6 +2,8 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_EMPTY_CONTEXT;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_EMPTY_NAME;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -66,6 +68,12 @@ public class ParserUtilTest {
     @Test
     public void parseName_invalidValue_throwsParseException() {
         assertThrows(ParseException.class, () -> ParserUtil.parseName(INVALID_NAME));
+    }
+
+    @Test
+    public void parseName_emptyValue_throwsParseException() {
+        assertThrows(ParseException.class, MESSAGE_EMPTY_NAME, () -> ParserUtil.parseName(""));
+        assertThrows(ParseException.class, MESSAGE_EMPTY_NAME, () -> ParserUtil.parseName(WHITESPACE));
     }
 
     @Test
@@ -204,7 +212,12 @@ public class ParserUtilTest {
     @Test
     public void parseContext_invalidValue_throwsParseException() {
         assertThrows(ParseException.class, Context.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseContext(INVALID_CONTEXT));
-        assertThrows(ParseException.class, Context.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseContext("   "));
+    }
+
+    @Test
+    public void parseContext_emptyValue_throwsParseException() {
+        assertThrows(ParseException.class, MESSAGE_EMPTY_CONTEXT, () -> ParserUtil.parseContext(""));
+        assertThrows(ParseException.class, MESSAGE_EMPTY_CONTEXT, () -> ParserUtil.parseContext(WHITESPACE));
     }
 
     @Test
