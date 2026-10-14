@@ -113,12 +113,14 @@ Examples:
 
 Finds persons whose names or contexts contain any of the given keywords.
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+Format: `find KEYWORD [MORE_KEYWORDS]…`
 
 * The command word and search are case-insensitive; for example, `FIND cs2103t` works.
 * Partial matches are supported; for example, `Alex` matches both `Alex Tan` and `Alexander Lim`.
 * A keyword can match either a person's name or any of their contexts.
 * Persons matching at least one keyword are returned (an `OR` search).
+* Each `find` command searches the full person list, even if a previous command filtered the displayed results.
+* Extra spaces before, between, or after keywords are ignored.
 * If no persons match, the app shows `No persons found!`.
 
 Examples:
@@ -193,6 +195,6 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find Alex CS2103T`
 **List** | `list`
 **Help** | `help`
