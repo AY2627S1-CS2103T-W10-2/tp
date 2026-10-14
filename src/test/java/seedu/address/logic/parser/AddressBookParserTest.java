@@ -146,5 +146,6 @@ public class AddressBookParserTest {
         assertTrue(parser.parseCommand("LiSt") instanceof ListCommand);
         assertEquals(new DeleteCommand(INDEX_FIRST_PERSON),
                 parser.parseCommand("DeLeTe " + INDEX_FIRST_PERSON.getOneBased()));
+        assertTrue(parser.parseCommand("FiNd Alex") instanceof FindCommand);
     }
 }
