@@ -12,7 +12,9 @@ public class ListCommand extends Command {
 
     public static final String COMMAND_WORD = "list";
 
-    public static final String MESSAGE_SUCCESS = "%1$d contact(s) listed.";
+    public static final String MESSAGE_SUCCESS_SINGULAR = "%1$d person listed.";
+    public static final String MESSAGE_SUCCESS_PLURAL = "%1$d people listed.";
+    public static final String MESSAGE_SUCCESS = MESSAGE_SUCCESS_PLURAL;
 
 
     @Override
@@ -20,7 +22,8 @@ public class ListCommand extends Command {
         requireNonNull(model);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
 
-        int contactCount = model.getFilteredPersonList().size();
-        return new CommandResult(String.format(MESSAGE_SUCCESS, contactCount));
+        int personCount = model.getFilteredPersonList().size();
+        String message = personCount == 1 ? MESSAGE_SUCCESS_SINGULAR : MESSAGE_SUCCESS_PLURAL;
+        return new CommandResult(String.format(message, personCount));
     }
 }
