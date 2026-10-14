@@ -89,9 +89,40 @@ Examples:
 
 ### Listing all persons: `list`
 
-Shows a list of all persons in the address book.
+Displays all persons saved.
+
+If the displayed person list was previously filtered using another command, such as `find`, the `list` command restores the complete person list.
 
 Format: `list`
+
+Each person is displayed in the following order:
+
+1. Name
+2. Contexts
+3. Phone number, if provided
+4. Email address, if provided
+
+Contexts are displayed in alphabetical order, ignoring capitalisation. Missing phone numbers and email addresses are not displayed.
+
+After the command is executed, the result display shows the number of persons listed:
+
+`NUMBER contact(s) listed.`
+
+Examples:
+
+* `list` — Displays all saved persons.
+* `LIST` — Command words are case-insensitive, so this also displays all persons.
+* If `find Tony` currently shows only persons matching `Tony`, entering `list` restores the complete person list.
+
+<div markdown="block" class="alert alert-info">
+
+**Note:**
+
+* The `list` command does not add, remove, edit, or reorder persons.
+* Person index numbers refer to the currently displayed list. After restoring the complete list, check the displayed index before using commands such as `edit` or `delete`.
+* If there are no persons, the displayed list remains empty and the result display shows `0 contact(s) listed.`
+
+</div>
 
 ### Editing a person: `edit`
 
