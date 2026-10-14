@@ -23,8 +23,8 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
@@ -101,12 +101,12 @@ public class AddressBookParserTest {
         List<String> keywords = List.of("foo", "bar", "baz");
         FindCommand command = (FindCommand) parser.parseCommand(
                 FindCommand.COMMAND_WORD + " " + keywords.stream().collect(Collectors.joining(" ")));
-        assertEquals(new FindCommand(new NameContainsKeywordsPredicate(keywords)), command);
+        assertEquals(new FindCommand(new PersonContainsKeywordsPredicate(keywords)), command);
 
         FindCommand commandUpperCase = (FindCommand) parser.parseCommand(
                 FindCommand.COMMAND_WORD.toUpperCase(Locale.ROOT) + " "
                 + keywords.stream().collect(Collectors.joining(" ")));
-        assertEquals(new FindCommand(new NameContainsKeywordsPredicate(keywords)), commandUpperCase);
+        assertEquals(new FindCommand(new PersonContainsKeywordsPredicate(keywords)), commandUpperCase);
     }
 
     @Test
@@ -146,5 +146,6 @@ public class AddressBookParserTest {
         assertTrue(parser.parseCommand("LiSt") instanceof ListCommand);
         assertEquals(new DeleteCommand(INDEX_FIRST_PERSON),
                 parser.parseCommand("DeLeTe " + INDEX_FIRST_PERSON.getOneBased()));
+        assertTrue(parser.parseCommand("FiNd Alex") instanceof FindCommand);
     }
 }
