@@ -30,6 +30,12 @@ public class ContextTest {
     }
 
     @Test
+    public void constructor_collapsesRepeatedSpaces() {
+        assertEquals("NUS Hackers", new Context("NUS   Hackers").description);
+        assertEquals("Hack & Roll 2026", new Context("  Hack  &   Roll 2026 ").description);
+    }
+
+    @Test
     public void isValidDescription() {
         assertFalse(Context.isValidDescription(null));
         assertFalse(Context.isValidDescription(" "));
@@ -57,6 +63,10 @@ public class ContextTest {
         assertTrue(Context.isValidDescription("a".repeat(50)));
         assertTrue(Context.isValidDescription("  " + "a".repeat(50) + "  "));
         assertFalse(Context.isValidDescription("a".repeat(51)));
+
+        // length is counted after collapsing repeated spaces
+        assertTrue(Context.isValidDescription("a".repeat(25) + "   " + "a".repeat(24))); // 50 once collapsed
+        assertFalse(Context.isValidDescription("a".repeat(25) + "   " + "a".repeat(25))); // 51 once collapsed
     }
 
     @Test
@@ -87,6 +97,8 @@ public class ContextTest {
         assertEquals(context, new Context("cs2103t"));
         assertEquals(context, new Context(" CS2103T "));
         assertEquals(context.hashCode(), new Context("cs2103t").hashCode());
+        assertEquals(new Context("NUS Hackers"), new Context("nus   hackers"));
+        assertEquals(new Context("NUS Hackers").hashCode(), new Context("nus   hackers").hashCode());
         assertNotEquals(context, new Context("CS2101"));
         assertNotEquals(context, null);
     }

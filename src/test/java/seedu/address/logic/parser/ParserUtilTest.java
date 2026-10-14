@@ -85,6 +85,11 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseName_repeatedSpaces_keepsSpacesAsTyped() throws Exception {
+        assertEquals("John   Doe", ParserUtil.parseName("John   Doe").fullName);
+    }
+
+    @Test
     public void parsePhone_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parsePhone((String) null));
     }
@@ -222,6 +227,17 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseContext_repeatedSpaces_returnsCollapsedContext() throws Exception {
+        assertEquals("NUS Hackers", ParserUtil.parseContext("NUS   Hackers").description);
+    }
+
+    @Test
+    public void parseContext_overLimitOnlyBeforeCollapsing_returnsContext() throws Exception {
+        String context = "a".repeat(25) + "   " + "a".repeat(24); // 52 characters, 50 once collapsed
+        assertEquals("a".repeat(25) + " " + "a".repeat(24), ParserUtil.parseContext(context).description);
+    }
+
+    @Test
     public void parseContexts_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseContexts(null));
     }
@@ -248,5 +264,12 @@ public class ParserUtilTest {
     @Test
     public void parseContexts_duplicatesDifferingOnlyInCase_returnsSingleContext() throws Exception {
         assertEquals(1, ParserUtil.parseContexts(List.of("CS2103T", "cs2103t")).size());
+    }
+
+    @Test
+    public void parseContexts_duplicatesDifferingOnlyInSpacing_returnsSingleContext() throws Exception {
+        Set<Context> contexts = ParserUtil.parseContexts(List.of("NUS   Hackers", "nus hackers"));
+        assertEquals(1, contexts.size());
+        assertEquals("NUS Hackers", contexts.iterator().next().description);
     }
 }
