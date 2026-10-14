@@ -18,6 +18,7 @@ public class Messages {
     public static final String MESSAGE_PERSONS_LISTED_OVERVIEW = "%1$d person(s) listed!";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
+    public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists: %1$s has the same %2$s (%3$s).";
 
     /**
      * Returns an error message indicating the duplicate prefixes.
@@ -30,21 +31,39 @@ public class Messages {
 
         return MESSAGE_DUPLICATE_FIELDS + String.join(" ", duplicateFields);
     }
+
+    /**
+     * Returns an error message indicating the duplicate person {@code existing}
+     * and the phone or email it shares with {@code toCheck}.
+     * {@code existing} must have the same identity as {@code toCheck}.
+     */
+    public static String getErrorMessageForDuplicatePerson(Person existing, Person toCheck) {
+        boolean isSamePhone = existing.getPhone().isPresent() && existing.getPhone().equals(toCheck.getPhone());
+        if (isSamePhone) {
+            return String.format(MESSAGE_DUPLICATE_PERSON,
+                    existing.getName(), "phone number", existing.getPhone().get());
+        }
+
+        // not a phone clash, so the two persons must share an email
+        return String.format(MESSAGE_DUPLICATE_PERSON,
+                existing.getName(), "email", existing.getEmail().get());
+    }
+
     /**
      * Formats the {@code person} for display to the user.
      */
     public static String format(Person person) {
         final StringBuilder builder = new StringBuilder();
         builder.append(person.getName())
-                .append("; Phone: ")
-                .append(person.getPhone().map(Object::toString).orElse(""))
-                .append("; Email: ")
-                .append(person.getEmail().map(Object::toString).orElse(""))
                 .append("; Contexts: ")
                 .append(person.getContexts().stream()
                         .map(Object::toString)
                         .sorted(String.CASE_INSENSITIVE_ORDER)
-                        .collect(Collectors.joining(", ")));
+                        .map(context -> "[" + context + "]")
+                        .collect(Collectors.joining(" ")));
+        // a missing phone or email is left out rather than shown as an empty field
+        person.getPhone().ifPresent(phone -> builder.append("; Phone: ").append(phone));
+        person.getEmail().ifPresent(email -> builder.append("; Email: ").append(email));
         return builder.toString();
     }
 

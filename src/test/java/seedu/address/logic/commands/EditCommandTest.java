@@ -105,7 +105,8 @@ public class EditCommandTest {
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(firstPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, descriptor);
 
-        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+        assertCommandFailure(editCommand, model,
+                "This person already exists: Alice Pauline has the same phone number (94351253).");
     }
 
     @Test
@@ -117,7 +118,32 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder(personInList).build());
 
-        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+        assertCommandFailure(editCommand, model,
+                "This person already exists: Benson Meier has the same phone number (98765432).");
+    }
+
+    @Test
+    public void execute_duplicateEmailKeepingOwnPhone_failure() {
+        // keeps Alice's own phone but takes Benson's email
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withEmail("johnd@example.com").build());
+
+        assertCommandFailure(editCommand, model,
+                "This person already exists: Benson Meier has the same email (johnd@example.com).");
+    }
+
+    @Test
+    public void execute_samePhoneAsBefore_success() {
+        // the person being edited is not counted as a duplicate of itself
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone("94351253").build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(firstPerson));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
     @Test

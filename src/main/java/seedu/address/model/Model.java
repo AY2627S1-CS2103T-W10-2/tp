@@ -1,5 +1,6 @@
 package seedu.address.model;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
@@ -40,6 +41,18 @@ public interface Model {
      * Returns true if a person with the same identity as {@code person} exists in the address book.
      */
     boolean hasPerson(Person person);
+
+    /**
+     * Returns the first person with the same identity as {@code person} in the address book,
+     * or an empty {@code Optional} if there is none.
+     */
+    Optional<Person> findDuplicate(Person person);
+
+    /**
+     * Returns the first person other than {@code toSkip} with the same identity as {@code toCheck}
+     * in the address book, or an empty {@code Optional} if there is none.
+     */
+    Optional<Person> findDuplicate(Person toCheck, Person toSkip);
 
     /**
      * Deletes the given person.

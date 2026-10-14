@@ -4,12 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_HUSBAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +45,55 @@ public class UniquePersonListTest {
         Person editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).withContexts(VALID_CONTEXT_HUSBAND)
                 .build();
         assertTrue(uniquePersonList.contains(editedAlice));
+    }
+
+    @Test
+    public void findDuplicate_nullPerson_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniquePersonList.findDuplicate(null));
+    }
+
+    @Test
+    public void findDuplicate_noDuplicate_returnsEmpty() {
+        uniquePersonList.add(ALICE);
+        assertEquals(Optional.empty(), uniquePersonList.findDuplicate(BOB));
+    }
+
+    @Test
+    public void findDuplicate_samePhone_returnsExistingPerson() {
+        uniquePersonList.add(ALICE);
+        Person samePhone = new PersonBuilder(BOB).withPhone(ALICE.getPhone().get().value).build();
+        assertEquals(Optional.of(ALICE), uniquePersonList.findDuplicate(samePhone));
+    }
+
+    @Test
+    public void findDuplicate_clashesWithSeveralPersons_returnsFirstInList() {
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(BOB);
+        // phone matches BOB, email matches ALICE; ALICE comes first in the list
+        Person clashesWithBoth = new PersonBuilder(BOB).withEmail(ALICE.getEmail().get().value).build();
+        assertEquals(Optional.of(ALICE), uniquePersonList.findDuplicate(clashesWithBoth));
+    }
+
+    @Test
+    public void findDuplicate_nullPersonWithSkip_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniquePersonList.findDuplicate(null, ALICE));
+        assertThrows(NullPointerException.class, () -> uniquePersonList.findDuplicate(ALICE, null));
+    }
+
+    @Test
+    public void findDuplicate_onlyMatchIsSkippedPerson_returnsEmpty() {
+        uniquePersonList.add(ALICE);
+        Person editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).build();
+        assertEquals(Optional.empty(), uniquePersonList.findDuplicate(editedAlice, ALICE));
+    }
+
+    @Test
+    public void findDuplicate_matchesPersonOtherThanSkipped_returnsOtherPerson() {
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(BOB);
+        // keeps ALICE's phone but takes BOB's email
+        Person editedAlice = new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build();
+        assertEquals(Optional.of(BOB), uniquePersonList.findDuplicate(editedAlice, ALICE));
     }
 
     @Test
@@ -105,6 +156,15 @@ public class UniquePersonListTest {
         uniquePersonList.add(ALICE);
         uniquePersonList.add(BOB);
         assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, BOB));
+    }
+
+    @Test
+    public void setPerson_editedPersonSharesOneFieldWithAnother_throwsDuplicatePersonException() {
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(BOB);
+        // keeps ALICE's phone but takes BOB's email
+        Person editedAlice = new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build();
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, editedAlice));
     }
 
     @Test
