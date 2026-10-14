@@ -129,11 +129,11 @@ public class AddCommandParserTest {
 
         // empty phone
         assertParseFailure(parser, NAME_DESC_BOB + EMPTY_PHONE_DESC + EMAIL_DESC_BOB + CONTEXT_DESC_FRIEND,
-                ParserUtil.MESSAGE_EMPTY_PHONE);
+                AddCommandParser.MESSAGE_EMPTY_PHONE);
 
         // empty email
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMPTY_EMAIL_DESC + CONTEXT_DESC_FRIEND,
-                ParserUtil.MESSAGE_EMPTY_EMAIL);
+                AddCommandParser.MESSAGE_EMPTY_EMAIL);
 
         // empty context
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + EMPTY_CONTEXT_DESC,

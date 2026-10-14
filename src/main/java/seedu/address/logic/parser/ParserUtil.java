@@ -1,8 +1,6 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -26,10 +24,8 @@ public class ParserUtil {
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
     public static final String MESSAGE_EMPTY_CONTEXT = "Contexts cannot be empty.";
-    public static final String MESSAGE_EMPTY_PHONE =
-            "Phone number cannot be empty. Leave out " + PREFIX_PHONE + " if there is no phone number.";
-    public static final String MESSAGE_EMPTY_EMAIL =
-            "Email cannot be empty. Leave out " + PREFIX_EMAIL + " if there is no email.";
+    public static final String MESSAGE_EMPTY_PHONE = "Phone number cannot be empty.";
+    public static final String MESSAGE_EMPTY_EMAIL = "Email cannot be empty.";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
