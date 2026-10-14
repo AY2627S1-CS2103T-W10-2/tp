@@ -36,15 +36,15 @@ public class Messages {
     public static String format(Person person) {
         final StringBuilder builder = new StringBuilder();
         builder.append(person.getName())
-                .append("; Phone: ")
-                .append(person.getPhone().map(Object::toString).orElse(""))
-                .append("; Email: ")
-                .append(person.getEmail().map(Object::toString).orElse(""))
                 .append("; Contexts: ")
                 .append(person.getContexts().stream()
                         .map(Object::toString)
                         .sorted(String.CASE_INSENSITIVE_ORDER)
-                        .collect(Collectors.joining(", ")));
+                        .map(context -> "[" + context + "]")
+                        .collect(Collectors.joining(" ")));
+        // a missing phone or email is left out rather than shown as an empty field
+        person.getPhone().ifPresent(phone -> builder.append("; Phone: ").append(phone));
+        person.getEmail().ifPresent(email -> builder.append("; Email: ").append(email));
         return builder.toString();
     }
 
