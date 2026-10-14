@@ -46,7 +46,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 **:information_source: Notes about the command format:**<br>
 
-* Words in `UPPER_CASE` are the parameters to be supplied by the user. Each parameter comes after a prefix that says what it is, such as `n/` for a name.<br>
+* Words in `UPPER_CASE` are the parameters to be supplied by the user. Some parameters come after a prefix that says what they are, such as `n/` for a name. Others, such as `INDEX` in `delete INDEX`, have no prefix.<br>
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
