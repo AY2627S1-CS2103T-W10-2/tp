@@ -22,6 +22,10 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
+    public static final String MESSAGE_EMPTY_CONTEXT = "Contexts cannot be empty.";
+    public static final String MESSAGE_EMPTY_PHONE = "Phone number cannot be empty.";
+    public static final String MESSAGE_EMPTY_EMAIL = "Email cannot be empty.";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -44,6 +48,9 @@ public class ParserUtil {
      */
     public static Name parseName(String name) throws ParseException {
         requireNonNull(name);
+        if (name.isBlank()) {
+            throw new ParseException(MESSAGE_EMPTY_NAME);
+        }
         String trimmedName = name.trim();
         if (!Name.isValidName(trimmedName)) {
             throw new ParseException(Name.MESSAGE_CONSTRAINTS);
@@ -59,6 +66,9 @@ public class ParserUtil {
      */
     public static Phone parsePhone(String phone) throws ParseException {
         requireNonNull(phone);
+        if (phone.isBlank()) {
+            throw new ParseException(MESSAGE_EMPTY_PHONE);
+        }
         String trimmedPhone = phone.trim();
         if (!Phone.isValidPhone(trimmedPhone)) {
             throw new ParseException(Phone.MESSAGE_CONSTRAINTS);
@@ -89,6 +99,9 @@ public class ParserUtil {
      */
     public static Email parseEmail(String email) throws ParseException {
         requireNonNull(email);
+        if (email.isBlank()) {
+            throw new ParseException(MESSAGE_EMPTY_EMAIL);
+        }
         String trimmedEmail = email.trim();
         if (!Email.isValidEmail(trimmedEmail)) {
             throw new ParseException(Email.MESSAGE_CONSTRAINTS);
@@ -131,6 +144,9 @@ public class ParserUtil {
      */
     public static Context parseContext(String context) throws ParseException {
         requireNonNull(context);
+        if (context.isBlank()) {
+            throw new ParseException(MESSAGE_EMPTY_CONTEXT);
+        }
         String trimmedContext = context.trim();
         if (!Context.isValidDescription(trimmedContext)) {
             throw new ParseException(Context.MESSAGE_CONSTRAINTS);

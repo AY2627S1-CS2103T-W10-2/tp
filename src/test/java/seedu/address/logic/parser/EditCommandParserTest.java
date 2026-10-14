@@ -5,6 +5,10 @@ import static seedu.address.logic.commands.CommandTestUtil.CONTEXT_DESC_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.CONTEXT_DESC_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.EMPTY_CONTEXT_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.EMPTY_EMAIL_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.EMPTY_NAME_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.EMPTY_PHONE_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_CONTEXT_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_EMAIL_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_NAME_DESC;
@@ -81,13 +85,16 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC, Phone.MESSAGE_CONSTRAINTS); // invalid phone
         assertParseFailure(parser, "1" + INVALID_EMAIL_DESC, Email.MESSAGE_CONSTRAINTS); // invalid email
         assertParseFailure(parser, "1" + INVALID_CONTEXT_DESC, Context.MESSAGE_CONSTRAINTS); // invalid context
+        assertParseFailure(parser, "1" + EMPTY_NAME_DESC, ParserUtil.MESSAGE_EMPTY_NAME); // empty name
+        assertParseFailure(parser, "1" + EMPTY_PHONE_DESC, ParserUtil.MESSAGE_EMPTY_PHONE); // empty phone
+        assertParseFailure(parser, "1" + EMPTY_EMAIL_DESC, ParserUtil.MESSAGE_EMPTY_EMAIL); // empty email
 
         // invalid phone followed by valid email
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC + EMAIL_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
 
         // an empty context alongside valid contexts is still invalid
-        assertParseFailure(parser, "1" + CONTEXT_DESC_FRIEND + CONTEXT_DESC_HUSBAND + INVALID_CONTEXT_DESC,
-                Context.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1" + CONTEXT_DESC_FRIEND + CONTEXT_DESC_HUSBAND + EMPTY_CONTEXT_DESC,
+                ParserUtil.MESSAGE_EMPTY_CONTEXT);
 
         // multiple invalid values, but only the first invalid value is captured
         assertParseFailure(parser, "1" + INVALID_NAME_DESC + INVALID_EMAIL_DESC + VALID_PHONE_AMY,
@@ -183,7 +190,7 @@ public class EditCommandParserTest {
     @Test
     public void parse_emptyContextOnly_failure() {
         // a person must keep at least one context, so an empty context cannot reset them
-        assertParseFailure(parser, INDEX_THIRD_PERSON.getOneBased() + INVALID_CONTEXT_DESC,
-                Context.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, INDEX_THIRD_PERSON.getOneBased() + EMPTY_CONTEXT_DESC,
+                ParserUtil.MESSAGE_EMPTY_CONTEXT);
     }
 }
