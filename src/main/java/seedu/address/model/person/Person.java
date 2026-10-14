@@ -30,10 +30,12 @@ public class Person {
      * Every field except {@code phone} and {@code email} must be present and not null.
      * {@code phone} and {@code email} may be null if absent.
      *
+     * @throws NullPointerException if {@code contexts} contains a null element.
      * @throws IllegalArgumentException if {@code contexts} is empty.
      */
     public Person(Name name, Phone phone, Email email, Set<Context> contexts) {
         requireAllNonNull(name, contexts);
+        requireAllNonNull(contexts);
         if (contexts.isEmpty()) {
             throw new IllegalArgumentException(MESSAGE_CONTEXT_REQUIRED);
         }
