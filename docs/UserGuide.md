@@ -109,22 +109,22 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Locating persons by name: `find`
+### Finding contacts by name or context: `find`
 
-Finds persons whose names contain any of the given keywords.
+Finds contacts whose names or contexts contain any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* The command word and search are case-insensitive; for example, `FIND cs2103t` works.
+* Partial matches are supported; for example, `Alex` matches both `Alex Tan` and `Alexander Lim`.
+* A keyword can match either a contact's name or any of their contexts.
+* Contacts matching at least one keyword are returned (an `OR` search).
+* If no contacts match, the app shows `No contacts found!`.
 
 Examples:
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+* `find Alex` returns contacts such as `Alex Tan` and `Alexander Lim`.
+* `find CS2103T` returns contacts with `CS2103T` as a context.
+* `find Alex CS2103T` returns contacts matching either `Alex` or `CS2103T`.
 
 ### Deleting a person: `delete`
 

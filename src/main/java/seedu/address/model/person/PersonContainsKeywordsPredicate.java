@@ -7,12 +7,12 @@ import java.util.function.Predicate;
 import seedu.address.commons.util.ToStringBuilder;
 
 /**
- * Tests that a {@code Person}'s name contains any given keyword as a case-insensitive substring.
+ * Tests that a {@code Person}'s name or contexts contain any given keyword as a case-insensitive substring.
  */
-public class NameContainsKeywordsPredicate implements Predicate<Person> {
+public class PersonContainsKeywordsPredicate implements Predicate<Person> {
     private final List<String> keywords;
 
-    public NameContainsKeywordsPredicate(List<String> keywords) {
+    public PersonContainsKeywordsPredicate(List<String> keywords) {
         this.keywords = keywords;
     }
 
@@ -21,7 +21,10 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
         String lowerCaseName = person.getName().fullName.toLowerCase(Locale.ROOT);
         return keywords.stream()
                 .map(keyword -> keyword.toLowerCase(Locale.ROOT))
-                .anyMatch(lowerCaseName::contains);
+                .anyMatch(keyword -> lowerCaseName.contains(keyword)
+                        || person.getContexts().stream()
+                                .map(context -> context.description.toLowerCase(Locale.ROOT))
+                                .anyMatch(context -> context.contains(keyword)));
     }
 
     @Override
@@ -31,11 +34,11 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
         }
 
         // instanceof handles nulls
-        if (!(other instanceof NameContainsKeywordsPredicate otherNameContainsKeywordsPredicate)) {
+        if (!(other instanceof PersonContainsKeywordsPredicate otherPersonContainsKeywordsPredicate)) {
             return false;
         }
 
-        return keywords.equals(otherNameContainsKeywordsPredicate.keywords);
+        return keywords.equals(otherPersonContainsKeywordsPredicate.keywords);
     }
 
     @Override
