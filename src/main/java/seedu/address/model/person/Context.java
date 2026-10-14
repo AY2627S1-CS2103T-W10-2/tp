@@ -7,7 +7,7 @@ import java.util.Locale;
 /**
  * Represents a context (e.g. a module, club or event) that a {@code Person} is linked to.
  * Guarantees: immutable; description is valid as declared in {@link #isValidDescription(String)}.
- * Two contexts are equal if their descriptions match, ignoring capitalisation and surrounding spaces.
+ * Two contexts are equal if their descriptions match, ignoring capitalisation, surrounding spaces and repeated spaces.
  */
 public class Context {
 
@@ -22,18 +22,26 @@ public class Context {
     /**
      * Constructs a {@code Context}.
      *
-     * @param description A valid description. Surrounding spaces are removed; the casing is kept as typed.
+     * @param description A valid description. Surrounding spaces are removed and repeated spaces are collapsed
+     *                    to one; the casing is kept as typed.
      */
     public Context(String description) {
         checkArgument(isValidDescription(description), MESSAGE_CONSTRAINTS);
-        this.description = description.trim();
+        this.description = normalise(description);
     }
 
     /**
-     * Returns true if a given string is a valid context description once trimmed.
+     * Returns true if a given string is a valid context description once trimmed and repeated spaces are collapsed.
      */
     public static boolean isValidDescription(String test) {
-        return test != null && test.trim().matches(VALIDATION_REGEX);
+        return test != null && normalise(test).matches(VALIDATION_REGEX);
+    }
+
+    /**
+     * Returns {@code description} with surrounding spaces removed and repeated spaces collapsed to one.
+     */
+    private static String normalise(String description) {
+        return description.trim().replaceAll(" +", " ");
     }
 
     @Override
