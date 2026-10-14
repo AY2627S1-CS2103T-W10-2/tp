@@ -18,6 +18,7 @@ public class Messages {
     public static final String MESSAGE_PERSONS_LISTED_OVERVIEW = "%1$d person(s) listed!";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
+    public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists: %1$s has the same %2$s (%3$s).";
 
     /**
      * Returns an error message indicating the duplicate prefixes.
@@ -30,6 +31,24 @@ public class Messages {
 
         return MESSAGE_DUPLICATE_FIELDS + String.join(" ", duplicateFields);
     }
+
+    /**
+     * Returns an error message indicating the duplicate person {@code existing}
+     * and the phone or email it shares with {@code toCheck}.
+     * {@code existing} must have the same identity as {@code toCheck}.
+     */
+    public static String getErrorMessageForDuplicatePerson(Person existing, Person toCheck) {
+        boolean isSamePhone = existing.getPhone().isPresent() && existing.getPhone().equals(toCheck.getPhone());
+        if (isSamePhone) {
+            return String.format(MESSAGE_DUPLICATE_PERSON,
+                    existing.getName(), "phone number", existing.getPhone().get());
+        }
+
+        // not a phone clash, so the two persons must share an email
+        return String.format(MESSAGE_DUPLICATE_PERSON,
+                existing.getName(), "email", existing.getEmail().get());
+    }
+
     /**
      * Formats the {@code person} for display to the user.
      */
