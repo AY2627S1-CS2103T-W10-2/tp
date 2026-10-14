@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.util.FileUtil;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 
@@ -28,6 +30,23 @@ public class JsonAddressBookStorageTest {
     @Test
     public void readAddressBook_nullFilePath_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> readAddressBook(null));
+    }
+
+    @Test
+    public void unreadableFile_backedUpThenSaved_originalKeptInBackup() throws Exception {
+        Path dataFile = testFolder.resolve("addressbook.json");
+        Files.copy(TEST_DATA_FOLDER.resolve("invalidPersonAddressBook.json"), dataFile);
+        String originalContent = FileUtil.readFromFile(dataFile);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile);
+
+        // the file cannot be loaded, so the app would start empty; it keeps a copy first
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        Path backup = FileUtil.backUp(dataFile).get();
+
+        // the next save replaces the data file, but the backup still has the original text
+        storage.saveAddressBook(getTypicalAddressBook());
+        assertEquals(getTypicalAddressBook(), new AddressBook(storage.readAddressBook().get()));
+        assertEquals(originalContent, FileUtil.readFromFile(backup));
     }
 
     private java.util.Optional<ReadOnlyAddressBook> readAddressBook(String filePath) throws Exception {

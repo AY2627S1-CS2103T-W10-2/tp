@@ -1,8 +1,11 @@
 package seedu.address.commons.util;
 
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Optional;
 
 /**
  * Writes and reads files
@@ -46,9 +49,37 @@ public class FileUtil {
     /**
      * Writes given string to a file.
      * Will create the file if it does not exist yet.
+     * The content is first written to a temporary file in the same folder and then moved over {@code file},
+     * so an interrupted write leaves the previous content of {@code file} intact instead of a half-written file.
      */
     public static void writeToFile(Path file, String content) throws IOException {
-        Files.write(file, content.getBytes(CHARSET));
+        Path folder = file.toAbsolutePath().getParent();
+        Path tempFile = Files.createTempFile(folder, file.getFileName().toString(), ".tmp");
+        try {
+            Files.write(tempFile, content.getBytes(CHARSET));
+            try {
+                Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(tempFile);
+        }
+    }
+
+    /**
+     * Copies {@code file} to a sibling file with the extra extension {@code .bak}, replacing an older backup.
+     *
+     * @return the backup file, or {@code Optional.empty()} if {@code file} does not exist.
+     * @throws IOException if the copy fails.
+     */
+    public static Optional<Path> backUp(Path file) throws IOException {
+        if (!Files.exists(file)) {
+            return Optional.empty();
+        }
+        Path backup = file.resolveSibling(file.getFileName() + ".bak");
+        Files.copy(file, backup, StandardCopyOption.REPLACE_EXISTING);
+        return Optional.of(backup);
     }
 
 }
