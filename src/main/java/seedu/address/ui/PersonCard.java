@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import java.util.Comparator;
+import java.util.Optional;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -47,10 +48,22 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        phone.setText(person.getPhone().map(p -> p.value).orElse(""));
-        email.setText(person.getEmail().map(e -> e.value).orElse(""));
+        setOptionalLabel(phone, person.getPhone().map(p -> p.value));
+        setOptionalLabel(email, person.getEmail().map(e -> e.value));
         person.getContexts().stream()
                 .sorted(Comparator.comparing(context -> context.description, String.CASE_INSENSITIVE_ORDER))
                 .forEach(context -> contexts.getChildren().add(new Label(context.description)));
+    }
+
+    /**
+     * Displays {@code text} when present and removes the label from the layout otherwise.
+     * An invisible JavaFX node can still occupy space, so both visibility and management
+     * must be disabled for a missing optional contact detail.
+     */
+    private static void setOptionalLabel(Label label, Optional<String> text) {
+        boolean isPresent = text.isPresent();
+        label.setText(text.orElse(""));
+        label.setVisible(isPresent);
+        label.setManaged(isPresent);
     }
 }
