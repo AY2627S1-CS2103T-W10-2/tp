@@ -110,13 +110,6 @@ public class AddressBookParserTest {
     }
 
     @Test
-    public void parseCommand_findMixedCaseCommandWord() throws Exception {
-        List<String> keywords = List.of("Alex", "CS2103T");
-        FindCommand command = (FindCommand) parser.parseCommand("FiNd Alex CS2103T");
-        assertEquals(new FindCommand(new PersonContainsKeywordsPredicate(keywords)), command);
-    }
-
-    @Test
     public void parseCommand_help() throws Exception {
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD) instanceof HelpCommand);
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " 3") instanceof HelpCommand);

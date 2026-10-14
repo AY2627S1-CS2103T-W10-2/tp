@@ -119,7 +119,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Partial matches are supported; for example, `Alex` matches both `Alex Tan` and `Alexander Lim`.
 * A keyword can match either a contact's name or any of their contexts.
 * Contacts matching at least one keyword are returned (an `OR` search).
-* If no contacts match, the app shows `No contacts found!`.
+* If no contacts match, the app shows `No persons found!`.
 
 Examples:
 * `find Alex` returns contacts such as `Alex Tan` and `Alexander Lim`.

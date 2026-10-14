@@ -18,13 +18,17 @@ public class PersonContainsKeywordsPredicate implements Predicate<Person> {
 
     @Override
     public boolean test(Person person) {
-        String lowerCaseName = person.getName().fullName.toLowerCase(Locale.ROOT);
         return keywords.stream()
                 .map(keyword -> keyword.toLowerCase(Locale.ROOT))
-                .anyMatch(keyword -> lowerCaseName.contains(keyword)
-                        || person.getContexts().stream()
-                                .map(context -> context.description.toLowerCase(Locale.ROOT))
-                                .anyMatch(context -> context.contains(keyword)));
+                .anyMatch(keyword -> matches(person, keyword));
+    }
+
+    private boolean matches(Person person, String keyword) {
+        String lowerCaseName = person.getName().fullName.toLowerCase(Locale.ROOT);
+        return lowerCaseName.contains(keyword)
+                || person.getContexts().stream()
+                        .map(context -> context.description.toLowerCase(Locale.ROOT))
+                        .anyMatch(context -> context.contains(keyword));
     }
 
     @Override
