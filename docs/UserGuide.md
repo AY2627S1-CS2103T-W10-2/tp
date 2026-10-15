@@ -251,14 +251,52 @@ Format: `exit`
 
 AddressBook automatically saves data after every command. You do not need to save manually.
 
+Each save is written to a temporary file first and then moved over `data/addressbook.json`. If AddressBook is closed or crashes in the middle of a save, your previous data file is left as it was instead of being half-written.
+
 ### Editing the data file
 
 AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
+Each person is stored like this:
+
+```json
+{
+  "persons" : [ {
+    "name" : "Alex Yeoh",
+    "phone" : "87438807",
+    "email" : "alexyeoh@example.com",
+    "contexts" : [ "CS2103T", "Hiking club" ]
+  }, {
+    "name" : "Roy Balakrishnan",
+    "contexts" : [ "Internship" ]
+  } ]
+}
+```
+
+* `name` and at least one entry in `contexts` are required.
+* `phone` and `email` are optional. You can leave them out, as for Roy above, or set them to `null`.
+* Each context is a plain piece of text, such as `"CS2103T"`, and must follow the same rules as a context entered in the `add` command.
+* Two persons cannot have the same phone number or the same email.
+
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+Edit the data file only while AddressBook is closed, and only if you are confident that you can update it correctly. Certain edits can cause AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range).
 </div>
+
+#### If the data file cannot be read
+
+If AddressBook cannot read the data file when it starts (for example, a person has no context or has an invalid phone number or email, two persons share a phone number or email, the file is not valid JSON, or the file was saved by an older version that used addresses and tags), it:
+
+1. renames the file to `addressbook.json.<UTC time>.bak` in the same `data` folder, for example `addressbook.json.20261015T101723Z.bak`, so that your data is not overwritten; and
+2. starts with an empty address book. A new `data/addressbook.json` is created when you run your first command.
+
+To recover your data:
+
+1. Exit AddressBook.
+2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `addressbook.log`, which is in the folder you started AddressBook from.
+3. If there is a new `addressbook.json` (it exists if you ran any command after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
+4. Start AddressBook again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
+
+If AddressBook fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name.
 
 ### Archiving data files `[coming in v2.0]`
 
@@ -270,6 +308,9 @@ _Details coming soon ..._
 
 **Q**: How do I transfer my data to another computer?<br>
 **A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+
+**Q**: AddressBook started with an empty list, but I had saved contacts. What happened?<br>
+**A**: AddressBook could not read your data file, so it kept the file as `data/addressbook.json.<UTC time>.bak` and started empty. Your data is in that `.bak` file. See [If the data file cannot be read](#if-the-data-file-cannot-be-read) to recover it.
 
 --------------------------------------------------------------------------------------------------------------------
 
