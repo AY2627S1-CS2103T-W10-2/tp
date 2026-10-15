@@ -1,11 +1,16 @@
 package seedu.address.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -13,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 public class FileUtilTest {
+
+    private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-10-15T10:17:23Z"), ZoneOffset.UTC);
 
     @TempDir
     public Path testFolder;
@@ -48,27 +55,50 @@ public class FileUtilTest {
     }
 
     @Test
-    public void backUp_existingFile_copiesToBakFile() throws IOException {
+    public void backUp_existingFile_renamesToTimestampedBakFile() throws IOException {
+        Path file = testFolder.resolve("data.json");
+        FileUtil.writeToFile(file, "contacts");
+
+        Path backup = FileUtil.backUp(file, FIXED_CLOCK).get();
+
+        assertEquals(testFolder.resolve("data.json.20261015T101723Z.bak"), backup);
+        assertEquals("contacts", FileUtil.readFromFile(backup));
+        assertFalse(Files.exists(file));
+    }
+
+    @Test
+    public void backUp_publicVersion_namesBackupWithUtcTime() throws IOException {
         Path file = testFolder.resolve("data.json");
         FileUtil.writeToFile(file, "contacts");
 
         Path backup = FileUtil.backUp(file).get();
 
-        assertEquals(testFolder.resolve("data.json.bak"), backup);
+        assertTrue(backup.getFileName().toString().matches("data\\.json\\.\\d{8}T\\d{6}Z\\.bak"));
         assertEquals("contacts", FileUtil.readFromFile(backup));
-        assertTrue(Files.exists(file));
     }
 
     @Test
-    public void backUp_existingBackup_isReplaced() throws IOException {
+    public void backUp_laterBackup_keepsEarlierBackup() throws IOException {
         Path file = testFolder.resolve("data.json");
         FileUtil.writeToFile(file, "first");
-        FileUtil.backUp(file);
+        Path first = FileUtil.backUp(file, FIXED_CLOCK).get();
         FileUtil.writeToFile(file, "second");
 
-        Path backup = FileUtil.backUp(file).get();
+        Path second = FileUtil.backUp(file, Clock.offset(FIXED_CLOCK, Duration.ofSeconds(5))).get();
+
+        assertEquals("first", FileUtil.readFromFile(first));
+        assertEquals("second", FileUtil.readFromFile(second));
+    }
+
+    @Test
+    public void backUp_sameSecond_replacesBackupWithSameName() throws IOException {
+        Path file = testFolder.resolve("data.json");
+        FileUtil.writeToFile(file, "first");
+        FileUtil.backUp(file, FIXED_CLOCK);
+        FileUtil.writeToFile(file, "second");
+
+        Path backup = FileUtil.backUp(file, FIXED_CLOCK).get();
 
         assertEquals("second", FileUtil.readFromFile(backup));
-        assertTrue(Files.exists(backup));
     }
 }

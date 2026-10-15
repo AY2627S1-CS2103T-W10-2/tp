@@ -62,6 +62,10 @@ class JsonAdaptedPerson {
     public Person toModelType() throws IllegalValueException {
         final List<Context> personContexts = new ArrayList<>();
         for (JsonAdaptedContext context : contexts) {
+            if (context == null) {
+                throw new IllegalValueException(
+                        String.format(MISSING_FIELD_MESSAGE_FORMAT, Context.class.getSimpleName()));
+            }
             personContexts.add(context.toModelType());
         }
 

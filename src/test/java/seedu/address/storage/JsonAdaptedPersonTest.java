@@ -94,6 +94,16 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_nullContextEntry_throwsIllegalValueException() {
+        List<JsonAdaptedContext> contextsWithNull = new ArrayList<>(VALID_CONTEXTS);
+        contextsWithNull.add(null);
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, contextsWithNull);
+        String expectedMessage = String.format(JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT,
+                Context.class.getSimpleName());
+        assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
+    }
+
+    @Test
     public void toModelType_noContexts_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, new ArrayList<>());
         assertThrows(IllegalValueException.class, Person.MESSAGE_CONTEXT_REQUIRED, person::toModelType);

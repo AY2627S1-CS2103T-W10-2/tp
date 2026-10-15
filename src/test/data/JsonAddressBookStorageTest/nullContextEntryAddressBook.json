@@ -1,0 +1,7 @@
+{
+  "persons": [ {
+    "name": "Amy Bee",
+    "phone": "91234567",
+    "contexts": [ "CS2103T", null ]
+  } ]
+}

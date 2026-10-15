@@ -44,4 +44,11 @@ public class JsonSerializableAddressBookTest {
                 dataFromFile::toModelType);
     }
 
+    @Test
+    public void toModelType_nullPersonEntry_throwsIllegalValueException() {
+        JsonSerializableAddressBook dataFromFile =
+                new JsonSerializableAddressBook(java.util.Collections.singletonList(null));
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_MISSING_PERSON,
+                dataFromFile::toModelType);
+    }
 }

@@ -2,6 +2,7 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.HOON;
@@ -13,13 +14,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.FileUtil;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.person.Context;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -32,6 +36,31 @@ public class JsonAddressBookStorageTest {
         assertThrows(NullPointerException.class, () -> readAddressBook(null));
     }
 
+    // Regression tests: a null inside the data file used to escape as a NullPointerException, which skipped the
+    // DataLoadingException recovery in MainApp (data file backed up, app starts empty) and crashed the app.
+
+    @Test
+    public void readAddressBook_nullContextEntry_throwsDataLoadingExceptionCausedByIllegalValue() {
+        DataLoadingException e = Assertions.assertThrows(DataLoadingException.class, () ->
+                readAddressBook("nullContextEntryAddressBook.json"));
+        assertTrue(e.getCause() instanceof IllegalValueException);
+        assertEquals(String.format(JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT, Context.class.getSimpleName()),
+                e.getCause().getMessage());
+    }
+
+    @Test
+    public void readAddressBook_nullPersonEntry_throwsDataLoadingExceptionCausedByIllegalValue() {
+        DataLoadingException e = Assertions.assertThrows(DataLoadingException.class, () ->
+                readAddressBook("nullPersonEntryAddressBook.json"));
+        assertTrue(e.getCause() instanceof IllegalValueException);
+        assertEquals(JsonSerializableAddressBook.MESSAGE_MISSING_PERSON, e.getCause().getMessage());
+    }
+
+    @Test
+    public void readAddressBook_fileContainingOnlyNull_throwsDataLoadingException() {
+        assertThrows(DataLoadingException.class, () -> readAddressBook("nullAddressBook.json"));
+    }
+
     @Test
     public void unreadableFile_backedUpThenSaved_originalKeptInBackup() throws Exception {
         Path dataFile = testFolder.resolve("addressbook.json");
@@ -39,11 +68,12 @@ public class JsonAddressBookStorageTest {
         String originalContent = FileUtil.readFromFile(dataFile);
         JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile);
 
-        // the file cannot be loaded, so the app would start empty; it keeps a copy first
+        // the file cannot be loaded, so the app would start empty; it renames the file to a backup first
         assertThrows(DataLoadingException.class, storage::readAddressBook);
         Path backup = FileUtil.backUp(dataFile).get();
+        assertFalse(Files.exists(dataFile));
 
-        // the next save replaces the data file, but the backup still has the original text
+        // the next save creates a new data file, but the backup still has the original text
         storage.saveAddressBook(getTypicalAddressBook());
         assertEquals(getTypicalAddressBook(), new AddressBook(storage.readAddressBook().get()));
         assertEquals(originalContent, FileUtil.readFromFile(backup));

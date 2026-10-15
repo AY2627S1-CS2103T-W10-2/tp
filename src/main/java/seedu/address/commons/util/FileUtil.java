@@ -5,6 +5,9 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Clock;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 /**
@@ -13,6 +16,8 @@ import java.util.Optional;
 public class FileUtil {
 
     private static final String CHARSET = "UTF-8";
+    private static final DateTimeFormatter BACKUP_TIMESTAMP_FORMAT =
+            DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneOffset.UTC);
 
     /**
      * Creates a file if it does not exist along with its missing parent directories.
@@ -68,17 +73,28 @@ public class FileUtil {
     }
 
     /**
-     * Copies {@code file} to a sibling file with the extra extension {@code .bak}, replacing an older backup.
+     * Backs up {@code file} by renaming it to a sibling file named {@code <name>.<UTC time>.bak}, for example
+     * {@code addressbook.json.20261015T101723Z.bak}. {@code file} no longer exists afterwards, so a later write to
+     * it cannot overwrite the backup. A backup made earlier keeps its own name; only a backup with the exact same
+     * name (made in the same second) is replaced.
      *
      * @return the backup file, or {@code Optional.empty()} if {@code file} does not exist.
-     * @throws IOException if the copy fails.
+     * @throws IOException if the file cannot be renamed.
      */
     public static Optional<Path> backUp(Path file) throws IOException {
+        return backUp(file, Clock.systemUTC());
+    }
+
+    /**
+     * Same as {@link #backUp(Path)}, but takes the time for the backup name from {@code clock}.
+     */
+    static Optional<Path> backUp(Path file, Clock clock) throws IOException {
         if (!Files.exists(file)) {
             return Optional.empty();
         }
-        Path backup = file.resolveSibling(file.getFileName() + ".bak");
-        Files.copy(file, backup, StandardCopyOption.REPLACE_EXISTING);
+        String timestamp = BACKUP_TIMESTAMP_FORMAT.format(clock.instant());
+        Path backup = file.resolveSibling(file.getFileName() + "." + timestamp + ".bak");
+        Files.move(file, backup, StandardCopyOption.REPLACE_EXISTING);
         return Optional.of(backup);
     }
 

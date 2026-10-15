@@ -89,14 +89,15 @@ public class MainApp extends Application {
     }
 
     /**
-     * Keeps a copy of the data file that could not be loaded, as the next save would otherwise overwrite it.
+     * Keeps the data file that could not be loaded by renaming it to a {@code .bak} file, as the next save would
+     * otherwise overwrite it.
      */
     private void backUpUnreadableDataFile(Path dataFile) {
         try {
             FileUtil.backUp(dataFile).ifPresent(backup ->
-                    logger.warning("A copy of the unreadable data file was kept at " + backup));
+                    logger.warning("The unreadable data file was renamed to " + backup));
         } catch (IOException e) {
-            logger.warning("Could not keep a copy of the unreadable data file " + dataFile + ": " + e);
+            logger.warning("Could not rename the unreadable data file " + dataFile + ": " + e);
         }
     }
 
