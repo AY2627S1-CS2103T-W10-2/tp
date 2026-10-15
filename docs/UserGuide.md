@@ -28,7 +28,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all contacts.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe c/CS2103T p/98765432 e/johnd@example.com` : Adds a person named `John Doe` to the address book.
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
 
@@ -46,19 +46,22 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 **:information_source: Notes about the command format:**<br>
 
-* Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
+* Words in `UPPER_CASE` are the parameters to be supplied by the user. Some parameters come after a prefix that says what they are, such as `n/` for a name. Others, such as `INDEX` in `delete INDEX`, have no prefix.<br>
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
-  For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
+  For example, `n/NAME [p/PHONE]` can be used as `n/John Doe p/98765432` or as `n/John Doe`.
 
 * Items followed by `…`​ can appear zero or more times.<br>
-  For example, `[t/TAG]…​` may be omitted, or written as `t/friend` or `t/friend t/family`.
+  For example, `[c/CONTEXT]…​` may be omitted, or written as `c/CS2103T` or `c/CS2103T c/NUS Hackers`.
 
 * Parameters can be in any order.<br>
-  For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
+  For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Command words are case-insensitive, but prefixes must be in lowercase.<br>
+  For example, `add`, `ADD` and `Add` all work, but `N/John Doe` is not read as `n/John Doe`.
+
+* Commands that take no parameters, such as `help`, `list`, `exit` and `clear`, ignore anything typed after them.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -77,15 +80,73 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
+Every person has at least one context: how you know them, such as a module, project, CCA, internship or event.
 
-<div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A person can have any number of tags, including zero.
-</div>
+Format: `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL]`
+
+* `n/NAME` and at least one `c/CONTEXT` are compulsory. `p/PHONE` and `e/EMAIL` are optional.
+* To give more than one context, repeat `c/`, one context each. `n/`, `p/` and `e/` can each be given only once.
+* Spaces before and after each value are ignored.
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+* `add n/Alex Tan c/CS2103T` adds `Alex Tan` with just a name and one context.
+* `add n/Priya Nair c/Hack&Roll 2026 c/NUS Hackers p/91234567 e/priya@u.nus.edu` adds `Priya Nair` with two contexts, a phone number and an email.
+* `add n/Jean-Luc O'Brien c/Google internship e/jl.obrien@gmail.com` adds `Jean-Luc O'Brien` with an email but no phone number.
+* `add e/mei@u.nus.edu c/CS2101 n/Lim Mei` adds `Lim Mei`, showing that parameters can be in any order.
+
+**Parameter rules**
+
+Parameter | Rules | Valid | Invalid
+----------|-------|-------|--------
+`n/NAME` | Starts with a letter. Only English letters, spaces, hyphens `-`, apostrophes `'` and periods `.`. At most 100 characters. | `Alex Tan`, `Jean-Luc O'Brien`, `Lim J.H.` | `Alex123`, `Raj s/o Kumar`, `@alex`
+`c/CONTEXT` | Starts with a letter or digit. Only English letters, digits, spaces and `&` `-` `.` `'` `#`. At most 50 characters. | `CS2103T`, `Hack&Roll 2026`, `Tut #3` | `CS2103T/T09`, `(orbital)`
+`p/PHONE` | An optional `+`, then 3 to 15 digits. No spaces, hyphens or brackets. | `91234567`, `+6591234567` | `9123-4567`, `+65 9123 4567`, `12`
+`e/EMAIL` | Of the form `local-part@domain`, at most 254 characters. See the email rules below. | `e0123456@u.nus.edu`, `alex.tan+work@gmail.com` | `alex@`, `.alex@gmail.com`, `alex..tan@gmail.com`
+
+<div markdown="span" class="alert alert-primary">:bulb: **Tip:**
+`/` is not allowed in names, so enter a name such as `Raj s/o Kumar` as `Raj s o Kumar` or `Raj son of Kumar`.
+</div>
+
+Email rules:
+* The local part (before the `@`) may contain letters, digits and `+` `_` `.` `-`, but cannot start or end with a symbol, or have two symbols in a row.
+* The domain (after the `@`) is one or more parts separated by periods, such as `u.nus.edu`. Each part may contain letters, digits and hyphens, but cannot start or end with a hyphen. The last part must be at least 2 characters long.
+
+How values are saved:
+* Names, contexts and emails keep the capitalisation you typed.
+* Several spaces in a row inside a context are saved as one space. For example, if you type `NUS`, three spaces, then `Hackers`, the context is saved as `NUS Hackers`. The 50-character limit is checked after this, so extra spaces never make a context too long.
+* Names are saved exactly as typed, including several spaces in a row.
+* Contexts that differ only in capitalisation or repeated spaces count as the same context. If you give the same context twice, such as `c/CS2103T c/cs2103t`, the person gets it once, spelt as you first typed it.
+
+**If the command succeeds**
+
+The list shows all persons again, with the new person at the bottom. The result display shows the new person's details. For example, adding Priya Nair (the second example above) shows:
+
+`New person added: Priya Nair; Contexts: [Hack&Roll 2026] [NUS Hackers]; Phone: 91234567; Email: priya@u.nus.edu`
+
+Contexts are listed in alphabetical order, ignoring capitalisation. A missing phone number or email is left out.
+
+**Duplicate persons**
+
+A person is a duplicate if they have the same phone number or the same email as an existing person. Emails are compared ignoring capitalisation, so `Alex@U.NUS.EDU` and `alex@u.nus.edu` count as the same email. Duplicates are not added. For example, with the sample data, `add n/Alexander Yeoh c/CS2101 p/87438807` shows:
+
+`This person already exists: Alex Yeoh has the same phone number (87438807).`
+
+* Two persons can have the same name, as long as their phone numbers and emails are different.
+* A person with no phone number and no email is never a duplicate.
+* `91234567` and `+6591234567` count as different phone numbers.
+
+**If the command fails**
+
+Nothing is added, and your command stays in the command box so that you can fix it. If there are several problems, only the first is shown.
+
+Problem | Example | Message shown
+--------|---------|--------------
+`n/` or `c/` missing | `add n/Alex Tan` | `Invalid command format!`, followed by how to use `add`
+Text before the first prefix, or an uppercase prefix | `add Alex n/Alex Tan c/CS2103T`<br>`add N/Alex Tan c/CS2103T` | `Invalid command format!`, followed by how to use `add`
+`n/`, `p/` or `e/` given more than once | `add n/Alex n/Alex Tan c/CS2103T` | `Multiple values specified for the following single-valued field(s): n/`
+Nothing after `n/`, `c/`, `p/` or `e/` | `add n/Alex Tan c/` | Depending on the prefix:<br>`Name cannot be empty.`<br>`Contexts cannot be empty.`<br>`Phone number cannot be empty. Leave out p/ if there is no phone number.`<br>`Email cannot be empty. Leave out e/ if there is no email.`
+A value that breaks its rule | `add n/Alex Tan c/CS2103T p/9123-4567` | That parameter's rule, such as `Phone numbers should contain only digits, may start with +, and have 3 to 15 digits.`
+A prefix that `add` does not use, such as `a/` or `t/` | `add n/Alex Tan a/Blk 123 c/CS2103T` | The prefix and its text become part of the value before it. Here the name becomes `Alex Tan a/Blk 123`, so the name rule is shown.
 
 ### Listing all persons: `list`
 
@@ -222,7 +283,7 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add** | `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL]` <br> e.g., `add n/James Ho c/CS2103T c/NUS Hackers p/22224444 e/jamesho@example.com`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
