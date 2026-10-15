@@ -26,7 +26,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Lists all persons.
 
    * `add n/John Doe c/CS2103T p/98765432 e/johnd@example.com` : Adds a person named `John Doe` to the address book.
 
@@ -167,7 +167,8 @@ Contexts are displayed in alphabetical order, ignoring capitalisation. Missing p
 
 After the command is executed, the result display shows the number of persons listed:
 
-`NUMBER contact(s) listed.`
+* `1 person listed.` when exactly one person is listed.
+* `NUMBER people listed.` when zero or more than one person is listed.
 
 Examples:
 
@@ -181,7 +182,7 @@ Examples:
 
 * The `list` command does not add, remove, edit, or reorder persons.
 * Person index numbers refer to the currently displayed list. After restoring the complete list, check the displayed index before using commands such as `edit` or `delete`.
-* If there are no persons, the displayed list remains empty and the result display shows `0 contact(s) listed.`
+* If there are no persons, the displayed list remains empty and the result display shows `0 people listed.`
 
 </div>
 
