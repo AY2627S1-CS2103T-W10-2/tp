@@ -11,6 +11,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -66,6 +67,15 @@ public class PersonTest {
     public void constructor_nullContexts_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Person(
                 ALICE.getName(), ALICE.getPhone().orElse(null), ALICE.getEmail().orElse(null), null));
+    }
+
+    @Test
+    public void constructor_nullElementInContexts_throwsNullPointerException() {
+        Set<Context> withNull = new HashSet<>();
+        withNull.add(new Context("CS2103T"));
+        withNull.add(null);
+        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(),
+                ALICE.getPhone().orElse(null), ALICE.getEmail().orElse(null), withNull));
     }
 
     @Test

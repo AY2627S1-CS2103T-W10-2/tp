@@ -1,8 +1,14 @@
 package seedu.address.commons.util;
 
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.time.Clock;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 /**
  * Writes and reads files
@@ -10,6 +16,8 @@ import java.nio.file.Path;
 public class FileUtil {
 
     private static final String CHARSET = "UTF-8";
+    private static final DateTimeFormatter BACKUP_TIMESTAMP_FORMAT =
+            DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneOffset.UTC);
 
     /**
      * Creates a file if it does not exist along with its missing parent directories.
@@ -46,9 +54,48 @@ public class FileUtil {
     /**
      * Writes given string to a file.
      * Will create the file if it does not exist yet.
+     * The content is first written to a temporary file in the same folder and then moved over {@code file},
+     * so an interrupted write leaves the previous content of {@code file} intact instead of a half-written file.
      */
     public static void writeToFile(Path file, String content) throws IOException {
-        Files.write(file, content.getBytes(CHARSET));
+        Path folder = file.toAbsolutePath().getParent();
+        Path tempFile = Files.createTempFile(folder, file.getFileName().toString(), ".tmp");
+        try {
+            Files.write(tempFile, content.getBytes(CHARSET));
+            try {
+                Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(tempFile);
+        }
+    }
+
+    /**
+     * Backs up {@code file} by renaming it to a sibling file named {@code <name>.<UTC time>.bak}, for example
+     * {@code addressbook.json.20261015T101723Z.bak}. {@code file} no longer exists afterwards, so a later write to
+     * it cannot overwrite the backup. A backup made earlier keeps its own name; only a backup with the exact same
+     * name (made in the same second) is replaced.
+     *
+     * @return the backup file, or {@code Optional.empty()} if {@code file} does not exist.
+     * @throws IOException if the file cannot be renamed.
+     */
+    public static Optional<Path> backUp(Path file) throws IOException {
+        return backUp(file, Clock.systemUTC());
+    }
+
+    /**
+     * Same as {@link #backUp(Path)}, but takes the time for the backup name from {@code clock}.
+     */
+    static Optional<Path> backUp(Path file, Clock clock) throws IOException {
+        if (!Files.exists(file)) {
+            return Optional.empty();
+        }
+        String timestamp = BACKUP_TIMESTAMP_FORMAT.format(clock.instant());
+        Path backup = file.resolveSibling(file.getFileName() + "." + timestamp + ".bak");
+        Files.move(file, backup, StandardCopyOption.REPLACE_EXISTING);
+        return Optional.of(backup);
     }
 
 }
