@@ -25,15 +25,29 @@ public class Person {
 
     // Data fields
     private final Set<Context> contexts = new HashSet<>();
+    private final Optional<Alias> alias;
+    private final Optional<Introducer> introducer;
+    private final Optional<Note> note;
 
     /**
-     * Every field except {@code phone} and {@code email} must be present and not null.
+     * Creates a person without the additional optional details.
      * {@code phone} and {@code email} may be null if absent.
      *
      * @throws NullPointerException if {@code contexts} contains a null element.
      * @throws IllegalArgumentException if {@code contexts} is empty.
      */
     public Person(Name name, Phone phone, Email email, Set<Context> contexts) {
+        this(name, phone, email, contexts, null, null, null);
+    }
+
+    /**
+     * Creates a person with optional alias, introducer, and note details.
+     * The optional arguments may be null if absent; name and contexts must be present.
+     *
+     * @throws IllegalArgumentException if {@code contexts} is empty.
+     */
+    public Person(Name name, Phone phone, Email email, Set<Context> contexts,
+            Alias alias, Introducer introducer, Note note) {
         requireAllNonNull(name, contexts);
         requireAllNonNull(contexts);
         if (contexts.isEmpty()) {
@@ -43,6 +57,9 @@ public class Person {
         this.phone = Optional.ofNullable(phone);
         this.email = Optional.ofNullable(email);
         this.contexts.addAll(contexts);
+        this.alias = Optional.ofNullable(alias);
+        this.introducer = Optional.ofNullable(introducer);
+        this.note = Optional.ofNullable(note);
     }
 
     public Name getName() {
@@ -55,6 +72,18 @@ public class Person {
 
     public Optional<Email> getEmail() {
         return email;
+    }
+
+    public Optional<Alias> getAlias() {
+        return alias;
+    }
+
+    public Optional<Introducer> getIntroducer() {
+        return introducer;
+    }
+
+    public Optional<Note> getNote() {
+        return note;
     }
 
     /**
@@ -98,13 +127,15 @@ public class Person {
         return name.equals(otherPerson.name)
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
-                && contexts.equals(otherPerson.contexts);
+                && contexts.equals(otherPerson.contexts)
+                && alias.equals(otherPerson.alias)
+                && introducer.equals(otherPerson.introducer)
+                && note.equals(otherPerson.note);
     }
 
     @Override
     public int hashCode() {
-        // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, contexts);
+        return Objects.hash(name, phone, email, contexts, alias, introducer, note);
     }
 
     @Override
@@ -114,6 +145,9 @@ public class Person {
                 .add("phone", phone.orElse(null))
                 .add("email", email.orElse(null))
                 .add("contexts", contexts)
+                .add("alias", alias.orElse(null))
+                .add("introducer", introducer.orElse(null))
+                .add("note", note.orElse(null))
                 .toString();
     }
 

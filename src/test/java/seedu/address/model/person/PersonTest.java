@@ -50,6 +50,20 @@ public class PersonTest {
     }
 
     @Test
+    public void additionalDetails_absentAndPresent() {
+        assertTrue(ALICE.getAlias().isEmpty());
+        assertTrue(ALICE.getIntroducer().isEmpty());
+        assertTrue(ALICE.getNote().isEmpty());
+
+        Person withDetails = new PersonBuilder(ALICE).withAlias("Ally")
+                .withIntroducer("Ben Lee").withNote("Met at orientation").build();
+        assertEquals(new Alias("Ally"), withDetails.getAlias().orElseThrow());
+        assertEquals(new Introducer("Ben Lee"), withDetails.getIntroducer().orElseThrow());
+        assertEquals(new Note("Met at orientation"), withDetails.getNote().orElseThrow());
+        assertEquals(withDetails, new PersonBuilder(withDetails).build());
+    }
+
+    @Test
     public void equals_phoneAbsentVersusPresent() {
         Person withoutPhone = new PersonBuilder(ALICE).withoutPhone().build();
         assertFalse(ALICE.equals(withoutPhone));
@@ -103,6 +117,11 @@ public class PersonTest {
         // both have no phone and no email -> returns false
         Person noDetails = new PersonBuilder(ALICE).withoutPhone().withoutEmail().build();
         assertFalse(noDetails.isSamePerson(new PersonBuilder(BOB).withoutPhone().withoutEmail().build()));
+
+        // additional details never affect duplicate detection
+        Person withAdditionalDetails = new PersonBuilder(ALICE).withAlias("Ally")
+                .withIntroducer("Ben Lee").withNote("Met at orientation").build();
+        assertTrue(ALICE.isSamePerson(withAdditionalDetails));
     }
 
     @Test
@@ -139,6 +158,11 @@ public class PersonTest {
         editedAlice = new PersonBuilder(ALICE).withContexts(VALID_CONTEXT_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
 
+        // different additional details -> returns false
+        assertFalse(ALICE.equals(new PersonBuilder(ALICE).withAlias("Ally").build()));
+        assertFalse(ALICE.equals(new PersonBuilder(ALICE).withIntroducer("Ben Lee").build()));
+        assertFalse(ALICE.equals(new PersonBuilder(ALICE).withNote("Met at orientation").build()));
+
         // contexts differing only in case -> returns true
         Person personWithContext = new PersonBuilder(ALICE).withContexts("CS2103T").build();
         Person personWithSameContext = new PersonBuilder(ALICE).withContexts("cs2103t").build();
@@ -151,7 +175,8 @@ public class PersonTest {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName()
                 + ", phone=" + ALICE.getPhone().orElse(null)
                 + ", email=" + ALICE.getEmail().orElse(null)
-                + ", contexts=" + ALICE.getContexts() + "}";
+                + ", contexts=" + ALICE.getContexts()
+                + ", alias=null, introducer=null, note=null}";
         assertEquals(expected, ALICE.toString());
     }
 }
