@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClearCommand;
+import seedu.address.logic.commands.ContextsCommand;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
@@ -52,6 +53,13 @@ public class AddressBookParserTest {
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD.toUpperCase(Locale.ROOT)) instanceof ClearCommand);
         assertTrue(parser.parseCommand(
                 ClearCommand.COMMAND_WORD.toUpperCase(Locale.ROOT) + " 3") instanceof ClearCommand);
+    }
+
+    @Test
+    public void parseCommand_contexts_ignoresExtraTextAndCommandCase() throws Exception {
+        for (String input : List.of("contexts", "contexts CS2103T", "CONTEXTS", "CoNtExTs ignored", "  contexts  ")) {
+            assertTrue(parser.parseCommand(input) instanceof ContextsCommand);
+        }
     }
 
     @Test

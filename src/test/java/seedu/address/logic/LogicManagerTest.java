@@ -13,6 +13,7 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.ContextsCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -70,6 +72,23 @@ public class LogicManagerTest {
         String expectedMessage = String.format(ListCommand.MESSAGE_SUCCESS_PLURAL,
                 model.getFilteredPersonList().size());
         assertCommandSuccess(listCommand, expectedMessage, model);
+    }
+
+    @Test
+    public void execute_contextsAfterFind_preservesDisplayedListAndSurvivesReload() throws Exception {
+        logic.execute("add n/Alex Tan c/CS2103T c/NUS Hackers");
+        logic.execute("add n/Priya Nair c/cs2103t");
+        logic.execute("find Priya");
+        List<Person> displayedPersons = List.copyOf(model.getFilteredPersonList());
+        String expectedMessage = "CS2103T: 2 contacts\nNUS Hackers: 1 contact\n\n2 contexts listed.";
+
+        assertEquals(new CommandResult(expectedMessage), logic.execute("CoNtExTs ignored"));
+        assertEquals(displayedPersons, model.getFilteredPersonList());
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        Model reloadedModel = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        assertEquals(model.getAddressBook(), reloadedModel.getAddressBook());
+        assertEquals(new CommandResult(expectedMessage), new ContextsCommand().execute(reloadedModel));
     }
 
     @Test

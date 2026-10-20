@@ -155,6 +155,28 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Context overview
+
+The `contexts` command lists distinct contexts with contact counts in the existing scrollable result display.
+`AddressBookParser` creates a `ContextsCommand`; as with `list`, command words are case-insensitive and trailing
+arguments are ignored.
+
+`ContextsCommand#execute()` reads `Model#getAddressBook().getPersonList()` rather than the filtered person list.
+It visits contacts in their stored order and aggregates their context descriptions in a `TreeMap` using
+`String.CASE_INSENSITIVE_ORDER`. This groups equivalent names and sorts the output while retaining the first
+encountered spelling. `Context` already normalises surrounding and repeated spaces, and each person's contexts
+form a set, so a person contributes at most one to each context's count. Separate contacts with the same name
+are counted separately.
+
+The command returns one line per context followed by a distinct-context summary, or a message explaining that
+there are no contexts when the address book is empty. It does not update the model or its filter, so the displayed
+contact list and indices remain unchanged. Counts are recomputed on each execution, and no storage format change
+is required. Existing `LogicManager` save handling applies as it does for other commands.
+
+`ContextsCommandTest` covers normalisation, counts, alphabetical order, first-encountered spelling, empty data,
+filtered lists and changes between executions. Parser tests cover command casing and ignored arguments, and
+`LogicManagerTest` verifies the result after filtering and reloading saved contacts.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -477,6 +499,8 @@ The following story is retained to document the scope decision. UniContacts mana
 
 * No contact data is changed, and the displayed contact list is unchanged.
 * Each context appears once, regardless of capitalisation or extra spaces.
+* Counts include every contact in the address book, regardless of the current search filter.
+* Each contact contributes at most one to each context's count. Different contacts with the same name count separately.
 
 **MSS**
 
@@ -568,6 +592,42 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases …​ }_
+
+### Viewing all contexts
+
+1. Listing counts and preserving a search filter
+
+   1. Prerequisites: Use a disposable test address book containing only Alex Tan with `CS2103` and `NUS Hackers`,
+      Priya Nair with `cs2103` and `CS2103T`, and Marcus Lim with `CS2103T`.
+
+   1. Test case: `contexts`<br>
+      Expected: The result display shows `CS2103: 2 contacts`, `CS2103T: 2 contacts`, `NUS Hackers: 1 contact`,
+      a blank line, and `3 contexts listed.` The contact list is unchanged.
+
+   1. Test case: `find Priya`, followed by `contexts`<br>
+      Expected: The same full-address-book counts are shown, and only Priya remains in the displayed list.
+
+   1. Test case: `find Nobody`, followed by `CONTEXTS ignored`<br>
+      Expected: The same counts are shown, and the displayed contact list remains empty.
+
+   1. Test case: `list`, `delete 1`, then `contexts`<br>
+      Expected: `NUS Hackers` disappears, and the counts reflect the remaining contacts. The overview uses
+      Priya's spelling `cs2103` for that context.
+
+1. Listing contexts in an empty address book
+
+   1. Prerequisites: In the disposable test address book, run `clear`.
+
+   1. Test case: `contexts`<br>
+      Expected: `No contexts found. Add a person with c/CONTEXT to get started.` The contact list remains empty.
+
+1. Checking persistence and long output
+
+   1. Close and reopen the app after saving contacts, then run `contexts`.<br>
+      Expected: The counts and spelling match the stored contacts.
+
+   1. With enough distinct contexts to exceed the result display's height, run `contexts` and scroll the result.<br>
+      Expected: All context rows and the final summary can be read without changing the displayed contact list.
 
 ### Saving data
 
