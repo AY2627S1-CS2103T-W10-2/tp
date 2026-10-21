@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.ArrayList;
@@ -51,6 +53,9 @@ public class CommandTestUtil {
     public static final String EMPTY_PHONE_DESC = " " + PREFIX_PHONE;
     public static final String EMPTY_EMAIL_DESC = " " + PREFIX_EMAIL;
     public static final String EMPTY_CONTEXT_DESC = " " + PREFIX_CONTEXT;
+
+    public static final String REMOVE_PHONE_DESC = " " + PREFIX_PHONE_REMOVE;
+    public static final String REMOVE_EMAIL_DESC = " " + PREFIX_EMAIL_REMOVE;
 
     public static final String PREAMBLE_WHITESPACE = "\t  \r  \n";
     public static final String PREAMBLE_NON_EMPTY = "NonEmptyPreamble";
