@@ -20,9 +20,12 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
+import seedu.address.model.person.Alias;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Introducer;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 
@@ -96,8 +99,12 @@ public class EditCommand extends Command {
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone().orElse(null));
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail().orElse(null));
         Set<Context> updatedContexts = editPersonDescriptor.getContexts().orElse(personToEdit.getContexts());
+        // edit cannot change these fields yet, so they are carried over unchanged
+        Alias alias = personToEdit.getAlias().orElse(null);
+        Introducer introducer = personToEdit.getIntroducer().orElse(null);
+        Note note = personToEdit.getNote().orElse(null);
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedContexts);
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedContexts, alias, introducer, note);
     }
 
     @Override
