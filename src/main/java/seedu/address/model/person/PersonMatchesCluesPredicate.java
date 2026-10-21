@@ -23,6 +23,8 @@ public class PersonMatchesCluesPredicate implements Predicate<Person> {
         requireNonNull(nameClue);
         requireNonNull(contextClues);
         contextClues.forEach(clue -> requireNonNull(clue));
+        assert nameClue.isPresent() || !contextClues.isEmpty()
+                : "At least one structured search clue must be provided";
         this.nameClue = nameClue;
         this.contextClues = List.copyOf(contextClues);
     }
