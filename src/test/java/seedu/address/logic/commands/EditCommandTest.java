@@ -36,18 +36,14 @@ public class EditCommandTest {
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
-    public void execute_editingAnArchivedPerson_keepsItArchived() throws Exception {
-        Person archived = model.getFilteredPersonList().get(0).withArchived(true);
-        model.setPerson(model.getFilteredPersonList().get(0), archived);
+    public void execute_archivedPerson_isRejectedAndNothingChanges() {
+        Person person = model.getFilteredPersonList().get(0);
+        model.setPerson(person, person.withArchived(true));
         model.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();
 
-        new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
-
-        // the edited person is archived, so it is no longer in the normal list; look for it in the address book
-        Person edited = model.getAddressBook().getPersonList().stream()
-                .filter(p -> p.getName().fullName.equals(VALID_NAME_BOB)).findFirst().get();
-        assertTrue(edited.isArchived());
+        assertCommandFailure(new EditCommand(INDEX_FIRST_PERSON, descriptor), model,
+                EditCommand.MESSAGE_ARCHIVED_NOT_EDITABLE);
     }
 
     @Test

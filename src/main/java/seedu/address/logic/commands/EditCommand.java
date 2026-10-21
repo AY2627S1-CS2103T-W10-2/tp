@@ -46,6 +46,7 @@ public class EditCommand extends Command {
             + PREFIX_EMAIL + "johndoe@example.com";
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
+    public static final String MESSAGE_ARCHIVED_NOT_EDITABLE = "Archived contacts can't be edited. Unarchive it first.";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
 
     private final Index index;
@@ -73,6 +74,9 @@ public class EditCommand extends Command {
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
+        if (personToEdit.isArchived()) {
+            throw new CommandException(MESSAGE_ARCHIVED_NOT_EDITABLE);
+        }
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
         Optional<Person> existingPerson = model.findDuplicate(editedPerson, personToEdit);
