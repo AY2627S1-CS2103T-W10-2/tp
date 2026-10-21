@@ -132,6 +132,8 @@ public class EditCommand extends Command {
         private Phone phone;
         private Email email;
         private Set<Context> contexts;
+        private boolean isPhoneRemoved;
+        private boolean isEmailRemoved;
 
         public EditPersonDescriptor() {}
 
@@ -144,13 +146,16 @@ public class EditCommand extends Command {
             setPhone(toCopy.phone);
             setEmail(toCopy.email);
             setContexts(toCopy.contexts);
+            setPhoneRemoved(toCopy.isPhoneRemoved);
+            setEmailRemoved(toCopy.isEmailRemoved);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, contexts);
+            return CollectionUtil.isAnyNonNull(name, phone, email, contexts)
+                    || isPhoneRemoved || isEmailRemoved;
         }
 
         public void setName(Name name) {
@@ -175,6 +180,22 @@ public class EditCommand extends Command {
 
         public Optional<Email> getEmail() {
             return Optional.ofNullable(email);
+        }
+
+        public void setPhoneRemoved(boolean isPhoneRemoved) {
+            this.isPhoneRemoved = isPhoneRemoved;
+        }
+
+        public boolean isPhoneRemoved() {
+            return isPhoneRemoved;
+        }
+
+        public void setEmailRemoved(boolean isEmailRemoved) {
+            this.isEmailRemoved = isEmailRemoved;
+        }
+
+        public boolean isEmailRemoved() {
+            return isEmailRemoved;
         }
 
         /**
@@ -208,7 +229,9 @@ public class EditCommand extends Command {
             return Objects.equals(name, otherEditPersonDescriptor.name)
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
-                    && Objects.equals(contexts, otherEditPersonDescriptor.contexts);
+                    && Objects.equals(contexts, otherEditPersonDescriptor.contexts)
+                    && isPhoneRemoved == otherEditPersonDescriptor.isPhoneRemoved
+                    && isEmailRemoved == otherEditPersonDescriptor.isEmailRemoved;
         }
 
         @Override
@@ -218,6 +241,8 @@ public class EditCommand extends Command {
                     .add("phone", phone)
                     .add("email", email)
                     .add("contexts", contexts)
+                    .add("isPhoneRemoved", isPhoneRemoved)
+                    .add("isEmailRemoved", isEmailRemoved)
                     .toString();
         }
     }
