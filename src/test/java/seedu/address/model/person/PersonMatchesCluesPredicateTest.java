@@ -86,19 +86,19 @@ public class PersonMatchesCluesPredicateTest {
 
     @Test
     public void test_cluesDoNotSearchOtherFields_returnsFalse() {
-        PersonMatchesCluesPredicate namePredicate = new PersonMatchesCluesPredicate(
+        PersonMatchesCluesPredicate contextAsNameCluePredicate = new PersonMatchesCluesPredicate(
                 Optional.of("CS2103T"), List.of());
-        PersonMatchesCluesPredicate contextPredicate = new PersonMatchesCluesPredicate(
+        PersonMatchesCluesPredicate nameAsContextCluePredicate = new PersonMatchesCluesPredicate(
                 Optional.empty(), List.of("Tony"));
-        PersonMatchesCluesPredicate phonePredicate = new PersonMatchesCluesPredicate(
+        PersonMatchesCluesPredicate phoneAsNameCluePredicate = new PersonMatchesCluesPredicate(
                 Optional.of("91234567"), List.of());
-        PersonMatchesCluesPredicate emailPredicate = new PersonMatchesCluesPredicate(
+        PersonMatchesCluesPredicate emailAsNameCluePredicate = new PersonMatchesCluesPredicate(
                 Optional.of("tony@example.com"), List.of());
 
-        assertFalse(namePredicate.test(TONY));
-        assertFalse(contextPredicate.test(TONY));
-        assertFalse(phonePredicate.test(TONY));
-        assertFalse(emailPredicate.test(TONY));
+        assertFalse(contextAsNameCluePredicate.test(TONY));
+        assertFalse(nameAsContextCluePredicate.test(TONY));
+        assertFalse(phoneAsNameCluePredicate.test(TONY));
+        assertFalse(emailAsNameCluePredicate.test(TONY));
     }
 
     @Test

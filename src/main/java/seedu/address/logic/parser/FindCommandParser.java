@@ -38,8 +38,7 @@ public class FindCommandParser implements Parser<FindCommand> {
             return parseKeywordSearch(trimmedArgs);
         }
 
-        if (prefixTokens.stream().anyMatch(prefix -> !prefix.equals(PREFIX_NAME.getPrefix())
-                && !prefix.equals(PREFIX_CONTEXT.getPrefix()))) {
+        if (hasUnsupportedPrefix(prefixTokens)) {
             throw invalidFormat();
         }
 
@@ -83,6 +82,11 @@ public class FindCommandParser implements Parser<FindCommand> {
             prefixTokens.add(matcher.group(1));
         }
         return prefixTokens;
+    }
+
+    private static boolean hasUnsupportedPrefix(List<String> prefixTokens) {
+        return prefixTokens.stream().anyMatch(prefix -> !prefix.equals(PREFIX_NAME.getPrefix())
+                && !prefix.equals(PREFIX_CONTEXT.getPrefix()));
     }
 
     private static List<String> removeEquivalentClues(List<String> clues) {

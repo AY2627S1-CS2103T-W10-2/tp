@@ -155,6 +155,34 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Multi-clue search
+
+#### Implementation
+
+The `find` command supports two search modes while preserving the existing keyword-search behaviour:
+
+* An unprefixed command such as `find Alex CS2103T` uses `PersonContainsKeywordsPredicate`. A person matches when
+  any keyword occurs in the person's name or contexts.
+* A structured command such as `find n/Alex c/CS2103T` uses `PersonMatchesCluesPredicate`. A person matches only
+  when the optional name clue and every context clue match their corresponding fields.
+
+`FindCommandParser` selects the mode by scanning the arguments for prefix-like tokens. If none are present, it creates
+the existing keyword predicate. If tokens are present, only `n/` and `c/` are accepted. The parser then uses
+`ArgumentTokenizer` to read the clues, allowing the prefixes to appear in any order. `n/` may appear at most once,
+while `c/` is repeatable.
+
+Before constructing `PersonMatchesCluesPredicate`, the parser trims each clue, collapses repeated whitespace and
+removes equivalent repeated context clues case-insensitively. Unsupported prefixes, empty clues and unprefixed text
+before a structured clue are rejected without changing the current filtered list.
+
+`FindCommand` stores a `Predicate<Person>` rather than a concrete predicate type, allowing both search modes to share
+the same command execution. In structured mode, `PersonMatchesCluesPredicate` checks the name clue against the
+person's name and uses AND matching across the context clues. Each individual context clue may match any one of the
+person's contexts.
+
+This separation keeps the legacy OR search unchanged and allows more structured clue types to be introduced later
+without changing `FindCommand` execution.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
