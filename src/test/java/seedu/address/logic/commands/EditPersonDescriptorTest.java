@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
@@ -48,7 +49,11 @@ public class EditPersonDescriptorTest {
         assertFalse(DESC_AMY.equals(editedAmy));
 
         // different contexts -> returns false
-        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withContexts(VALID_CONTEXT_HUSBAND).build();
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withContextsToAdd(VALID_CONTEXT_HUSBAND).build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
+        // different contexts to remove -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withContextsToRemove(VALID_CONTEXT_FRIEND).build();
         assertFalse(DESC_AMY.equals(editedAmy));
     }
 
@@ -58,8 +63,9 @@ public class EditPersonDescriptorTest {
         String expected = EditPersonDescriptor.class.getCanonicalName() + "{name="
                 + editPersonDescriptor.getName().orElse(null) + ", phone="
                 + editPersonDescriptor.getPhone().orElse(null) + ", email="
-                + editPersonDescriptor.getEmail().orElse(null) + ", contexts="
-                + editPersonDescriptor.getContexts().orElse(null) + "}";
+                + editPersonDescriptor.getEmail().orElse(null) + ", contextsToAdd="
+                + editPersonDescriptor.getContextsToAdd().orElse(null) + ", contextsToRemove="
+                + editPersonDescriptor.getContextsToRemove().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }
 }
