@@ -87,4 +87,27 @@ public class FindCommandTest {
     private PersonContainsKeywordsPredicate preparePredicate(String userInput) {
         return new PersonContainsKeywordsPredicate(List.of(userInput.split("\\s+")));
     }
+
+    @Test
+    public void execute_archivedPerson_isNeverFound() {
+        // Carl matches the keyword, but he is archived
+        seedu.address.model.person.Person carl = model.getFilteredPersonList().stream()
+                .filter(p -> p.equals(CARL)).findFirst().get();
+        model.setPerson(carl, carl.withArchived(true));
+        FindCommand command = new FindCommand(new PersonContainsKeywordsPredicate(List.of("Kurz")));
+
+        assertEquals(MESSAGE_NO_PERSONS_FOUND, command.execute(model).getFeedbackToUser());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+    }
+
+    @Test
+    public void execute_findFromArchivesView_leavesTheArchives() {
+        model.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
+        assertTrue(model.showingArchivesProperty().get());
+
+        new FindCommand(new PersonContainsKeywordsPredicate(List.of("Kurz"))).execute(model);
+
+        assertFalse(model.showingArchivesProperty().get());
+        assertEquals(List.of(CARL), model.getFilteredPersonList());
+    }
 }

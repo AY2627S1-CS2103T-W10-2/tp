@@ -62,4 +62,17 @@ public class ListCommandTest {
         assertCommandSuccess(new ListCommand(), singlePersonModel,
                 expectedSinglePersonMessage, expectedSinglePersonModel);
     }
+
+    @Test
+    public void execute_archivedPersonsAreNotListed() {
+        seedu.address.model.person.Person first = model.getFilteredPersonList().get(0);
+        model.setPerson(first, first.withArchived(true));
+        int expectedCount = model.getAddressBook().getPersonList().size() - 1;
+
+        new ListCommand().execute(model);
+
+        org.junit.jupiter.api.Assertions.assertEquals(expectedCount, model.getFilteredPersonList().size());
+        org.junit.jupiter.api.Assertions.assertTrue(
+                model.getFilteredPersonList().stream().noneMatch(p -> p.isArchived()));
+    }
 }

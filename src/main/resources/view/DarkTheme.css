@@ -337,6 +337,13 @@
     -fx-background-radius: 0;
 }
 
+.archives_header {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 16pt;
+    -fx-text-fill: white;
+    -fx-padding: 0 0 8 2;
+}
+
 #contexts {
     -fx-hgap: 7;
     -fx-vgap: 3;

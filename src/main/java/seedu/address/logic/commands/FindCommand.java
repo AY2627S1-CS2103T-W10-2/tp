@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.model.Model.PREDICATE_SHOW_ACTIVE;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -31,7 +32,8 @@ public class FindCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredPersonList(predicate);
+        // archived persons are never found; they are only shown by the archives command
+        model.updateFilteredPersonList(PREDICATE_SHOW_ACTIVE.and(predicate));
         if (model.getFilteredPersonList().isEmpty()) {
             return new CommandResult(MESSAGE_NO_PERSONS_FOUND);
         }

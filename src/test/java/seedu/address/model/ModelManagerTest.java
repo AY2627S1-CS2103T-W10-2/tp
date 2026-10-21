@@ -109,4 +109,40 @@ public class ModelManagerTest {
         differentUserPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
         assertFalse(modelManager.equals(new ModelManager(addressBook, differentUserPrefs)));
     }
+
+    @Test
+    public void filteredList_hidesArchivedPersonsFromTheStart() {
+        modelManager = new ModelManager(new AddressBookBuilder()
+                .withPerson(ALICE).withPerson(BENSON.withArchived(true)).build(), new UserPrefs());
+
+        assertEquals(List.of(ALICE), modelManager.getFilteredPersonList());
+        assertFalse(modelManager.showingArchivesProperty().get());
+    }
+
+    @Test
+    public void showingArchivesProperty_followsThePredicate() {
+        modelManager.addPerson(ALICE);
+
+        modelManager.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
+        assertTrue(modelManager.showingArchivesProperty().get());
+
+        modelManager.updateFilteredPersonList(Model.PREDICATE_SHOW_ACTIVE);
+        assertFalse(modelManager.showingArchivesProperty().get());
+
+        // a search combines the active test with keywords, so it is not the archives view
+        modelManager.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
+        modelManager.updateFilteredPersonList(
+                Model.PREDICATE_SHOW_ACTIVE.and(new PersonContainsKeywordsPredicate(List.of("Alice"))));
+        assertFalse(modelManager.showingArchivesProperty().get());
+    }
+
+    @Test
+    public void addPerson_returnsToTheActiveList() {
+        modelManager.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
+
+        modelManager.addPerson(ALICE);
+
+        assertFalse(modelManager.showingArchivesProperty().get());
+        assertEquals(List.of(ALICE), modelManager.getFilteredPersonList());
+    }
 }
