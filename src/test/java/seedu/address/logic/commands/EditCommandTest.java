@@ -14,6 +14,7 @@ import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.jupiter.api.Test;
@@ -165,6 +166,24 @@ public class EditCommandTest {
     @Test
     public void execute_removePhoneAndEmail_success() {
         // a person may end up with neither phone nor email
+        Person editedAlice = new PersonBuilder(ALICE).withoutPhone().withoutEmail().build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhoneRemoved().withEmailRemoved().build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, editedAlice);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_removePhoneAndEmailWhenOthersHaveNeither_success() {
+        // two people without a phone or email are not duplicates of each other
+        Person bensonWithoutPhoneAndEmail = new PersonBuilder(BENSON).withoutPhone().withoutEmail().build();
+        model.setPerson(BENSON, bensonWithoutPhoneAndEmail);
+
         Person editedAlice = new PersonBuilder(ALICE).withoutPhone().withoutEmail().build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withPhoneRemoved().withEmailRemoved().build());
