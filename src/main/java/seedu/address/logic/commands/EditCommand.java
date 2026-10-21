@@ -1,10 +1,13 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_ADD;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
@@ -33,17 +36,21 @@ public class EditCommand extends Command {
 
     public static final String COMMAND_WORD = "edit";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the person identified "
-            + "by the index number used in the displayed person list. "
-            + "Existing values will be overwritten by the input values.\n"
-            + "Parameters: INDEX (must be a positive integer) "
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Edits the person at the given index in the displayed list.\n"
+            + "Parameters: INDEX (positive number shown beside the person in the list) "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
-            + "[" + PREFIX_CONTEXT + "CONTEXT]...\n"
+            + "[" + PREFIX_PHONE_REMOVE + "] "
+            + "[" + PREFIX_EMAIL_REMOVE + "] "
+            + "[" + PREFIX_CONTEXT_ADD + "CONTEXT]... "
+            + "[" + PREFIX_CONTEXT_REMOVE + "CONTEXT]...\n"
+            + "Use " + PREFIX_PHONE_REMOVE + " or " + PREFIX_EMAIL_REMOVE + " to remove a phone or email.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
-            + PREFIX_EMAIL + "johndoe@example.com";
+            + PREFIX_CONTEXT_ADD + "NUS Hackers "
+            + PREFIX_CONTEXT_REMOVE + "CS2040S";
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
