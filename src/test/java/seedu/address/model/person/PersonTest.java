@@ -176,7 +176,39 @@ public class PersonTest {
                 + ", phone=" + ALICE.getPhone().orElse(null)
                 + ", email=" + ALICE.getEmail().orElse(null)
                 + ", contexts=" + ALICE.getContexts()
-                + ", alias=null, introducer=null, note=null}";
+                + ", alias=null, introducer=null, note=null, archived=false}";
         assertEquals(expected, ALICE.toString());
+    }
+
+    @Test
+    public void isArchived_defaultsToFalse() {
+        assertFalse(ALICE.isArchived());
+    }
+
+    @Test
+    public void withArchived_changesOnlyTheFlag() {
+        Person full = new PersonBuilder(ALICE).withAlias("Ally").withIntroducer("Bob Lee")
+                .withNote("Met at demo").build();
+
+        Person archived = full.withArchived(true);
+
+        assertTrue(archived.isArchived());
+        assertEquals(full, archived.withArchived(false));
+        assertEquals(full.getAlias(), archived.getAlias());
+        assertEquals(full.getIntroducer(), archived.getIntroducer());
+        assertEquals(full.getNote(), archived.getNote());
+    }
+
+    @Test
+    public void equals_archivedFlagMatters() {
+        assertFalse(ALICE.equals(ALICE.withArchived(true)));
+        assertEquals(ALICE.withArchived(true), new PersonBuilder(ALICE).withArchived(true).build());
+        Person other = new PersonBuilder(ALICE).withArchived(true).build();
+        assertEquals(ALICE.withArchived(true).hashCode(), other.hashCode());
+    }
+
+    @Test
+    public void isSamePerson_ignoresArchivedFlag() {
+        assertTrue(ALICE.isSamePerson(ALICE.withArchived(true)));
     }
 }
