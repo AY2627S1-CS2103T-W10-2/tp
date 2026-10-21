@@ -9,7 +9,6 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -243,19 +242,19 @@ public class EditCommand extends Command {
         }
 
         /**
-         * Sets {@code contexts} to this object's {@code contextsToAdd}.
+         * Sets {@code contextsToAdd} to this object's {@code contextsToAdd}.
          * A defensive copy of {@code contextsToAdd} is used internally.
          */
         public void setContextsToAdd(Set<Context> contextsToAdd) {
-            this.contextsToAdd = (contextsToAdd != null) ? new HashSet<>(contextsToAdd) : null;
+            this.contextsToAdd = (contextsToAdd != null) ? new LinkedHashSet<>(contextsToAdd) : null;
         }
 
         /**
-         * Sets {@code contexts} to this object's {@code contextsToRemove}.
+         * Sets {@code contextsToRemove} to this object's {@code contextsToRemove}.
          * A defensive copy of {@code contextsToRemove} is used internally.
          */
         public void setContextsToRemove(Set<Context> contextsToRemove) {
-            this.contextsToRemove = (contextsToRemove != null) ? new HashSet<>(contextsToRemove) : null;
+            this.contextsToRemove = (contextsToRemove != null) ? new LinkedHashSet<>(contextsToRemove) : null;
         }
 
         /**

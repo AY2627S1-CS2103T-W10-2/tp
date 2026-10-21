@@ -133,6 +133,14 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_addExistingContext_keepsExistingSpelling() {
+        // Alice already has "CS2103T", so "cs2103t" is skipped and the success message still shows "CS2103T"
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withContextsToAdd("cs2103t").build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, ALICE);
+    }
+
+    @Test
     public void execute_unmatchedContextToRemove_failure() {
         // "CS2130T" is a typo of Alice's "CS2103T"
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
