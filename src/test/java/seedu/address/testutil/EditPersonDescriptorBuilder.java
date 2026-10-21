@@ -62,6 +62,22 @@ public class EditPersonDescriptorBuilder {
     }
 
     /**
+     * Marks the phone for removal in the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withPhoneRemoved() {
+        descriptor.setPhoneRemoved(true);
+        return this;
+    }
+
+    /**
+     * Marks the email for removal in the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withEmailRemoved() {
+        descriptor.setEmailRemoved(true);
+        return this;
+    }
+
+    /**
      * Parses the {@code contexts} into a {@code Set<Context>} and sets it to the {@code EditPersonDescriptor}
      * that we are building.
      */
