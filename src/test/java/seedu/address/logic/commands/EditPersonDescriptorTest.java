@@ -65,7 +65,9 @@ public class EditPersonDescriptorTest {
                 + editPersonDescriptor.getPhone().orElse(null) + ", email="
                 + editPersonDescriptor.getEmail().orElse(null) + ", contextsToAdd="
                 + editPersonDescriptor.getContextsToAdd().orElse(null) + ", contextsToRemove="
-                + editPersonDescriptor.getContextsToRemove().orElse(null) + "}";
+                + editPersonDescriptor.getContextsToRemove().orElse(null) + ", isPhoneRemoved="
+                + editPersonDescriptor.isPhoneRemoved() + ", isEmailRemoved="
+                + editPersonDescriptor.isEmailRemoved() + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }
 }

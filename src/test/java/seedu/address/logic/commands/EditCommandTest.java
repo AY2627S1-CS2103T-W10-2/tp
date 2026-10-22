@@ -237,6 +237,70 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_removePhone_success() {
+        // Alice keeps her email and contexts
+        Person editedAlice = new PersonBuilder(ALICE).withoutPhone().build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhoneRemoved().build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, editedAlice);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_removePhoneAndEmail_success() {
+        // a person may end up with neither phone nor email
+        Person editedAlice = new PersonBuilder(ALICE).withoutPhone().withoutEmail().build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhoneRemoved().withEmailRemoved().build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, editedAlice);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_removePhoneAndEmailWhenOthersHaveNeither_success() {
+        // two people without a phone or email are not duplicates of each other
+        Person bensonWithoutPhoneAndEmail = new PersonBuilder(BENSON).withoutPhone().withoutEmail().build();
+        model.setPerson(BENSON, bensonWithoutPhoneAndEmail);
+
+        Person editedAlice = new PersonBuilder(ALICE).withoutPhone().withoutEmail().build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhoneRemoved().withEmailRemoved().build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, editedAlice);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_removeMissingPhone_noChange() {
+        // removing a phone the person does not have is accepted and changes nothing
+        Person aliceWithoutPhone = new PersonBuilder(ALICE).withoutPhone().build();
+        model.setPerson(ALICE, aliceWithoutPhone);
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhoneRemoved().build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(aliceWithoutPhone));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_invalidPersonIndexUnfilteredList_failure() {
         Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();

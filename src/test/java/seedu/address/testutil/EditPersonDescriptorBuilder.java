@@ -63,8 +63,24 @@ public class EditPersonDescriptorBuilder {
     }
 
     /**
-     * Parses the {@code contexts} into a {@code Set<Context>} and sets them as the contexts to add
-     * in the {@code EditPersonDescriptor} that we are building.
+     * Marks the phone for removal in the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withPhoneRemoved() {
+        descriptor.setPhoneRemoved(true);
+        return this;
+    }
+
+    /**
+     * Marks the email for removal in the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withEmailRemoved() {
+        descriptor.setEmailRemoved(true);
+        return this;
+    }
+
+    /**
+     * Parses the {@code contexts} into a {@code Set<Context>} and sets it to the {@code EditPersonDescriptor}
+     * that we are building.
      */
     public EditPersonDescriptorBuilder withContextsToAdd(String... contexts) {
         Set<Context> contextSet = Stream.of(contexts).map(Context::new)

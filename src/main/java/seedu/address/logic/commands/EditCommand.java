@@ -116,8 +116,12 @@ public class EditCommand extends Command {
         assert personToEdit != null;
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
-        Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone().orElse(null));
-        Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail().orElse(null));
+        Phone updatedPhone = editPersonDescriptor.isPhoneRemoved()
+                ? null
+                : editPersonDescriptor.getPhone().orElse(personToEdit.getPhone().orElse(null));
+        Email updatedEmail = editPersonDescriptor.isEmailRemoved()
+                ? null
+                : editPersonDescriptor.getEmail().orElse(personToEdit.getEmail().orElse(null));
         Set<Context> updatedContexts = applyContextChanges(personToEdit, editPersonDescriptor);
         // edit cannot change these fields yet, so they are carried over unchanged
         Alias alias = personToEdit.getAlias().orElse(null);
@@ -209,6 +213,8 @@ public class EditCommand extends Command {
         private Email email;
         private Set<Context> contextsToAdd;
         private Set<Context> contextsToRemove;
+        private boolean isPhoneRemoved;
+        private boolean isEmailRemoved;
 
         public EditPersonDescriptor() {}
 
@@ -222,13 +228,16 @@ public class EditCommand extends Command {
             setEmail(toCopy.email);
             setContextsToAdd(toCopy.contextsToAdd);
             setContextsToRemove(toCopy.contextsToRemove);
+            setPhoneRemoved(toCopy.isPhoneRemoved);
+            setEmailRemoved(toCopy.isEmailRemoved);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, contextsToAdd, contextsToRemove);
+            return CollectionUtil.isAnyNonNull(name, phone, email, contextsToAdd, contextsToRemove)
+                    || isPhoneRemoved || isEmailRemoved;
         }
 
         public void setName(Name name) {
@@ -253,6 +262,22 @@ public class EditCommand extends Command {
 
         public Optional<Email> getEmail() {
             return Optional.ofNullable(email);
+        }
+
+        public void setPhoneRemoved(boolean isPhoneRemoved) {
+            this.isPhoneRemoved = isPhoneRemoved;
+        }
+
+        public boolean isPhoneRemoved() {
+            return isPhoneRemoved;
+        }
+
+        public void setEmailRemoved(boolean isEmailRemoved) {
+            this.isEmailRemoved = isEmailRemoved;
+        }
+
+        public boolean isEmailRemoved() {
+            return isEmailRemoved;
         }
 
         /**
@@ -307,6 +332,8 @@ public class EditCommand extends Command {
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(contextsToAdd, otherEditPersonDescriptor.contextsToAdd)
                     && Objects.equals(contextsToRemove, otherEditPersonDescriptor.contextsToRemove);
+                    && isPhoneRemoved == otherEditPersonDescriptor.isPhoneRemoved
+                    && isEmailRemoved == otherEditPersonDescriptor.isEmailRemoved;
         }
 
         @Override
@@ -317,6 +344,8 @@ public class EditCommand extends Command {
                     .add("email", email)
                     .add("contextsToAdd", contextsToAdd)
                     .add("contextsToRemove", contextsToRemove)
+                    .add("isPhoneRemoved", isPhoneRemoved)
+                    .add("isEmailRemoved", isEmailRemoved)
                     .toString();
         }
     }

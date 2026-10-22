@@ -17,6 +17,8 @@ import static seedu.address.logic.commands.CommandTestUtil.INVALID_PHONE_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.REMOVE_EMAIL_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.REMOVE_PHONE_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.REMOVE_CONTEXT_DESC_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_HUSBAND;
@@ -27,6 +29,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -88,8 +91,9 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1" + INVALID_EMAIL_DESC, Email.MESSAGE_CONSTRAINTS); // invalid email
         assertParseFailure(parser, "1" + INVALID_ADD_CONTEXT_DESC, Context.MESSAGE_CONSTRAINTS); // invalid context
         assertParseFailure(parser, "1" + EMPTY_NAME_DESC, ParserUtil.MESSAGE_EMPTY_NAME); // empty name
-        assertParseFailure(parser, "1" + EMPTY_PHONE_DESC, ParserUtil.MESSAGE_EMPTY_PHONE); // empty phone
-        assertParseFailure(parser, "1" + EMPTY_EMAIL_DESC, ParserUtil.MESSAGE_EMPTY_EMAIL); // empty email
+        // empty phone or email points to -p/ or -e/
+        assertParseFailure(parser, "1" + EMPTY_PHONE_DESC, EditCommandParser.MESSAGE_EMPTY_PHONE);
+        assertParseFailure(parser, "1" + EMPTY_EMAIL_DESC, EditCommandParser.MESSAGE_EMPTY_EMAIL);
 
         // invalid phone followed by valid email
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC + EMAIL_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
@@ -210,5 +214,50 @@ public class EditCommandParserTest {
                 ParserUtil.MESSAGE_EMPTY_CONTEXT);
         assertParseFailure(parser, INDEX_THIRD_PERSON.getOneBased() + EMPTY_REMOVE_CONTEXT_DESC,
                 ParserUtil.MESSAGE_EMPTY_CONTEXT);
+    }
+
+    @Test
+    public void parse_removePhoneOrEmail_success() {
+        // -p/ alone; it is not read as an empty p/
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhoneRemoved().build();
+        assertParseSuccess(parser, "1" + REMOVE_PHONE_DESC, new EditCommand(INDEX_FIRST_PERSON, descriptor));
+
+        // rename and remove the email in one command
+        descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_AMY).withEmailRemoved().build();
+        assertParseSuccess(parser, "3" + NAME_DESC_AMY + REMOVE_EMAIL_DESC,
+                new EditCommand(INDEX_THIRD_PERSON, descriptor));
+
+        // remove both
+        descriptor = new EditPersonDescriptorBuilder().withPhoneRemoved().withEmailRemoved().build();
+        assertParseSuccess(parser, "1" + REMOVE_PHONE_DESC + REMOVE_EMAIL_DESC,
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
+    public void parse_removeWithValue_failure() {
+        assertParseFailure(parser, "1" + REMOVE_PHONE_DESC + "91234567",
+                EditCommandParser.MESSAGE_REMOVE_PHONE_WITH_VALUE);
+        assertParseFailure(parser, "1" + REMOVE_EMAIL_DESC + "amy@example.com",
+                EditCommandParser.MESSAGE_REMOVE_EMAIL_WITH_VALUE);
+    }
+
+    @Test
+    public void parse_setAndRemoveSameField_failure() {
+        assertParseFailure(parser, "1" + PHONE_DESC_AMY + REMOVE_PHONE_DESC,
+                EditCommandParser.MESSAGE_SET_AND_REMOVE_PHONE);
+        assertParseFailure(parser, "1" + EMAIL_DESC_AMY + REMOVE_EMAIL_DESC,
+                EditCommandParser.MESSAGE_SET_AND_REMOVE_EMAIL);
+
+        // the conflict is reported before an empty or invalid phone
+        assertParseFailure(parser, "1" + EMPTY_PHONE_DESC + REMOVE_PHONE_DESC,
+                EditCommandParser.MESSAGE_SET_AND_REMOVE_PHONE);
+        assertParseFailure(parser, "1" + INVALID_PHONE_DESC + REMOVE_PHONE_DESC,
+                EditCommandParser.MESSAGE_SET_AND_REMOVE_PHONE);
+    }
+
+    @Test
+    public void parse_repeatedRemovePrefix_failure() {
+        assertParseFailure(parser, "1" + REMOVE_PHONE_DESC + REMOVE_PHONE_DESC,
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE_REMOVE));
     }
 }
