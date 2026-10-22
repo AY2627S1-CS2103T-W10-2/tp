@@ -5,14 +5,16 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
+import static seedu.address.model.Model.PREDICATE_SHOW_ACTIVE;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
@@ -20,9 +22,12 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
+import seedu.address.model.person.Alias;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Introducer;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 
@@ -46,7 +51,13 @@ public class EditCommand extends Command {
             + PREFIX_EMAIL + "johndoe@example.com";
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
+    public static final String MESSAGE_ARCHIVED_NOT_EDITABLE =
+            "This person is archived and can't be edited. Unarchive the person first.";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
+
+    public static final String MESSAGE_CONTEXTS_NOT_FOUND = "%1$s does not have context(s): %2$s. Check the spelling.";
+    public static final String MESSAGE_NO_CONTEXT_LEFT = "A person must have at least one context. "
+            + "Add a new context with +c/ before removing the last one.";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -73,6 +84,17 @@ public class EditCommand extends Command {
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
+        
+        if (personToEdit.isArchived()) {
+            throw new CommandException(MESSAGE_ARCHIVED_NOT_EDITABLE);
+        }
+      
+        List<Context> unmatchedContexts = findUnmatchedContexts(personToEdit, editPersonDescriptor);
+        if (!unmatchedContexts.isEmpty()) {
+            throw new CommandException(String.format(MESSAGE_CONTEXTS_NOT_FOUND,
+                    personToEdit.getName(), formatContexts(unmatchedContexts)));
+        }
+      
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
         Optional<Person> existingPerson = model.findDuplicate(editedPerson, personToEdit);
@@ -81,7 +103,7 @@ public class EditCommand extends Command {
         }
 
         model.setPerson(personToEdit, editedPerson);
-        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        model.updateFilteredPersonList(PREDICATE_SHOW_ACTIVE);
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
     }
 
@@ -89,7 +111,8 @@ public class EditCommand extends Command {
      * Creates and returns a {@code Person} with the details of {@code personToEdit}
      * edited with {@code editPersonDescriptor}.
      */
-    private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor) {
+    private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor)
+            throws CommandException {
         assert personToEdit != null;
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
@@ -99,9 +122,62 @@ public class EditCommand extends Command {
         Email updatedEmail = editPersonDescriptor.isEmailRemoved()
                 ? null
                 : editPersonDescriptor.getEmail().orElse(personToEdit.getEmail().orElse(null));
-        Set<Context> updatedContexts = editPersonDescriptor.getContexts().orElse(personToEdit.getContexts());
+        Set<Context> updatedContexts = applyContextChanges(personToEdit, editPersonDescriptor);
+        // edit cannot change these fields yet, so they are carried over unchanged
+        Alias alias = personToEdit.getAlias().orElse(null);
+        Introducer introducer = personToEdit.getIntroducer().orElse(null);
+        Note note = personToEdit.getNote().orElse(null);
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedContexts);
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedContexts, alias, introducer, note)
+                .copyWithArchived(personToEdit.isArchived());
+    }
+
+    /**
+     * Returns the contexts in {@code editPersonDescriptor} to remove that {@code personToEdit} does not have,
+     * in the order they were given. Matching ignores case.
+     */
+    private static List<Context> findUnmatchedContexts(Person personToEdit,
+            EditPersonDescriptor editPersonDescriptor) {
+        assert personToEdit != null;
+
+        Set<Context> existingContexts = personToEdit.getContexts();
+        Set<Context> contextsToRemove = editPersonDescriptor.getContextsToRemove().orElse(Set.of());
+
+        List<Context> unmatchedContexts = new ArrayList<>();
+        for (Context context : contextsToRemove) {
+            if (!existingContexts.contains(context)) {
+                unmatchedContexts.add(context);
+            }
+        }
+        return unmatchedContexts;
+    }
+
+    /**
+     * Returns the contexts of {@code personToEdit} after removing and then adding the contexts in
+     * {@code editPersonDescriptor}. A context the person already has is not added again.
+     *
+     * @throws CommandException if no context would remain.
+     */
+    private static Set<Context> applyContextChanges(Person personToEdit, EditPersonDescriptor editPersonDescriptor)
+            throws CommandException {
+        Set<Context> updatedContexts = new LinkedHashSet<>(personToEdit.getContexts());
+        updatedContexts.removeAll(editPersonDescriptor.getContextsToRemove().orElse(Set.of()));
+        // Set#add keeps the existing spelling when the person already has the context
+        updatedContexts.addAll(editPersonDescriptor.getContextsToAdd().orElse(Set.of()));
+
+        if (updatedContexts.isEmpty()) {
+            throw new CommandException(MESSAGE_NO_CONTEXT_LEFT);
+        }
+        return updatedContexts;
+    }
+
+    /**
+     * Formats {@code contexts} as {@code [A] [B]}, as in the person details shown to the user.
+     */
+    private static String formatContexts(List<Context> contexts) {
+        return contexts.stream()
+                .map(context -> "[" + context + "]")
+                .collect(Collectors.joining(" "));
     }
 
     @Override
@@ -135,7 +211,8 @@ public class EditCommand extends Command {
         private Name name;
         private Phone phone;
         private Email email;
-        private Set<Context> contexts;
+        private Set<Context> contextsToAdd;
+        private Set<Context> contextsToRemove;
         private boolean isPhoneRemoved;
         private boolean isEmailRemoved;
 
@@ -149,7 +226,8 @@ public class EditCommand extends Command {
             setName(toCopy.name);
             setPhone(toCopy.phone);
             setEmail(toCopy.email);
-            setContexts(toCopy.contexts);
+            setContextsToAdd(toCopy.contextsToAdd);
+            setContextsToRemove(toCopy.contextsToRemove);
             setPhoneRemoved(toCopy.isPhoneRemoved);
             setEmailRemoved(toCopy.isEmailRemoved);
         }
@@ -158,7 +236,7 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, contexts)
+            return CollectionUtil.isAnyNonNull(name, phone, email, contextsToAdd, contextsToRemove)
                     || isPhoneRemoved || isEmailRemoved;
         }
 
@@ -203,20 +281,39 @@ public class EditCommand extends Command {
         }
 
         /**
-         * Sets {@code contexts} to this object's {@code contexts}.
-         * A defensive copy of {@code contexts} is used internally.
+         * Sets {@code contextsToAdd} to this object's {@code contextsToAdd}.
+         * A defensive copy of {@code contextsToAdd} is used internally.
          */
-        public void setContexts(Set<Context> contexts) {
-            this.contexts = (contexts != null) ? new HashSet<>(contexts) : null;
+        public void setContextsToAdd(Set<Context> contextsToAdd) {
+            this.contextsToAdd = (contextsToAdd != null) ? new LinkedHashSet<>(contextsToAdd) : null;
+        }
+
+        /**
+         * Sets {@code contextsToRemove} to this object's {@code contextsToRemove}.
+         * A defensive copy of {@code contextsToRemove} is used internally.
+         */
+        public void setContextsToRemove(Set<Context> contextsToRemove) {
+            this.contextsToRemove = (contextsToRemove != null) ? new LinkedHashSet<>(contextsToRemove) : null;
         }
 
         /**
          * Returns an unmodifiable context set, which throws {@code UnsupportedOperationException}
          * if modification is attempted.
-         * Returns {@code Optional#empty()} if {@code contexts} is null.
+         * Returns {@code Optional#empty()} if {@code contextsToAdd} is null.
          */
-        public Optional<Set<Context>> getContexts() {
-            return (contexts != null) ? Optional.of(Collections.unmodifiableSet(contexts)) : Optional.empty();
+        public Optional<Set<Context>> getContextsToAdd() {
+            return (contextsToAdd != null) ? Optional.of(Collections.unmodifiableSet(contextsToAdd)) : Optional.empty();
+        }
+
+        /**
+         * Returns an unmodifiable context set, which throws {@code UnsupportedOperationException}
+         * if modification is attempted.
+         * Returns {@code Optional#empty()} if {@code contextsToRemove} is null.
+         */
+        public Optional<Set<Context>> getContextsToRemove() {
+            return (contextsToRemove != null)
+                    ? Optional.of(Collections.unmodifiableSet(contextsToRemove))
+                    : Optional.empty();
         }
 
         @Override
@@ -233,7 +330,8 @@ public class EditCommand extends Command {
             return Objects.equals(name, otherEditPersonDescriptor.name)
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
-                    && Objects.equals(contexts, otherEditPersonDescriptor.contexts)
+                    && Objects.equals(contextsToAdd, otherEditPersonDescriptor.contextsToAdd)
+                    && Objects.equals(contextsToRemove, otherEditPersonDescriptor.contextsToRemove);
                     && isPhoneRemoved == otherEditPersonDescriptor.isPhoneRemoved
                     && isEmailRemoved == otherEditPersonDescriptor.isEmailRemoved;
         }
@@ -244,7 +342,8 @@ public class EditCommand extends Command {
                     .add("name", name)
                     .add("phone", phone)
                     .add("email", email)
-                    .add("contexts", contexts)
+                    .add("contextsToAdd", contextsToAdd)
+                    .add("contextsToRemove", contextsToRemove)
                     .add("isPhoneRemoved", isPhoneRemoved)
                     .add("isEmailRemoved", isEmailRemoved)
                     .toString();

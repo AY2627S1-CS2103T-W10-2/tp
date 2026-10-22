@@ -1,5 +1,6 @@
 package seedu.address.testutil;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,7 +35,7 @@ public class EditPersonDescriptorBuilder {
         descriptor.setName(person.getName());
         person.getPhone().ifPresent(descriptor::setPhone);
         person.getEmail().ifPresent(descriptor::setEmail);
-        descriptor.setContexts(person.getContexts());
+        descriptor.setContextsToAdd(person.getContexts());
     }
 
     /**
@@ -81,9 +82,21 @@ public class EditPersonDescriptorBuilder {
      * Parses the {@code contexts} into a {@code Set<Context>} and sets it to the {@code EditPersonDescriptor}
      * that we are building.
      */
-    public EditPersonDescriptorBuilder withContexts(String... contexts) {
-        Set<Context> contextSet = Stream.of(contexts).map(Context::new).collect(Collectors.toSet());
-        descriptor.setContexts(contextSet);
+    public EditPersonDescriptorBuilder withContextsToAdd(String... contexts) {
+        Set<Context> contextSet = Stream.of(contexts).map(Context::new)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        descriptor.setContextsToAdd(contextSet);
+        return this;
+    }
+
+    /**
+     * Parses the {@code contexts} into a {@code Set<Context>} and sets them as the contexts to remove
+     * in the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withContextsToRemove(String... contexts) {
+        Set<Context> contextSet = Stream.of(contexts).map(Context::new)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        descriptor.setContextsToRemove(contextSet);
         return this;
     }
 

@@ -3,6 +3,8 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_ADD;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -43,16 +45,22 @@ public class CommandTestUtil {
     public static final String EMAIL_DESC_BOB = " " + PREFIX_EMAIL + VALID_EMAIL_BOB;
     public static final String CONTEXT_DESC_FRIEND = " " + PREFIX_CONTEXT + VALID_CONTEXT_FRIEND;
     public static final String CONTEXT_DESC_HUSBAND = " " + PREFIX_CONTEXT + VALID_CONTEXT_HUSBAND;
+    public static final String ADD_CONTEXT_DESC_FRIEND = " " + PREFIX_CONTEXT_ADD + VALID_CONTEXT_FRIEND;
+    public static final String ADD_CONTEXT_DESC_HUSBAND = " " + PREFIX_CONTEXT_ADD + VALID_CONTEXT_HUSBAND;
+    public static final String REMOVE_CONTEXT_DESC_FRIEND = " " + PREFIX_CONTEXT_REMOVE + VALID_CONTEXT_FRIEND;
 
     public static final String INVALID_NAME_DESC = " " + PREFIX_NAME + "James&"; // '&' not allowed in names
     public static final String INVALID_PHONE_DESC = " " + PREFIX_PHONE + "911a"; // 'a' not allowed in phones
     public static final String INVALID_EMAIL_DESC = " " + PREFIX_EMAIL + "bob!yahoo"; // missing '@' symbol
     public static final String INVALID_CONTEXT_DESC = " " + PREFIX_CONTEXT + "(orbital)"; // '(' not allowed in contexts
+    public static final String INVALID_ADD_CONTEXT_DESC = " " + PREFIX_CONTEXT_ADD + "(orbital)";
 
     public static final String EMPTY_NAME_DESC = " " + PREFIX_NAME;
     public static final String EMPTY_PHONE_DESC = " " + PREFIX_PHONE;
     public static final String EMPTY_EMAIL_DESC = " " + PREFIX_EMAIL;
     public static final String EMPTY_CONTEXT_DESC = " " + PREFIX_CONTEXT;
+    public static final String EMPTY_ADD_CONTEXT_DESC = " " + PREFIX_CONTEXT_ADD;
+    public static final String EMPTY_REMOVE_CONTEXT_DESC = " " + PREFIX_CONTEXT_REMOVE;
 
     public static final String REMOVE_PHONE_DESC = " " + PREFIX_PHONE_REMOVE;
     public static final String REMOVE_EMAIL_DESC = " " + PREFIX_EMAIL_REMOVE;
@@ -66,10 +74,10 @@ public class CommandTestUtil {
     static {
         DESC_AMY = new EditPersonDescriptorBuilder().withName(VALID_NAME_AMY)
                 .withPhone(VALID_PHONE_AMY).withEmail(VALID_EMAIL_AMY)
-                .withContexts(VALID_CONTEXT_FRIEND).build();
+                .withContextsToAdd(VALID_CONTEXT_FRIEND).build();
         DESC_BOB = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB)
                 .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB)
-                .withContexts(VALID_CONTEXT_HUSBAND, VALID_CONTEXT_FRIEND).build();
+                .withContextsToAdd(VALID_CONTEXT_HUSBAND, VALID_CONTEXT_FRIEND).build();
     }
 
     /**

@@ -145,4 +145,18 @@ public class DeleteCommandTest {
 
         assertTrue(model.getFilteredPersonList().isEmpty());
     }
+
+    @Test
+    public void execute_inArchivesView_deletesTheArchivedPerson() throws Exception {
+        Person first = model.getFilteredPersonList().get(0);
+        Person archived = first.copyWithArchived(true);
+        model.setPerson(first, archived);
+        int peopleBefore = model.getAddressBook().getPersonList().size();
+        model.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
+
+        new DeleteCommand(INDEX_FIRST_PERSON).execute(model);
+
+        assertEquals(peopleBefore - 1, model.getAddressBook().getPersonList().size());
+        assertFalse(model.getAddressBook().getPersonList().contains(archived));
+    }
 }

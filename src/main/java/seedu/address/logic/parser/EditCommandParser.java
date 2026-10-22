@@ -3,6 +3,8 @@ package seedu.address.logic.parser;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_ADD;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -33,6 +35,7 @@ public class EditCommandParser implements Parser<EditCommand> {
             "Cannot set and remove the phone number in the same command.";
     public static final String MESSAGE_SET_AND_REMOVE_EMAIL =
             "Cannot set and remove the email in the same command.";
+    public static final String MESSAGE_INVALID_CONTEXT_PREFIX = "Use +c/ to add a context or -c/ to remove one.";
 
     /**
      * Parses the given {@code String} of arguments in the context of the EditCommand
@@ -42,9 +45,14 @@ public class EditCommandParser implements Parser<EditCommand> {
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE,
-                PREFIX_PHONE_REMOVE, PREFIX_EMAIL, PREFIX_EMAIL_REMOVE, PREFIX_CONTEXT);
+                PREFIX_PHONE_REMOVE, PREFIX_EMAIL, PREFIX_EMAIL_REMOVE, 
+                PREFIX_CONTEXT, PREFIX_CONTEXT_ADD, PREFIX_CONTEXT_REMOVE);
 
         Index index;
+
+        if (argMultimap.getValue(PREFIX_CONTEXT).isPresent()) {
+            throw new ParseException(MESSAGE_INVALID_CONTEXT_PREFIX);
+        }
 
         try {
             index = ParserUtil.parseIndex(argMultimap.getPreamble());
@@ -62,9 +70,13 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
         parsePhoneForEdit(argMultimap, editPersonDescriptor);
         parseEmailForEdit(argMultimap, editPersonDescriptor);
-        // contexts replace the existing ones; an empty "c/" is rejected as a person needs at least one context
-        if (!argMultimap.getAllValues(PREFIX_CONTEXT).isEmpty()) {
-            editPersonDescriptor.setContexts(ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT)));
+        if (!argMultimap.getAllValues(PREFIX_CONTEXT_ADD).isEmpty()) {
+            editPersonDescriptor.setContextsToAdd(
+                    ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT_ADD)));
+        }
+        if (!argMultimap.getAllValues(PREFIX_CONTEXT_REMOVE).isEmpty()) {
+            editPersonDescriptor.setContextsToRemove(
+                    ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT_REMOVE)));
         }
 
         if (!editPersonDescriptor.isAnyFieldEdited()) {
