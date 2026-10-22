@@ -36,6 +36,19 @@ public class EditCommandTest {
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
+    public void execute_editingAnArchivedPerson_keepsItArchived() throws Exception {
+        Person archived = model.getFilteredPersonList().get(0).copyWithArchived(true);
+        model.setPerson(model.getFilteredPersonList().get(0), archived);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();
+
+        new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
+
+        Person edited = model.getFilteredPersonList().get(0);
+        assertEquals(VALID_NAME_BOB, edited.getName().fullName);
+        assertTrue(edited.isArchived());
+    }
+
+    @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
         Person editedPerson = new PersonBuilder().build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();

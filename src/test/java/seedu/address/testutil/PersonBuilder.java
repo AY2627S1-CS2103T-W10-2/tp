@@ -29,6 +29,7 @@ public class PersonBuilder {
     private Alias alias;
     private Introducer introducer;
     private Note note;
+    private boolean archived;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -51,6 +52,7 @@ public class PersonBuilder {
         alias = personToCopy.getAlias().orElse(null);
         introducer = personToCopy.getIntroducer().orElse(null);
         note = personToCopy.getNote().orElse(null);
+        archived = personToCopy.isArchived();
     }
 
     /**
@@ -128,8 +130,16 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets whether the person being built is archived.
+     */
+    public PersonBuilder withArchived(boolean archived) {
+        this.archived = archived;
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, email, contexts, alias, introducer, note);
+        return new Person(name, phone, email, contexts, alias, introducer, note, archived);
     }
 
 }
