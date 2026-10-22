@@ -12,7 +12,7 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
 /**
- * Unarchives a person identified using its displayed index, so that it is in the normal contact list again.
+ * Unarchives a person identified using its displayed index, so that it is in the normal person list again.
  */
 public class UnarchiveCommand extends Command {
 
@@ -47,7 +47,7 @@ public class UnarchiveCommand extends Command {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
 
-        // the index refers to the list on screen, so only a contact that is really archived can be unarchived
+        // the index refers to the list on screen, so only a person who is really archived can be unarchived
         Person personToUnarchive = lastShownList.get(targetIndex.getZeroBased());
         if (!personToUnarchive.isArchived()) {
             throw new CommandException(MESSAGE_NOT_ARCHIVED);
