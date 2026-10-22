@@ -235,8 +235,8 @@ Index larger than the displayed list | `edit 99 n/Alex Tan` | `The person index 
 `c/` instead of `+c/` or `-c/` | `edit 1 c/CS2040S` | `Use +c/ to add a context or -c/ to remove one.`
 A `-c/` context the person does not have | `edit 1 -c/CS2040S` | `Alex Yeoh does not have context(s): [CS2040S]. Check the spelling.`
 Removing every context | `edit 1 -c/CS2103T` | `A person must have at least one context. Add a new context with +c/ before removing the last one.`
-`p/` and `-p/`, or `e/` and `-e/`, together | `edit 1 p/91234567 -p/` | `Cannot set and remove the phone number in the same command.`<br>`Cannot set and remove the email in the same command.`
-A value after `-p/` or `-e/` | `edit 1 -p/91234567` | `-p/ does not take a value. Use p/PHONE to change the phone number.`<br>`-e/ does not take a value. Use e/EMAIL to change the email.`
+`p/` and `-p/`, or `e/` and `-e/`, together | `edit 1 p/91234567 -p/`<br>`edit 1 e/alex@example.com -e/` | `Cannot set and remove the phone number in the same command.`<br>`Cannot set and remove the email in the same command.`
+A value after `-p/` or `-e/` | `edit 1 -p/91234567`<br>`edit 1 -e/alex@example.com` | `-p/ does not take a value. Use p/PHONE to change the phone number.`<br>`-e/ does not take a value. Use e/EMAIL to change the email.`
 Nothing after `n/`, `p/`, `e/`, `+c/` or `-c/` | `edit 1 p/` | Depending on the prefix:<br>`Name cannot be empty.`<br>`Phone number cannot be empty. Use -p/ to remove the phone number.`<br>`Email cannot be empty. Use -e/ to remove the email.`<br>`Contexts cannot be empty.`
 `n/`, `p/`, `e/`, `-p/` or `-e/` given more than once | `edit 1 p/91234567 p/98765432` | `Multiple values specified for the following single-valued field(s): p/`
 A value that breaks its rule | `edit 1 p/9123-4567` | That parameter's rule, such as `Phone numbers should contain only digits, may start with +, and have 3 to 15 digits.`
