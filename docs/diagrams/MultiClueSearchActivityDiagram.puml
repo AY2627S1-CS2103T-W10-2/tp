@@ -1,0 +1,24 @@
+@startuml
+
+start
+
+:User enters `find` command;
+
+if (Prefix-like token present?) then (Yes)
+    :Validate and normalise clues;
+    :Use structured search\n(AND semantics);
+else (No)
+    :Use keyword search\n(OR semantics);
+endif
+
+:Filter unarchived contacts;
+
+if (Any contacts matched?) then (Yes)
+    :Display matching contacts;
+    :Report number of persons listed;
+else (No)
+    :Return "No persons found!";
+endif
+
+stop
+@enduml
