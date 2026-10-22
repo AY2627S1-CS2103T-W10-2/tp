@@ -3,30 +3,35 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ACTIVE;
 
+import java.util.function.Predicate;
+
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
-import seedu.address.model.person.PersonContainsKeywordsPredicate;
+import seedu.address.model.person.Person;
 
 /**
- * Finds and lists all persons whose name or contexts contain any of the argument keywords.
- * Keyword matching is case insensitive.
+ * Finds and lists all persons matching the supplied search predicate.
  */
 public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all persons whose names or contexts contain "
-            + "any of the specified keywords (case-insensitive).\n"
-            + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
-            + "Example: " + COMMAND_WORD + " Alex CS2103T";
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Finds persons using keywords or field-specific clues.\n"
+            + "Parameters:\n"
+            + "  KEYWORD [MORE_KEYWORDS]...\n"
+            + "  [n/NAME_PART] [c/CONTEXT_PART]...\n"
+            + "Example: " + COMMAND_WORD + " n/Alex c/CS2103T";
 
     public static final String MESSAGE_NO_PERSONS_FOUND = "No persons found!";
+    public static final String MESSAGE_EMPTY_NAME_CLUE = "Name search clue cannot be empty.";
+    public static final String MESSAGE_EMPTY_CONTEXT_CLUE = "Context search clue cannot be empty.";
 
-    private final PersonContainsKeywordsPredicate predicate;
+    private final Predicate<Person> predicate;
 
-    public FindCommand(PersonContainsKeywordsPredicate predicate) {
-        this.predicate = predicate;
+    public FindCommand(Predicate<Person> predicate) {
+        this.predicate = requireNonNull(predicate);
     }
 
     @Override

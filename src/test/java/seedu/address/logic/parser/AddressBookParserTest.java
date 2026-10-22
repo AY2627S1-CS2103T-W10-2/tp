@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import seedu.address.logic.commands.ViewArchivesCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
+import seedu.address.model.person.PersonMatchesCluesPredicate;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
@@ -110,6 +112,16 @@ public class AddressBookParserTest {
                 FindCommand.COMMAND_WORD.toUpperCase(Locale.ROOT) + " "
                 + keywords.stream().collect(Collectors.joining(" ")));
         assertEquals(new FindCommand(new PersonContainsKeywordsPredicate(keywords)), commandUpperCase);
+    }
+
+    @Test
+    public void parseCommand_findWithStructuredClues() throws Exception {
+        FindCommand expectedCommand = new FindCommand(new PersonMatchesCluesPredicate(
+                Optional.of("Tony"), List.of("CS2103T")));
+
+        assertEquals(expectedCommand, parser.parseCommand("find n/Tony c/CS2103T"));
+        assertEquals(expectedCommand, parser.parseCommand("find c/CS2103T n/Tony"));
+        assertEquals(expectedCommand, parser.parseCommand("FIND n/Tony c/CS2103T"));
     }
 
     @Test

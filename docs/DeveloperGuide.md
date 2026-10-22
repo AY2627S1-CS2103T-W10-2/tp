@@ -209,6 +209,34 @@ Other commands take the archive into account as follows:
 * **Alternative 2:** store a separate view mode next to the predicate.
   * Cons: two copies of the same fact that can drift apart.
 
+### Multi-clue search
+
+#### Implementation
+
+The `find` command supports two search modes while preserving the existing keyword-search behaviour:
+
+* An unprefixed command such as `find Alex CS2103T` uses `PersonContainsKeywordsPredicate`. A person matches when
+  any keyword occurs in the person's name or contexts.
+* A structured command such as `find n/Alex c/CS2103T` uses `PersonMatchesCluesPredicate`. A person matches only
+  when the optional name clue and every context clue match their corresponding fields.
+
+`FindCommandParser` selects the mode by scanning the arguments for prefix-like tokens. If none are present, it creates
+the existing keyword predicate. If tokens are present, only `n/` and `c/` are accepted. The parser then uses
+`ArgumentTokenizer` to read the clues, allowing the prefixes to appear in any order. `n/` may appear at most once,
+while `c/` is repeatable.
+
+Before constructing `PersonMatchesCluesPredicate`, the parser trims each clue, collapses repeated whitespace and
+removes equivalent repeated context clues case-insensitively. Unsupported prefixes, empty clues and unprefixed text
+before a structured clue are rejected without changing the current filtered list.
+
+`FindCommand` stores a `Predicate<Person>` rather than a concrete predicate type, allowing both search modes to share
+the same command execution. In structured mode, `PersonMatchesCluesPredicate` checks the name clue against the
+person's name and uses AND matching across the context clues. Each individual context clue may match any one of the
+person's contexts.
+
+This separation keeps the legacy OR search unchanged and allows more structured clue types to be introduced later
+without changing `FindCommand` execution.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -347,9 +375,12 @@ US1 to US22 retain the identifiers from the Project Notes.
 | US11 | `* * *` | CS student who knows someone through several activities | associate multiple contexts with the same contact | keep those connections together without creating a separate entry for each context |
 | US15 | `* * *` | CS student who remembers only part of a name | search contacts using a full or partial name regardless of capitalisation | find someone without remembering their exact full name |
 | US16 | `* * *` | CS student who knows people with similar names | see contextual information alongside search results | distinguish between the matching contacts |
+| US17 | `* *` | CS student who remembers several partial details about someone | narrow search results to contacts matching all the clues I provide | identify the person from the combination of details I remember |
 | US18 | `* * *` | CS student reconnecting with people from a particular activity | view contacts associated with a module, event, project, or organisation | rediscover people from that group |
 
-Context-based search (US10) is a core requirement because it directly supports UniContacts' value proposition: retrieving people through the contexts in which the user knows them.
+Context-based search (US10) directly supports UniContacts' value proposition: retrieving people through the contexts
+in which the user knows them. Multi-clue search (US17) extends this by requiring every supplied name or context clue to
+match the same contact.
 
 #### Future candidates
 
@@ -365,13 +396,13 @@ These stories record useful extensions beyond the MVP. Their priorities express 
 | US12 | `* *` | CS student who connects with people through different channels | store additional contact channels, such as Telegram handles, alongside phone numbers and email addresses | choose an appropriate way to reach each person |
 | US13 | `* *` | CS student whose project team or module has ended | archive contacts I no longer actively need | keep my active list relevant while retaining past connections |
 | US14 | `* *` | CS student who regularly contacts a few key people | mark contacts as favourites | access them quickly without searching the whole list |
-| US17 | `* *` | CS student who remembers several partial details about someone | narrow search results to contacts matching all the clues I provide | identify the person from the combination of details I remember |
 | US19 | `* *` | CS student who met someone through another person | record who introduced me to a contact | remember how the connection was formed |
 | US20 | `* *` | CS student whose contacts' details and shared activities change | edit contact details and add or remove contexts | keep records accurate without deleting and recreating contacts |
 | US21 | `* *` | CS student who knows someone by more than one name | record and search a contact's nickname or alternative name | find them using the name I remember |
 | US22 | `* *` | CS student who needs to remember additional details about a person | attach a short personal note to a contact | retain useful information that does not fit the standard contact fields |
 
-The MVP already allows optional phone and email details; US12 extends this to additional channels. The MVP's multi-keyword search matches any supplied keyword, whereas US17 requires matching all supplied clues to narrow the results. Editing (US20) remains a future candidate as described in the MVP discussions.
+The MVP already allows optional phone and email details; US12 extends this to additional channels. Editing (US20)
+remains a future candidate as described in the MVP discussions.
 
 #### Considered but excluded
 
@@ -442,7 +473,7 @@ The following story is retained to document the scope decision. UniContacts mana
 
 * 1a. User does not remember the exact context.
 
-    * 1a1. User views all contexts (UC05).
+    * 1a1. User views all contexts (UC06).
 
       Use case resumes at step 1.
 
@@ -486,7 +517,41 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case ends.
 
-**Use case: UC04 - Delete a contact**
+**Use case: UC04 - Find contacts using multiple clues**
+
+**Guarantees**
+
+* No contact data is changed.
+* Every displayed contact matches every supplied name and context clue, regardless of capitalisation.
+
+**MSS**
+
+1.  User requests to find contacts using one or more partial name and context clues
+2.  System searches the full contact list and shows contacts matching every clue
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. User does not provide a name or context clue.
+
+    * 1a1. System shows an error message with the correct format.
+
+      Use case resumes at step 1.
+
+* 1b. User mixes unprefixed keywords with prefixed clues.
+
+    * 1b1. System shows an error message explaining the correct formats.
+
+      Use case resumes at step 1.
+
+* 2a. No contact matches every clue.
+
+    * 2a1. System shows an empty list and informs the user that no contacts were found.
+
+      Use case ends.
+
+**Use case: UC05 - Delete a contact**
 
 **Guarantees**
 
@@ -525,7 +590,7 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case ends.
 
-**Use case: UC05 - View all contexts**
+**Use case: UC06 - View all contexts**
 
 **Guarantees**
 
