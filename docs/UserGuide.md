@@ -28,6 +28,8 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all persons.
 
+   * `contexts` : Lists all contexts with the number of contacts linked to each.
+
    * `add n/John Doe c/CS2103T p/98765432 e/johnd@example.com` : Adds a person named `John Doe` to the address book.
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
@@ -61,7 +63,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 * Command words are case-insensitive, but prefixes must be in lowercase.<br>
   For example, `add`, `ADD` and `Add` all work, but `N/John Doe` is not read as `n/John Doe`.
 
-* Commands that take no parameters, such as `help`, `list`, `exit` and `clear`, ignore anything typed after them.<br>
+* Commands that take no parameters, such as `help`, `list`, `contexts`, `exit` and `clear`, ignore anything typed after them.<br>
   For example, `help 123` is interpreted as `help`. The exception is `archives`, which rejects anything typed after it (see [`archives`](#viewing-archived-persons-archives)).
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -186,6 +188,46 @@ Examples:
 * If there are no persons, the displayed list remains empty and the result display shows `0 people listed.`
 
 </div>
+
+### Viewing all contexts: `contexts`
+
+Shows every distinct context and the number of contacts linked to it in the result display.
+
+Format: `contexts`
+
+* Counts cover the full address book, even if `find` currently shows only some contacts or no contacts.
+* Each contact is counted once per context. Different contacts with the same name are counted separately.
+* Contexts that differ only in capitalisation, surrounding spaces or repeated spaces are grouped together.
+* Contexts are sorted alphabetically, ignoring capitalisation. The spelling from the first contact with that context
+  in the full contact list is shown. No stored spelling is changed.
+* The displayed contact list, active search filter, order and index numbers are unchanged.
+* Counts are recalculated each time you run `contexts`, so they reflect subsequent additions, edits and deletions.
+* The command word is case-insensitive. Extra text is ignored: `CONTEXTS CS2103T` still lists all contexts.
+
+For example, suppose the address book contains only:
+
+Person | Contexts
+-------|---------
+Alex Tan | `CS2103`, `NUS Hackers`
+Priya Nair | `cs2103`, `CS2103T`
+Marcus Lim | `CS2103T`
+
+Running `contexts` shows:
+
+```text
+CS2103: 2 people
+CS2103T: 2 people
+NUS Hackers: 1 person
+
+3 contexts listed.
+```
+
+The summary says `1 context listed.` when there is exactly one distinct context.
+If the full address book is empty, the result is `No contexts found. Add a person with c/CONTEXT to get started.`
+Scroll within the result display if the overview is too long to view at once.
+
+You can then use `find CS2103T` to search for contacts by context. Unlike `contexts`, `find` changes the displayed list
+and also matches partial names and contexts.
 
 ### Editing a person: `edit`
 
@@ -450,6 +492,7 @@ Action | Format, Examples
 **Archive** | `archive INDEX`<br> e.g., `archive 2`
 **Archives** | `archives`
 **Clear** | `clear`
+**Contexts** | `contexts`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [-p/] [-e/] [+c/CONTEXT]…​ [-c/CONTEXT]…​`<br> e.g., `edit 2 p/91234567 +c/NUS Hackers -c/Hiking club`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…` or `find [n/NAME_PART] [c/CONTEXT_PART]…`<br> e.g., `find n/Tony Zhang c/CS2103T`
