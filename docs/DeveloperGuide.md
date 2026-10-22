@@ -122,8 +122,9 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object), whether they are archived or not.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* shows only some of those objects at a time. The filtered list uses a `Predicate<Person>`: `PREDICATE_SHOW_ACTIVE` (persons who are not archived, the normal contact list and the list shown at start-up) or `PREDICATE_SHOW_ARCHIVED`. `Model#showingArchivesProperty()` tells the UI which of the two is in use. See [Archive feature](#archive-feature).
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -142,6 +143,7 @@ The `Model` component,
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* saves every person, including archived ones, in the same file. A person's `archived` flag is stored as an optional `"archived"` key, which defaults to `false` when it is missing, so data files saved before archiving existed still load.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -154,6 +156,108 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Context overview
+
+The `contexts` command lists distinct contexts with contact counts in the existing scrollable result display.
+`AddressBookParser` creates a `ContextsCommand`; as with `list`, command words are case-insensitive and trailing
+arguments are ignored.
+
+`ContextsCommand#execute()` reads `Model#getAddressBook().getPersonList()` rather than the filtered person list.
+It visits contacts in their stored order and aggregates their context descriptions in a `TreeMap` using
+`String.CASE_INSENSITIVE_ORDER`. This groups equivalent names and sorts the output while retaining the first
+encountered spelling. `Context` already normalises surrounding and repeated spaces, and each person's contexts
+form a set, so a person contributes at most one to each context's count. Separate contacts with the same name
+are counted separately.
+
+The command returns one line per context followed by a distinct-context summary, or a message explaining that
+there are no contexts when the address book is empty. It does not update the model or its filter, so the displayed
+contact list and indices remain unchanged. Counts are recomputed on each execution, and no storage format change
+is required. Existing `LogicManager` save handling applies as it does for other commands.
+
+`ContextsCommandTest` covers normalisation, counts, alphabetical order, first-encountered spelling, empty data,
+filtered lists and changes between executions. Parser tests cover command casing and ignored arguments, and
+`LogicManagerTest` verifies the result after filtering and reloading saved contacts.
+
+### Archive feature
+
+#### Implementation
+
+An archived contact is an ordinary `Person` whose `archived` flag is `true`. It stays in the same `AddressBook` and the same data file as every other person. What changes is which persons the user *sees*.
+
+The user sees `ModelManager#filteredPersons`, a `FilteredList<Person>`. The list that is shown depends only on the predicate set on it, in the same way as for `find`:
+
+| Command | Predicate set | What is shown |
+|---------|---------------|---------------|
+| _(start-up)_, `list`, `add`, `edit` | `PREDICATE_SHOW_ACTIVE` | persons who are not archived |
+| `find KEYWORDS` | `PREDICATE_SHOW_ACTIVE.and(keyword predicate)` | matching persons who are not archived |
+| `archives` | `PREDICATE_SHOW_ARCHIVED` | archived persons only |
+
+Because the shown list is the predicate, no separate "view mode" is stored. The window shows the **Archives** header by binding to `Model#showingArchivesProperty()`, which is true only while the predicate is `PREDICATE_SHOW_ARCHIVED`. After a `find`, the predicate is a combined one, so the header is hidden.
+
+The new commands follow the pattern of `delete`:
+
+* `ArchiveCommand` and `UnarchiveCommand` take an `Index` that refers to `Model#getFilteredPersonList()`, that is, to the list on screen. The command finds the person, checks the flag (`archive` refuses a person who is already archived and `unarchive` refuses a person who is not), and replaces the person with `Person#copyWithArchived(boolean)`, which returns a copy with only the flag changed (`Person` is immutable). `LogicManager` then saves the whole address book as after every command.
+* `ViewArchivesCommand` only sets `PREDICATE_SHOW_ARCHIVED`. Unlike the other commands without parameters, `ViewArchivesCommandParser` rejects text after the command word, because `archives` is one letter away from `archive` and `archives 1` is most likely a mistyped `archive 1`.
+
+Because `unarchive` checks the flag of the person it finds, `unarchive 1` while the normal list is shown cannot change the wrong person: that person is not archived, so the command is refused with a message that says to run `archives` first.
+
+Other commands take the archive into account as follows:
+
+* `Person#isSamePerson` ignores the flag, so an archived person still blocks a new person with the same phone number or email, and `unarchive` can never create a duplicate.
+* `edit` refuses an archived person.
+* `clear` removes only persons who are not archived, so it cannot wipe the archive by accident.
+* `delete` is unchanged. It deletes whichever person is shown, so it deletes an archived person while the archives are shown.
+
+#### Storage format
+
+`JsonAdaptedPerson` has an optional `archived` value. A missing or `null` value means `false`. It is read as a plain object and checked in `toModelType()`: only `true` or `false` is accepted, because Jackson alone would also turn values such as `5` into `true`. Any other value makes the data file invalid, which takes the normal path for an unreadable file (the file is renamed to a `.bak` file and the app starts empty).
+
+#### Design considerations
+
+**Aspect: How archived persons are stored**
+
+* **Alternative 1 (current choice):** one list with an `archived` flag per person.
+  * Pros: one data file and one save, so there is no half-finished move between two files; the duplicate check already covers archived persons; old data files load unchanged.
+  * Cons: every command that shows a list must choose a predicate, or archived persons would appear; the flag touches `Person` and `JsonAdaptedPerson`.
+* **Alternative 2:** a second address book and a second data file for the archive.
+  * Pros: existing commands never see archived persons, so they cannot forget to filter them.
+  * Cons: archiving writes two files, so a crash between the two writes loses or duplicates a person; the duplicate check must look in both address books; the UI must switch between two lists; and there are two files that can become unreadable.
+
+**Aspect: How the app knows that the archives are shown**
+
+* **Alternative 1 (current choice):** use the predicate on the filtered list as the only state.
+  * Pros: nothing can disagree with it, and `find` already works this way.
+* **Alternative 2:** store a separate view mode next to the predicate.
+  * Cons: two copies of the same fact that can drift apart.
+
+### Multi-clue search
+
+#### Implementation
+
+The `find` command supports two search modes while preserving the existing keyword-search behaviour:
+
+* An unprefixed command such as `find Alex CS2103T` uses `PersonContainsKeywordsPredicate`. A person matches when
+  any keyword occurs in the person's name or contexts.
+* A structured command such as `find n/Alex c/CS2103T` uses `PersonMatchesCluesPredicate`. A person matches only
+  when the optional name clue and every context clue match their corresponding fields.
+
+`FindCommandParser` selects the mode by scanning the arguments for prefix-like tokens. If none are present, it creates
+the existing keyword predicate. If tokens are present, only `n/` and `c/` are accepted. The parser then uses
+`ArgumentTokenizer` to read the clues, allowing the prefixes to appear in any order. `n/` may appear at most once,
+while `c/` is repeatable.
+
+Before constructing `PersonMatchesCluesPredicate`, the parser trims each clue, collapses repeated whitespace and
+removes equivalent repeated context clues case-insensitively. Unsupported prefixes, empty clues and unprefixed text
+before a structured clue are rejected without changing the current filtered list.
+
+`FindCommand` stores a `Predicate<Person>` rather than a concrete predicate type, allowing both search modes to share
+the same command execution. In structured mode, `PersonMatchesCluesPredicate` checks the name clue against the
+person's name and uses AND matching across the context clues. Each individual context clue may match any one of the
+person's contexts.
+
+This separation keeps the legacy OR search unchanged and allows more structured clue types to be introduced later
+without changing `FindCommand` execution.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -293,9 +397,12 @@ US1 to US22 retain the identifiers from the Project Notes.
 | US11 | `* * *` | CS student who knows someone through several activities | associate multiple contexts with the same contact | keep those connections together without creating a separate entry for each context |
 | US15 | `* * *` | CS student who remembers only part of a name | search contacts using a full or partial name regardless of capitalisation | find someone without remembering their exact full name |
 | US16 | `* * *` | CS student who knows people with similar names | see contextual information alongside search results | distinguish between the matching contacts |
+| US17 | `* *` | CS student who remembers several partial details about someone | narrow search results to contacts matching all the clues I provide | identify the person from the combination of details I remember |
 | US18 | `* * *` | CS student reconnecting with people from a particular activity | view contacts associated with a module, event, project, or organisation | rediscover people from that group |
 
-Context-based search (US10) is a core requirement because it directly supports UniContacts' value proposition: retrieving people through the contexts in which the user knows them.
+Context-based search (US10) directly supports UniContacts' value proposition: retrieving people through the contexts
+in which the user knows them. Multi-clue search (US17) extends this by requiring every supplied name or context clue to
+match the same contact.
 
 #### Future candidates
 
@@ -311,13 +418,13 @@ These stories record useful extensions beyond the MVP. Their priorities express 
 | US12 | `* *` | CS student who connects with people through different channels | store additional contact channels, such as Telegram handles, alongside phone numbers and email addresses | choose an appropriate way to reach each person |
 | US13 | `* *` | CS student whose project team or module has ended | archive contacts I no longer actively need | keep my active list relevant while retaining past connections |
 | US14 | `* *` | CS student who regularly contacts a few key people | mark contacts as favourites | access them quickly without searching the whole list |
-| US17 | `* *` | CS student who remembers several partial details about someone | narrow search results to contacts matching all the clues I provide | identify the person from the combination of details I remember |
 | US19 | `* *` | CS student who met someone through another person | record who introduced me to a contact | remember how the connection was formed |
 | US20 | `* *` | CS student whose contacts' details and shared activities change | edit contact details and add or remove contexts | keep records accurate without deleting and recreating contacts |
 | US21 | `* *` | CS student who knows someone by more than one name | record and search a contact's nickname or alternative name | find them using the name I remember |
 | US22 | `* *` | CS student who needs to remember additional details about a person | attach a short personal note to a contact | retain useful information that does not fit the standard contact fields |
 
-The MVP already allows optional phone and email details; US12 extends this to additional channels. The MVP's multi-keyword search matches any supplied keyword, whereas US17 requires matching all supplied clues to narrow the results. Editing (US20) remains a future candidate as described in the MVP discussions.
+The MVP already allows optional phone and email details; US12 extends this to additional channels. Editing (US20)
+remains a future candidate as described in the MVP discussions.
 
 #### Considered but excluded
 
@@ -388,7 +495,7 @@ The following story is retained to document the scope decision. UniContacts mana
 
 * 1a. User does not remember the exact context.
 
-    * 1a1. User views all contexts (UC05).
+    * 1a1. User views all contexts (UC06).
 
       Use case resumes at step 1.
 
@@ -432,7 +539,41 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case ends.
 
-**Use case: UC04 - Delete a contact**
+**Use case: UC04 - Find contacts using multiple clues**
+
+**Guarantees**
+
+* No contact data is changed.
+* Every displayed contact matches every supplied name and context clue, regardless of capitalisation.
+
+**MSS**
+
+1.  User requests to find contacts using one or more partial name and context clues
+2.  System searches the full contact list and shows contacts matching every clue
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. User does not provide a name or context clue.
+
+    * 1a1. System shows an error message with the correct format.
+
+      Use case resumes at step 1.
+
+* 1b. User mixes unprefixed keywords with prefixed clues.
+
+    * 1b1. System shows an error message explaining the correct formats.
+
+      Use case resumes at step 1.
+
+* 2a. No contact matches every clue.
+
+    * 2a1. System shows an empty list and informs the user that no contacts were found.
+
+      Use case ends.
+
+**Use case: UC05 - Delete a contact**
 
 **Guarantees**
 
@@ -471,12 +612,14 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case ends.
 
-**Use case: UC05 - View all contexts**
+**Use case: UC06 - View all contexts**
 
 **Guarantees**
 
 * No contact data is changed, and the displayed contact list is unchanged.
 * Each context appears once, regardless of capitalisation or extra spaces.
+* Counts include every contact in the address book, regardless of the current search filter.
+* Each contact contributes at most one to each context's count. Different contacts with the same name count separately.
 
 **MSS**
 
@@ -494,6 +637,116 @@ The following story is retained to document the scope decision. UniContacts mana
       Use case ends.
 
 
+
+**Use case: UC06 - Archive a contact**
+
+**Guarantees**
+
+* If the user does not identify a contact in the displayed list, or the contact is already archived, nothing is changed.
+* Only the identified contact is archived; other contacts are unchanged.
+* The archived contact is not deleted: it stays saved with all its details.
+* The archived contact no longer appears in the contact list or in find results.
+
+**MSS**
+
+1.  User requests to list contacts
+2.  System shows a list of contacts
+3.  User requests to archive a specific contact in the list
+4.  System archives the contact and shows the details of the archived contact
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. User finds the contact by context (UC02) or by name (UC03) instead.
+
+  Use case resumes at step 3.
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The requested contact is not in the displayed list.
+
+    * 3a1. System shows an error message.
+
+      Use case resumes at step 2.
+
+* 3b. The requested contact is already archived.
+
+    * 3b1. System shows an error message.
+
+      Use case resumes at step 2.
+
+* 4a. System is unable to save the change.
+
+    * 4a1. System archives the contact for the current session and warns the user that the change may be lost when the app is closed.
+
+      Use case ends.
+
+**Use case: UC07 - View archived contacts**
+
+**Guarantees**
+
+* No contact data is changed.
+* Only archived contacts are shown, under the heading "Archives".
+
+**MSS**
+
+1.  User requests to view archived contacts
+2.  System shows the archived contacts under the heading "Archives"
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The request has extra text after it (for example, `archives 1`).
+
+    * 1a1. System shows an error message.
+
+      Use case resumes at step 1.
+
+* 2a. There are no archived contacts.
+
+    * 2a1. System tells the user that there are no archived contacts.
+
+      Use case ends.
+
+**Use case: UC08 - Unarchive a contact**
+
+**Guarantees**
+
+* If the user does not identify an archived contact in the displayed list, nothing is changed.
+* Only the identified contact is unarchived; other contacts are unchanged.
+* The unarchived contact appears in the normal contact list again.
+
+**MSS**
+
+1.  User views the archived contacts (UC07)
+2.  User requests to unarchive a specific contact in the list
+3.  System unarchives the contact and shows the details of the unarchived contact
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The requested contact is not in the displayed list.
+
+    * 2a1. System shows an error message.
+
+      Use case resumes at step 1.
+
+* 2b. The requested contact is not archived, for example because the normal list is shown.
+
+    * 2b1. System shows an error message that tells the user to view the archived contacts first.
+
+      Use case resumes at step 1.
+
+* 3a. System is unable to save the change.
+
+    * 3a1. System unarchives the contact for the current session and warns the user that the change may be lost when the app is closed.
+
+      Use case ends.
 
 ### Non-Functional Requirements
 
@@ -516,6 +769,7 @@ The following story is retained to document the scope decision. UniContacts mana
 * **Capitalisation**: Whether the letters in a context name are uppercase or lowercase.
 * **Contact**: A saved record representing a specific person within the user's academic, professional, or social network.
 * **Context**: A descriptive tag representing the shared environment, activity, or relationship (such as a school module, project team, CCA, internship, or event) that explains how or where the user knows a specific person.
+* **Archived contact**: A contact that has been set aside with `archive`. It stays saved but is left out of the normal contact list and out of `find` results, and it is shown only by `archives`.
 * **Index**: A numerical value used to identify and select a specific contact based on its position in the currently displayed contact list.
 * **Partial-match**: A name/context input can match to multiple contacts in the local JSON.
 * **Case-insensitive**: No distinctions between uppercase and lowercase inputs including commands, names and contexts.
@@ -568,6 +822,97 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases …​ }_
+
+### Viewing all contexts
+
+1. Listing counts and preserving a search filter
+
+   1. Prerequisites: Use a disposable test address book containing only Alex Tan with `CS2103` and `NUS Hackers`,
+      Priya Nair with `cs2103` and `CS2103T`, and Marcus Lim with `CS2103T`.
+
+   1. Test case: `contexts`<br>
+      Expected: The result display shows `CS2103: 2 people`, `CS2103T: 2 people`, `NUS Hackers: 1 person`,
+      a blank line, and `3 contexts listed.` The contact list is unchanged.
+
+   1. Test case: `find Priya`, followed by `contexts`<br>
+      Expected: The same full-address-book counts are shown, and only Priya remains in the displayed list.
+
+   1. Test case: `find Nobody`, followed by `CONTEXTS ignored`<br>
+      Expected: The same counts are shown, and the displayed contact list remains empty.
+
+   1. Test case: `list`, `delete 1`, then `contexts`<br>
+      Expected: `NUS Hackers` disappears, and the counts reflect the remaining contacts. The overview uses
+      Priya's spelling `cs2103` for that context.
+
+1. Listing contexts in an empty address book
+
+   1. Prerequisites: In the disposable test address book, run `clear`.
+
+   1. Test case: `contexts`<br>
+      Expected: `No contexts found. Add a person with c/CONTEXT to get started.` The contact list remains empty.
+
+1. Checking persistence and long output
+
+   1. Close and reopen the app after saving contacts, then run `contexts`.<br>
+      Expected: The counts and spelling match the stored contacts.
+
+   1. With enough distinct contexts to exceed the result display's height, run `contexts` and scroll the result.<br>
+      Expected: All context rows and the final summary can be read without changing the displayed contact list.
+
+### Archiving a person
+
+1. Archiving, viewing and unarchiving
+
+   1. Prerequisites: Start with the sample data (delete `data/addressbook.json` first if there is one). Run `list`.
+
+   1. Test case: `archive 2`<br>
+      Expected: The 2nd person disappears from the list. The result display shows `Archived person:` and the person's details.
+
+   1. Test case: `list`<br>
+      Expected: The archived person is not shown.
+
+   1. Test case: `archives`<br>
+      Expected: The heading **Archives** is shown above the list. Only the archived person is listed, as number 1. The result display shows `Listed 1 archived person.`
+
+   1. Test case: `unarchive 1` (while the archives are shown)<br>
+      Expected: The person leaves the archived list. The result display shows `Unarchived person:` and the details. Run `list` to confirm that the person is back in the normal list.
+
+1. Archived persons stay out of the normal list
+
+   1. Prerequisites: Archive one person, for example `archive 1`, and remember their name.
+
+   1. Test case: `find` with that person's name<br>
+      Expected: `No persons found!` The person is not found.
+
+   1. Test case: `edit 1 n/Changed` after `archives`<br>
+      Expected: `This person is archived and can't be edited. Unarchive the person first.`
+
+   1. Test case: `clear`<br>
+      Expected: All other persons are cleared. The result display shows `Persons cleared. 1 archived person was kept.` `archives` still shows the person.
+
+1. Incorrect commands
+
+   1. Test case: `unarchive 1` while the normal list is shown<br>
+      Expected: Nothing changes. The result display shows `That person is not archived. Run archives to see archived persons, then use unarchive INDEX.`
+
+   1. Test case: `archive 1` while the archives are shown<br>
+      Expected: `That person is already archived.`
+
+   1. Test case: `archives 1`<br>
+      Expected: The list does not change. The result display shows `Invalid command format!` followed by the usage of `archives`, as `archives` does not accept anything after it.
+
+   1. Other incorrect commands to try: `archive`, `archive 0`, `archive x`, `archive 99` (larger than the list size), `unarchive 99`<br>
+      Expected: No person changes. The result display shows an error message.
+
+1. Archived persons are saved
+
+   1. Prerequisites: Archive a person, then close and start the app again.
+
+   1. Test case: `list` and then `archives`<br>
+      Expected: The person is still archived: it is not in the normal list and it is shown by `archives`.
+
+   1. Test case: Close the app, change a person's `"archived"` value in `data/addressbook.json` to `"yes"`, and start the app<br>
+      Expected: The data file cannot be read, so the app starts with an empty list and keeps the file as `addressbook.json.<UTC time>.bak`.
 
 ### Saving data
 

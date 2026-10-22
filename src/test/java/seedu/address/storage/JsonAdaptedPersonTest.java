@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -156,4 +157,41 @@ public class JsonAdaptedPersonTest {
         assertThrows(IllegalValueException.class, Note.MESSAGE_CONSTRAINTS, person::toModelType);
     }
 
+    @Test
+    public void toModelType_archivedPersonWithAdditionalDetails_returnsPerson() throws Exception {
+        Person archivedWithDetails = new PersonBuilder(BENSON).withAlias("Ben")
+                .withIntroducer("Alex Tan").withNote("Met at Hack&Roll").withArchived(true).build();
+        assertEquals(archivedWithDetails, new JsonAdaptedPerson(archivedWithDetails).toModelType());
+    }
+
+    @Test
+    public void toModelType_archivedPersonRoundTrips() throws Exception {
+        Person archived = BENSON.copyWithArchived(true);
+        assertEquals(archived, new JsonAdaptedPerson(archived).toModelType());
+    }
+
+    @Test
+    public void toModelType_archivedNotABoolean_throwsIllegalValueException() {
+        for (Object bad : new Object[] {"yes", "true", 5, 1, ""}) {
+            JsonAdaptedPerson person =
+                    new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_CONTEXTS, bad);
+            assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_ARCHIVED,
+                    person::toModelType);
+        }
+    }
+
+    @Test
+    public void readFromJson_archivedKey_followsTheRules() throws Exception {
+        String base = "{\"name\":\"Amy Bee\",\"contexts\":[\"CS2103T\"]";
+        assertFalse(JsonUtil.fromJsonString(base + "}", JsonAdaptedPerson.class).toModelType().isArchived());
+        assertFalse(JsonUtil.fromJsonString(base + ",\"archived\":null}", JsonAdaptedPerson.class)
+                .toModelType().isArchived());
+        assertFalse(JsonUtil.fromJsonString(base + ",\"archived\":false}", JsonAdaptedPerson.class)
+                .toModelType().isArchived());
+        assertTrue(JsonUtil.fromJsonString(base + ",\"archived\":true}", JsonAdaptedPerson.class)
+                .toModelType().isArchived());
+        // numbers and text are not booleans, even though they could be converted
+        JsonAdaptedPerson five = JsonUtil.fromJsonString(base + ",\"archived\":5}", JsonAdaptedPerson.class);
+        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_ARCHIVED, five::toModelType);
+    }
 }

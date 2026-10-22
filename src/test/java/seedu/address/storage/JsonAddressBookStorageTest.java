@@ -138,10 +138,10 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
-    public void readAndSaveAddressBook_additionalDetailsPreserved() throws Exception {
+    public void readAndSaveAddressBook_archivedAdditionalDetailsPreserved() throws Exception {
         Path filePath = testFolder.resolve("ContactDetailsAddressBook.json");
         Person person = new PersonBuilder().withAlias("May").withIntroducer("Ben Lee")
-                .withNote("Met at Hack&Roll").build();
+                .withNote("Met at Hack&Roll").withArchived(true).build();
         AddressBook original = new AddressBook();
         original.addPerson(person);
         JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
