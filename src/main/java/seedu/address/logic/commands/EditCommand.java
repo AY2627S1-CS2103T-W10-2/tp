@@ -91,17 +91,17 @@ public class EditCommand extends Command {
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
-        
+
         if (personToEdit.isArchived()) {
             throw new CommandException(MESSAGE_ARCHIVED_NOT_EDITABLE);
         }
-      
+
         List<Context> unmatchedContexts = findUnmatchedContexts(personToEdit, editPersonDescriptor);
         if (!unmatchedContexts.isEmpty()) {
             throw new CommandException(String.format(MESSAGE_CONTEXTS_NOT_FOUND,
                     personToEdit.getName(), formatContexts(unmatchedContexts)));
         }
-      
+
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
         Optional<Person> existingPerson = model.findDuplicate(editedPerson, personToEdit);
@@ -338,7 +338,7 @@ public class EditCommand extends Command {
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(contextsToAdd, otherEditPersonDescriptor.contextsToAdd)
-                    && Objects.equals(contextsToRemove, otherEditPersonDescriptor.contextsToRemove);
+                    && Objects.equals(contextsToRemove, otherEditPersonDescriptor.contextsToRemove)
                     && isPhoneRemoved == otherEditPersonDescriptor.isPhoneRemoved
                     && isEmailRemoved == otherEditPersonDescriptor.isEmailRemoved;
         }
