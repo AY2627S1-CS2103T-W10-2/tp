@@ -186,14 +186,14 @@ public class PersonTest {
     }
 
     @Test
-    public void withArchived_changesOnlyTheFlag() {
+    public void copyWithArchived_changesOnlyTheFlag() {
         Person full = new PersonBuilder(ALICE).withAlias("Ally").withIntroducer("Bob Lee")
                 .withNote("Met at demo").build();
 
-        Person archived = full.withArchived(true);
+        Person archived = full.copyWithArchived(true);
 
         assertTrue(archived.isArchived());
-        assertEquals(full, archived.withArchived(false));
+        assertEquals(full, archived.copyWithArchived(false));
         assertEquals(full.getAlias(), archived.getAlias());
         assertEquals(full.getIntroducer(), archived.getIntroducer());
         assertEquals(full.getNote(), archived.getNote());
@@ -201,14 +201,14 @@ public class PersonTest {
 
     @Test
     public void equals_archivedFlagMatters() {
-        assertFalse(ALICE.equals(ALICE.withArchived(true)));
-        assertEquals(ALICE.withArchived(true), new PersonBuilder(ALICE).withArchived(true).build());
+        assertFalse(ALICE.equals(ALICE.copyWithArchived(true)));
+        assertEquals(ALICE.copyWithArchived(true), new PersonBuilder(ALICE).withArchived(true).build());
         Person other = new PersonBuilder(ALICE).withArchived(true).build();
-        assertEquals(ALICE.withArchived(true).hashCode(), other.hashCode());
+        assertEquals(ALICE.copyWithArchived(true).hashCode(), other.hashCode());
     }
 
     @Test
     public void isSamePerson_ignoresArchivedFlag() {
-        assertTrue(ALICE.isSamePerson(ALICE.withArchived(true)));
+        assertTrue(ALICE.isSamePerson(ALICE.copyWithArchived(true)));
     }
 }

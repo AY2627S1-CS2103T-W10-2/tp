@@ -98,7 +98,7 @@ public class EditCommand extends Command {
         Set<Context> updatedContexts = editPersonDescriptor.getContexts().orElse(personToEdit.getContexts());
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedContexts)
-                .withArchived(personToEdit.isArchived());
+                .copyWithArchived(personToEdit.isArchived());
     }
 
     @Override
