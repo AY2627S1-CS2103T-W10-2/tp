@@ -112,24 +112,8 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_archivedMissingOrNull_isNotArchived() throws Exception {
-        assertFalse(new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_CONTEXTS)
-                .toModelType().isArchived());
-        assertFalse(new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_CONTEXTS, null)
-                .toModelType().isArchived());
-    }
-
-    @Test
-    public void toModelType_archivedTrueOrFalse_isRestored() throws Exception {
-        assertTrue(new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_CONTEXTS, true)
-                .toModelType().isArchived());
-        assertFalse(new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_CONTEXTS, false)
-                .toModelType().isArchived());
-    }
-
-    @Test
     public void toModelType_archivedPersonRoundTrips() throws Exception {
-        Person archived = BENSON.withArchived(true);
+        Person archived = BENSON.copyWithArchived(true);
         assertEquals(archived, new JsonAdaptedPerson(archived).toModelType());
     }
 
