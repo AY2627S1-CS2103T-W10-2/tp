@@ -1,9 +1,12 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import java.util.Optional;
@@ -12,9 +15,12 @@ import java.util.stream.Stream;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Alias;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Introducer;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 
@@ -35,15 +41,17 @@ public class AddCommandParser implements Parser<AddCommand> {
      */
     public AddCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap =
-                ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_CONTEXT);
+                ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_CONTEXT,
+                        PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE);
 
-        // name and at least one context are compulsory; phone and email are optional
+        // Name and at least one context are compulsory; the remaining fields are optional.
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_CONTEXT)
                 || !argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
+                PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE);
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         requireNonBlankIfPresent(argMultimap, PREFIX_PHONE, MESSAGE_EMPTY_PHONE);
         Phone phone = argMultimap.getValue(PREFIX_PHONE).isPresent()
@@ -52,8 +60,14 @@ public class AddCommandParser implements Parser<AddCommand> {
         Email email = argMultimap.getValue(PREFIX_EMAIL).isPresent()
                 ? ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get()) : null;
         Set<Context> contextList = ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT));
+        Alias alias = argMultimap.getValue(PREFIX_ALIAS).isPresent()
+                ? ParserUtil.parseAlias(argMultimap.getValue(PREFIX_ALIAS).get()) : null;
+        Introducer introducer = argMultimap.getValue(PREFIX_INTRODUCER).isPresent()
+                ? ParserUtil.parseIntroducer(argMultimap.getValue(PREFIX_INTRODUCER).get()) : null;
+        Note note = argMultimap.getValue(PREFIX_NOTE).isPresent()
+                ? ParserUtil.parseNote(argMultimap.getValue(PREFIX_NOTE).get()) : null;
 
-        Person person = new Person(name, phone, email, contextList);
+        Person person = new Person(name, phone, email, contextList, alias, introducer, note);
 
         return new AddCommand(person);
     }

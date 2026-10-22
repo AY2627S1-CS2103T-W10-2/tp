@@ -10,9 +10,12 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
+import seedu.address.model.person.Alias;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Introducer;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
@@ -26,6 +29,9 @@ public class ParserUtil {
     public static final String MESSAGE_EMPTY_CONTEXT = "Contexts cannot be empty.";
     public static final String MESSAGE_EMPTY_PHONE = "Phone number cannot be empty.";
     public static final String MESSAGE_EMPTY_EMAIL = "Email cannot be empty.";
+    public static final String MESSAGE_EMPTY_ALIAS = "Alias cannot be empty.";
+    public static final String MESSAGE_EMPTY_INTRODUCER = "Introducer cannot be empty.";
+    public static final String MESSAGE_EMPTY_NOTE = "Note cannot be empty.";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -164,5 +170,47 @@ public class ParserUtil {
             contextSet.add(parseContext(context));
         }
         return contextSet;
+    }
+
+    /**
+     * Parses an optional alias, rejecting an empty or invalid value.
+     */
+    public static Alias parseAlias(String alias) throws ParseException {
+        requireNonNull(alias);
+        if (alias.isBlank()) {
+            throw new ParseException(MESSAGE_EMPTY_ALIAS);
+        }
+        if (!Alias.isValidAlias(alias)) {
+            throw new ParseException(Alias.MESSAGE_CONSTRAINTS);
+        }
+        return new Alias(alias);
+    }
+
+    /**
+     * Parses an optional introducer name, rejecting an empty or invalid value.
+     */
+    public static Introducer parseIntroducer(String introducer) throws ParseException {
+        requireNonNull(introducer);
+        if (introducer.isBlank()) {
+            throw new ParseException(MESSAGE_EMPTY_INTRODUCER);
+        }
+        if (!Introducer.isValidIntroducer(introducer)) {
+            throw new ParseException(Introducer.MESSAGE_CONSTRAINTS);
+        }
+        return new Introducer(introducer);
+    }
+
+    /**
+     * Parses an optional personal note, rejecting an empty or invalid value.
+     */
+    public static Note parseNote(String note) throws ParseException {
+        requireNonNull(note);
+        if (note.isBlank()) {
+            throw new ParseException(MESSAGE_EMPTY_NOTE);
+        }
+        if (!Note.isValidNote(note)) {
+            throw new ParseException(Note.MESSAGE_CONSTRAINTS);
+        }
+        return new Note(note);
     }
 }

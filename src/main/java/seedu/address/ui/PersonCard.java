@@ -38,6 +38,12 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label email;
     @FXML
+    private Label alias;
+    @FXML
+    private Label introducer;
+    @FXML
+    private Label note;
+    @FXML
     private FlowPane contexts;
 
     /**
@@ -50,6 +56,9 @@ public class PersonCard extends UiPart<Region> {
         name.setText(person.getName().fullName);
         setOptionalLabel(phone, person.getPhone().map(p -> p.value));
         setOptionalLabel(email, person.getEmail().map(e -> e.value));
+        setOptionalLabel(alias, person.getAlias().map(a -> "Alias: " + a.value));
+        setOptionalLabel(introducer, person.getIntroducer().map(i -> "Introduced by: " + i.value));
+        setOptionalLabel(note, person.getNote().map(n -> "Note: " + n.value));
         person.getContexts().stream()
                 .sorted(Comparator.comparing(context -> context.description, String.CASE_INSENSITIVE_ORDER))
                 .forEach(context -> contexts.getChildren().add(new Label(context.description)));

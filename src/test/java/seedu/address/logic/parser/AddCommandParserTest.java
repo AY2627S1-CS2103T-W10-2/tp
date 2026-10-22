@@ -22,8 +22,11 @@ import static seedu.address.logic.commands.CommandTestUtil.PREAMBLE_WHITESPACE;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -34,9 +37,12 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.model.person.Alias;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Introducer;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
@@ -91,6 +97,38 @@ public class AddCommandParserTest {
         Person expectedPerson = new PersonBuilder(AMY).withoutPhone().withoutEmail()
                 .withContexts(VALID_CONTEXT_FRIEND).build();
         assertParseSuccess(parser, NAME_DESC_AMY + CONTEXT_DESC_FRIEND, new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_additionalDetailsPresent_success() {
+        Person expectedPerson = new PersonBuilder(BOB).withContexts(VALID_CONTEXT_FRIEND)
+                .withAlias("Bobby").withIntroducer("Alex Tan")
+                .withNote("Met at Hack&Roll").build();
+        assertParseSuccess(parser, " a/Bobby nt/Met at Hack&Roll" + NAME_DESC_BOB
+                + " i/Alex Tan" + CONTEXT_DESC_FRIEND + PHONE_DESC_BOB + EMAIL_DESC_BOB,
+                new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_repeatedAdditionalDetails_failure() {
+        String compulsoryFields = NAME_DESC_BOB + CONTEXT_DESC_FRIEND;
+        assertParseFailure(parser, compulsoryFields + " a/Bobby a/Bob",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ALIAS));
+        assertParseFailure(parser, compulsoryFields + " i/Alex Tan i/Ben Lee",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_INTRODUCER));
+        assertParseFailure(parser, compulsoryFields + " nt/First note nt/Second note",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NOTE));
+    }
+
+    @Test
+    public void parse_invalidAdditionalDetails_failure() {
+        String compulsoryFields = NAME_DESC_BOB + CONTEXT_DESC_FRIEND;
+        assertParseFailure(parser, compulsoryFields + " a/", ParserUtil.MESSAGE_EMPTY_ALIAS);
+        assertParseFailure(parser, compulsoryFields + " i/", ParserUtil.MESSAGE_EMPTY_INTRODUCER);
+        assertParseFailure(parser, compulsoryFields + " nt/", ParserUtil.MESSAGE_EMPTY_NOTE);
+        assertParseFailure(parser, compulsoryFields + " a/Bob123", Alias.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, compulsoryFields + " i/Alex123", Introducer.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, compulsoryFields + " nt/" + "x".repeat(301), Note.MESSAGE_CONSTRAINTS);
     }
 
     @Test

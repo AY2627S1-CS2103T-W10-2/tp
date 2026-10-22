@@ -40,4 +40,12 @@ public class MessagesTest {
         assertEquals("Amy Bee; Contexts: [CS2103T] [Hack&Roll 2026] [hiking club]; Phone: 85355255; "
                 + "Email: amy@gmail.com", Messages.format(person));
     }
+
+    @Test
+    public void format_additionalDetails_showsOnlyPresentDetails() {
+        Person person = new PersonBuilder().withAlias("May").withIntroducer("Alex Tan")
+                .withNote("Met at Hack&Roll").build();
+        assertEquals("Amy Bee; Contexts: [CS2103T]; Phone: 85355255; Email: amy@gmail.com; "
+                + "Alias: May; Introduced by: Alex Tan; Note: Met at Hack&Roll", Messages.format(person));
+    }
 }
