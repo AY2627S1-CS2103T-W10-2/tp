@@ -41,7 +41,7 @@ public class ClearCommandTest {
     }
 
     @Test
-    public void execute_oneArchivedContact_keepsIt() {
+    public void execute_oneArchivedPerson_keepsIt() {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         archiveFirstPeople(model, 1);
         Person archived = model.getAddressBook().getPersonList().stream().filter(Person::isArchived).findFirst().get();
@@ -58,7 +58,7 @@ public class ClearCommandTest {
     }
 
     @Test
-    public void execute_severalArchivedContacts_keepsThemAll() {
+    public void execute_severalArchivedPersons_keepsThemAll() {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         archiveFirstPeople(model, 3);
 
@@ -78,7 +78,7 @@ public class ClearCommandTest {
         new ClearCommand().execute(model);
 
         assertFalse(model.showingArchivesProperty().get());
-        // the archived contact is still there, in the archives
+        // the archived person is still there, in the archives
         model.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
         assertEquals(1, model.getFilteredPersonList().size());
     }
