@@ -1,5 +1,6 @@
 package seedu.address.logic;
 
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
@@ -22,6 +23,11 @@ public interface Logic {
 
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();
+
+    /**
+     * Returns a value that is true while the archived persons are shown.
+     */
+    ObservableBooleanValue showingArchivesProperty();
 
     /**
      * Returns the user prefs' GUI settings.
