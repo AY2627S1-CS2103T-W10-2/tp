@@ -275,7 +275,7 @@ Format: `archives`
 * The numbers on the cards start from 1 again, and refer to this list. Use them with `unarchive` and `delete`.
 * Use `list` to go back to your normal list. `add`, `find` and `clear` also take you back to it.
 * If there are no archived persons, the result display shows `No archived persons.` and the list is empty.
-* Otherwise the result display shows `Listed N archived persons.`, where `N` is the number of archived persons.
+* Otherwise the result display shows `Listed 1 archived person.` when there is one archived person, and `Listed N archived persons.` when there are more, where `N` is the number of archived persons.
 * Unlike `list`, `archives` does not ignore anything typed after it, because it is one letter away from `archive`. `archives 1` shows an `Invalid command format!` message instead of quietly switching to the archived list when `archive 1` was meant.
 
 ### Unarchiving a person: `unarchive`
