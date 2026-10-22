@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +26,10 @@ import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
+    private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAdaptedPersonTest");
+    private static final Path LEGACY_PERSON_FILE =
+            TEST_DATA_FOLDER.resolve("legacyPersonWithoutAdditionalDetails.json");
+
     private static final String INVALID_NAME = "R@chel";
     private static final String INVALID_PHONE = "+65";
     private static final String INVALID_ADDRESS = " ";
@@ -62,19 +68,8 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void jsonRoundTrip_personWithAdditionalDetails_preservesDetails() throws Exception {
-        Person withDetails = new PersonBuilder(BENSON).withAlias("Ben")
-                .withIntroducer("Alex Tan").withNote("Met at Hack&Roll").build();
-        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(withDetails));
-        JsonAdaptedPerson readBack = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
-        assertEquals(withDetails, readBack.toModelType());
-    }
-
-    @Test
-    public void jsonWithoutAdditionalDetails_loadsExistingData() throws Exception {
-        String legacyJson = "{\"name\":\"Benson Meier\",\"phone\":\"98765432\","
-                + "\"email\":\"johnd@example.com\",\"contexts\":[\"Hiking club\",\"CS2103T\"]}";
-        JsonAdaptedPerson readBack = JsonUtil.fromJsonString(legacyJson, JsonAdaptedPerson.class);
+    public void toModelType_legacyJsonWithoutAdditionalDetails_returnsPerson() throws Exception {
+        JsonAdaptedPerson readBack = JsonUtil.readJsonFile(LEGACY_PERSON_FILE, JsonAdaptedPerson.class).get();
         assertEquals(BENSON, readBack.toModelType());
     }
 

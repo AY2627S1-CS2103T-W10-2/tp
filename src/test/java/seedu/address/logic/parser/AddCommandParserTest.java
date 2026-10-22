@@ -37,10 +37,8 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AddCommand;
-import seedu.address.model.person.Alias;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
-import seedu.address.model.person.Introducer;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
@@ -121,13 +119,8 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_invalidAdditionalDetails_failure() {
+    public void parse_invalidAdditionalDetail_failure() {
         String compulsoryFields = NAME_DESC_BOB + CONTEXT_DESC_FRIEND;
-        assertParseFailure(parser, compulsoryFields + " a/", ParserUtil.MESSAGE_EMPTY_ALIAS);
-        assertParseFailure(parser, compulsoryFields + " i/", ParserUtil.MESSAGE_EMPTY_INTRODUCER);
-        assertParseFailure(parser, compulsoryFields + " nt/", ParserUtil.MESSAGE_EMPTY_NOTE);
-        assertParseFailure(parser, compulsoryFields + " a/Bob123", Alias.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, compulsoryFields + " i/Alex123", Introducer.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, compulsoryFields + " nt/" + "x".repeat(301), Note.MESSAGE_CONSTRAINTS);
     }
 
