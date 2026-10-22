@@ -175,15 +175,15 @@ Because the shown list is the predicate, no separate "view mode" is stored. The 
 
 The new commands follow the pattern of `delete`:
 
-* `ArchiveCommand` and `UnarchiveCommand` take an `Index` that refers to `Model#getFilteredPersonList()`, that is, to the list on screen. The command finds the person, checks the flag (`archive` refuses a person who is already archived and `unarchive` refuses a person who is not), and replaces the person with `Person#withArchived(boolean)`, which returns a copy with only the flag changed (`Person` is immutable). `LogicManager` then saves the whole address book as after every command.
-* `ViewArchivesCommand` only sets `PREDICATE_SHOW_ARCHIVED`.
+* `ArchiveCommand` and `UnarchiveCommand` take an `Index` that refers to `Model#getFilteredPersonList()`, that is, to the list on screen. The command finds the person, checks the flag (`archive` refuses a person who is already archived and `unarchive` refuses a person who is not), and replaces the person with `Person#copyWithArchived(boolean)`, which returns a copy with only the flag changed (`Person` is immutable). `LogicManager` then saves the whole address book as after every command.
+* `ViewArchivesCommand` only sets `PREDICATE_SHOW_ARCHIVED`. Unlike the other commands without parameters, `ViewArchivesCommandParser` rejects text after the command word, because `archives` is one letter away from `archive` and `archives 1` is most likely a mistyped `archive 1`.
 
 Because `unarchive` checks the flag of the person it finds, `unarchive 1` while the normal list is shown cannot change the wrong person: that person is not archived, so the command is refused with a message that says to run `archives` first.
 
 Other commands take the archive into account as follows:
 
 * `Person#isSamePerson` ignores the flag, so an archived person still blocks a new person with the same phone number or email, and `unarchive` can never create a duplicate.
-* `edit` refuses an archived person. `EditCommand` keeps the flag when it builds the edited person.
+* `edit` refuses an archived person.
 * `clear` removes only persons who are not archived, so it cannot wipe the archive by accident.
 * `delete` is unchanged. It deletes whichever person is shown, so it deletes an archived person while the archives are shown.
 
@@ -611,6 +611,12 @@ The following story is retained to document the scope decision. UniContacts mana
 
 **Extensions**
 
+* 1a. The request has extra text after it (for example, `archives 1`).
+
+    * 1a1. System shows an error message.
+
+      Use case resumes at step 1.
+
 * 2a. There are no archived contacts.
 
     * 2a1. System tells the user that there are no archived contacts.
@@ -735,49 +741,52 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: Start with the sample data (delete `data/addressbook.json` first if there is one). Run `list`.
 
    1. Test case: `archive 2`<br>
-      Expected: The 2nd contact disappears from the list. The result display shows `Archived contact:` and the contact's details.
+      Expected: The 2nd person disappears from the list. The result display shows `Archived person:` and the person's details.
 
    1. Test case: `list`<br>
-      Expected: The archived contact is not shown.
+      Expected: The archived person is not shown.
 
    1. Test case: `archives`<br>
-      Expected: The heading **Archives** is shown above the list. Only the archived contact is listed, as number 1. The result display shows `Listed 1 archived contact.`
+      Expected: The heading **Archives** is shown above the list. Only the archived person is listed, as number 1. The result display shows `Listed 1 archived person.`
 
    1. Test case: `unarchive 1` (while the archives are shown)<br>
-      Expected: The contact leaves the archived list. The result display shows `Unarchived contact:` and the details. Run `list` to confirm that the contact is back in the normal list.
+      Expected: The person leaves the archived list. The result display shows `Unarchived person:` and the details. Run `list` to confirm that the person is back in the normal list.
 
-1. Archived contacts stay out of the normal list
+1. Archived persons stay out of the normal list
 
-   1. Prerequisites: Archive one contact, for example `archive 1`, and remember their name.
+   1. Prerequisites: Archive one person, for example `archive 1`, and remember their name.
 
-   1. Test case: `find` with that contact's name<br>
-      Expected: `No persons found!` The contact is not found.
+   1. Test case: `find` with that person's name<br>
+      Expected: `No persons found!` The person is not found.
 
    1. Test case: `edit 1 n/Changed` after `archives`<br>
-      Expected: `Archived contacts can't be edited. Unarchive it first.`
+      Expected: `This person is archived and can't be edited. Unarchive the person first.`
 
    1. Test case: `clear`<br>
-      Expected: All other contacts are cleared. The result display says that 1 archived contact was kept. `archives` still shows the contact.
+      Expected: All other persons are cleared. The result display shows `Persons cleared. 1 archived person was kept.` `archives` still shows the person.
 
 1. Incorrect commands
 
    1. Test case: `unarchive 1` while the normal list is shown<br>
-      Expected: Nothing changes. The result display shows `That contact is not archived. Run archives to see archived contacts, then use unarchive INDEX.`
+      Expected: Nothing changes. The result display shows `That person is not archived. Run archives to see archived persons, then use unarchive INDEX.`
 
    1. Test case: `archive 1` while the archives are shown<br>
-      Expected: `That contact is already archived.`
+      Expected: `That person is already archived.`
+
+   1. Test case: `archives 1`<br>
+      Expected: The list does not change. The result display shows `Invalid command format!` followed by the usage of `archives`, as `archives` does not accept anything after it.
 
    1. Other incorrect commands to try: `archive`, `archive 0`, `archive x`, `archive 99` (larger than the list size), `unarchive 99`<br>
-      Expected: No contact changes. The result display shows an error message.
+      Expected: No person changes. The result display shows an error message.
 
-1. Archived contacts are saved
+1. Archived persons are saved
 
-   1. Prerequisites: Archive a contact, then close and start the app again.
+   1. Prerequisites: Archive a person, then close and start the app again.
 
    1. Test case: `list` and then `archives`<br>
-      Expected: The contact is still archived: it is not in the normal list and it is shown by `archives`.
+      Expected: The person is still archived: it is not in the normal list and it is shown by `archives`.
 
-   1. Test case: Close the app, change a contact's `"archived"` value in `data/addressbook.json` to `"yes"`, and start the app<br>
+   1. Test case: Close the app, change a person's `"archived"` value in `data/addressbook.json` to `"yes"`, and start the app<br>
       Expected: The data file cannot be read, so the app starts with an empty list and keeps the file as `addressbook.json.<UTC time>.bak`.
 
 ### Saving data

@@ -32,7 +32,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
 
-   * `clear` : Deletes all contacts.
+   * `clear` : Deletes all persons except archived ones.
 
    * `exit` : Exits the app.
 
@@ -61,8 +61,8 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 * Command words are case-insensitive, but prefixes must be in lowercase.<br>
   For example, `add`, `ADD` and `Add` all work, but `N/John Doe` is not read as `n/John Doe`.
 
-* Commands that take no parameters, such as `help`, `list`, `archives`, `exit` and `clear`, ignore anything typed after them.<br>
-  For example, `help 123` is interpreted as `help`.
+* Commands that take no parameters, such as `help`, `list`, `exit` and `clear`, ignore anything typed after them.<br>
+  For example, `help 123` is interpreted as `help`. The exception is `archives`, which rejects anything typed after it (see [`archives`](#viewing-archived-persons-archives)).
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -195,7 +195,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
-* An archived person cannot be edited. Use [`unarchive`](#unarchiving-a-person-unarchive) first.
+* An archived person cannot be edited: AddressBook shows `This person is archived and can't be edited. Unarchive the person first.` Use [`unarchive`](#unarchiving-a-person-unarchive) first.
 * Existing values will be updated to the input values.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
@@ -260,9 +260,9 @@ Outputs:
 
 Situation | Message
 ----------|--------
-Success | `Archived contact:` followed by the person's details
+Success | `Archived person:` followed by the person's details
 The index is larger than the displayed list | `The person index provided is invalid.`
-The person is already archived | `That contact is already archived.`
+The person is already archived | `That person is already archived.`
 `INDEX` is missing or is not a positive whole number | `Invalid command format!` followed by the usage of `archive`
 
 ### Viewing archived persons: `archives`
@@ -274,8 +274,9 @@ Format: `archives`
 * The heading **Archives** is shown above the list while the archived persons are displayed.
 * The numbers on the cards start from 1 again, and refer to this list. Use them with `unarchive` and `delete`.
 * Use `list` to go back to your normal list. `add`, `find` and `clear` also take you back to it.
-* If there are no archived persons, the result display shows `No archived contacts.` and the list is empty.
-* Otherwise the result display shows `Listed N archived contacts.`, where `N` is the number of archived persons.
+* If there are no archived persons, the result display shows `No archived persons.` and the list is empty.
+* Otherwise the result display shows `Listed N archived persons.`, where `N` is the number of archived persons.
+* Unlike `list`, `archives` does not ignore anything typed after it, because it is one letter away from `archive`. `archives 1` shows an `Invalid command format!` message instead of quietly switching to the archived list when `archive 1` was meant.
 
 ### Unarchiving a person: `unarchive`
 
@@ -295,18 +296,18 @@ Outputs:
 
 Situation | Message
 ----------|--------
-Success | `Unarchived contact:` followed by the person's details
+Success | `Unarchived person:` followed by the person's details
 The index is larger than the displayed list | `The person index provided is invalid.`
-The person is not archived | `That contact is not archived. Run archives to see archived contacts, then use unarchive INDEX.`
+The person is not archived | `That person is not archived. Run archives to see archived persons, then use unarchive INDEX.`
 `INDEX` is missing or is not a positive whole number | `Invalid command format!` followed by the usage of `unarchive`
 
-### Clearing all entries: `clear`
+### Clearing all non-archived persons: `clear`
 
-Clears all entries from the address book, except the archived ones.
+Clears all persons from the address book, except the archived ones.
 
 Format: `clear`
 
-* Archived persons are kept, so that one `clear` cannot wipe your archive. The result message tells you how many archived persons were kept.
+* Archived persons are kept, so that one `clear` cannot wipe your archive. The result message is `Persons cleared.`, followed by how many archived persons were kept, for example `Persons cleared. 2 archived persons were kept.`
 * To remove an archived person for good, show them with [`archives`](#viewing-archived-persons-archives) and use `delete`.
 
 ### Exiting the program: `exit`
@@ -368,10 +369,6 @@ To recover your data:
 4. Start AddressBook again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
 If AddressBook fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name.
-
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
 
 --------------------------------------------------------------------------------------------------------------------
 
