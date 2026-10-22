@@ -108,7 +108,7 @@ public class Person {
     /**
      * Returns a copy of this person with every detail unchanged except for the archived flag.
      */
-    public Person withArchived(boolean archived) {
+    public Person copyWithArchived(boolean archived) {
         return new Person(name, phone.orElse(null), email.orElse(null), contexts,
                 alias.orElse(null), introducer.orElse(null), note.orElse(null), archived);
     }

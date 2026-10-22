@@ -20,12 +20,12 @@ public class ArchiveCommand extends Command {
     public static final String COMMAND_WORD = "archive";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Archives the contact identified by the index number used in the displayed contact list.\n"
+            + ": Archives the person identified by the index number used in the displayed person list.\n"
             + "Parameters: INDEX (must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " 1";
 
-    public static final String MESSAGE_ARCHIVE_PERSON_SUCCESS = "Archived contact: %1$s";
-    public static final String MESSAGE_ALREADY_ARCHIVED = "That contact is already archived.";
+    public static final String MESSAGE_ARCHIVE_PERSON_SUCCESS = "Archived person: %1$s";
+    public static final String MESSAGE_ALREADY_ARCHIVED = "That person is already archived.";
 
     private final Index targetIndex;
 
@@ -51,7 +51,7 @@ public class ArchiveCommand extends Command {
             throw new CommandException(MESSAGE_ALREADY_ARCHIVED);
         }
 
-        Person archivedPerson = personToArchive.withArchived(true);
+        Person archivedPerson = personToArchive.copyWithArchived(true);
         model.setPerson(personToArchive, archivedPerson);
         return new CommandResult(String.format(MESSAGE_ARCHIVE_PERSON_SUCCESS, Messages.format(archivedPerson)));
     }

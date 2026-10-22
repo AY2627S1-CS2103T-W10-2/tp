@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
 
 /**
@@ -91,9 +92,9 @@ public class FindCommandTest {
     @Test
     public void execute_archivedPerson_isNeverFound() {
         // Carl matches the keyword, but he is archived
-        seedu.address.model.person.Person carl = model.getFilteredPersonList().stream()
+        Person carl = model.getFilteredPersonList().stream()
                 .filter(p -> p.equals(CARL)).findFirst().get();
-        model.setPerson(carl, carl.withArchived(true));
+        model.setPerson(carl, carl.copyWithArchived(true));
         FindCommand command = new FindCommand(new PersonContainsKeywordsPredicate(List.of("Kurz")));
 
         assertEquals(MESSAGE_NO_PERSONS_FOUND, command.execute(model).getFeedbackToUser());

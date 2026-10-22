@@ -25,7 +25,7 @@ public class UnarchiveCommandTest {
     /** Archives the first person and shows the archived persons, as the archives command does. */
     private Person archiveFirstPersonAndShowArchives() {
         Person person = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person archived = person.withArchived(true);
+        Person archived = person.copyWithArchived(true);
         model.setPerson(person, archived);
         model.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
         return archived;
@@ -34,7 +34,7 @@ public class UnarchiveCommandTest {
     @Test
     public void execute_inArchivesView_unarchivesThePerson() {
         Person archived = archiveFirstPersonAndShowArchives();
-        Person restored = archived.withArchived(false);
+        Person restored = archived.copyWithArchived(false);
         String expectedMessage = String.format(UnarchiveCommand.MESSAGE_UNARCHIVE_PERSON_SUCCESS,
                 Messages.format(restored));
 

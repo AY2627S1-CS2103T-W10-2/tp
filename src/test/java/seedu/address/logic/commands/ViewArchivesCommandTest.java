@@ -21,7 +21,7 @@ public class ViewArchivesCommandTest {
 
     private void archive(int zeroBasedIndex) {
         Person person = model.getFilteredPersonList().get(zeroBasedIndex);
-        model.setPerson(person, person.withArchived(true));
+        model.setPerson(person, person.copyWithArchived(true));
     }
 
     @Test
@@ -30,7 +30,7 @@ public class ViewArchivesCommandTest {
         expectedModel.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
 
         assertCommandSuccess(new ViewArchivesCommand(), model,
-                ViewArchivesCommand.MESSAGE_NO_ARCHIVED_CONTACTS, expectedModel);
+                ViewArchivesCommand.MESSAGE_NO_ARCHIVED_PERSONS, expectedModel);
         assertTrue(model.showingArchivesProperty().get());
     }
 

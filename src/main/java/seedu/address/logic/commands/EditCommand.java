@@ -46,7 +46,8 @@ public class EditCommand extends Command {
             + PREFIX_EMAIL + "johndoe@example.com";
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
-    public static final String MESSAGE_ARCHIVED_NOT_EDITABLE = "Archived contacts can't be edited. Unarchive it first.";
+    public static final String MESSAGE_ARCHIVED_NOT_EDITABLE =
+            "This person is archived and can't be edited. Unarchive the person first.";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
 
     private final Index index;
@@ -102,7 +103,7 @@ public class EditCommand extends Command {
         Set<Context> updatedContexts = editPersonDescriptor.getContexts().orElse(personToEdit.getContexts());
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedContexts)
-                .withArchived(personToEdit.isArchived());
+                .copyWithArchived(personToEdit.isArchived());
     }
 
     @Override
