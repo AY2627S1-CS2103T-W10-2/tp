@@ -12,8 +12,9 @@ public class ViewArchivesCommand extends Command {
 
     public static final String COMMAND_WORD = "archives";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Shows the archived persons. "
-            + "This command takes no parameters; to archive a person, use archive INDEX.\n"
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Shows all archived persons. "
+            + "Use list to return to the normal person list.\n"
+            + "Parameters: none (to archive a person, use: " + ArchiveCommand.COMMAND_WORD + " INDEX)\n"
             + "Example: " + COMMAND_WORD;
 
     public static final String MESSAGE_SUCCESS_SINGULAR = "Listed %1$d archived person.";
