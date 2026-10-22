@@ -246,22 +246,35 @@ Examples:
 
 ### Finding persons by name or context: `find`
 
-Finds persons whose names or contexts contain any of the given keywords.
+Finds persons using either general keywords or field-specific name and context clues.
 
-Format: `find KEYWORD [MORE_KEYWORDS]…`
+Formats:
+
+* `find KEYWORD [MORE_KEYWORDS]…`
+* `find [n/NAME_PART] [c/CONTEXT_PART]…`
 
 * The command word and search are case-insensitive; for example, `FIND cs2103t` works.
 * Partial matches are supported; for example, `Alex` matches both `Alex Tan` and `Alexander Lim`.
-* A keyword can match either a person's name or any of their contexts.
-* Persons matching at least one keyword are returned (an `OR` search).
+* In a keyword search, a keyword can match either a person's name or any of their contexts. Persons matching at least
+  one keyword are returned (an `OR` search).
+* In a field-specific search, `n/` searches only the person's name and each `c/` searches only the person's contexts.
+  A person is returned only if every clue matches (an `AND` search).
+* `n/` may appear at most once. `c/` is repeatable.
+* Prefixes may appear in any order, so `find n/Tony c/CS2103T` and `find c/CS2103T n/Tony` are equivalent.
+* Each prefix value is one clue. For example, `n/Tony Zhang` searches for the partial name `Tony Zhang`.
+* Keywords and prefixed clues cannot be mixed in one command.
 * Each `find` command searches the full person list, even if a previous command filtered the displayed results.
-* Extra spaces before, between, or after keywords are ignored.
+* Extra spaces before, between, or after keywords and clues are ignored. Repeated spaces inside a clue are treated as
+  one space.
 * If no persons match, the app shows `No persons found!`.
 
 Examples:
 * `find Alex` returns persons such as `Alex Tan` and `Alexander Lim`.
 * `find CS2103T` returns persons with `CS2103T` as a context.
 * `find Alex CS2103T` returns persons matching either `Alex` or `CS2103T`.
+* `find n/Tony Zhang c/CS2103T` returns persons whose name contains `Tony Zhang` and who have a context containing
+  `CS2103T`.
+* `find c/CS2103T c/Hack` returns persons matching both context clues.
 
 ### Deleting a person: `delete`
 
@@ -372,6 +385,6 @@ Action | Format, Examples
 **Contexts** | `contexts`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find Alex CS2103T`
+**Find** | `find KEYWORD [MORE_KEYWORDS]…` or `find [n/NAME_PART] [c/CONTEXT_PART]…`<br> e.g., `find n/Tony Zhang c/CS2103T`
 **List** | `list`
 **Help** | `help`
