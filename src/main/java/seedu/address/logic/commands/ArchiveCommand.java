@@ -13,7 +13,7 @@ import seedu.address.model.person.Person;
 
 /**
  * Archives a person identified using its displayed index. An archived person is kept in the address book but is
- * left out of the normal contact list until it is unarchived.
+ * left out of the normal person list until it is unarchived.
  */
 public class ArchiveCommand extends Command {
 
