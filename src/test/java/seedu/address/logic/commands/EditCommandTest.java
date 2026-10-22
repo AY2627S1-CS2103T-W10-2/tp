@@ -36,6 +36,17 @@ public class EditCommandTest {
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
+    public void execute_archivedPerson_isRejectedAndNothingChanges() {
+        Person person = model.getFilteredPersonList().get(0);
+        model.setPerson(person, person.copyWithArchived(true));
+        model.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();
+
+        assertCommandFailure(new EditCommand(INDEX_FIRST_PERSON, descriptor), model,
+                EditCommand.MESSAGE_ARCHIVED_NOT_EDITABLE);
+    }
+
+    @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
         Person editedPerson = new PersonBuilder().build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
