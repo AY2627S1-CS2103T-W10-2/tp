@@ -27,7 +27,7 @@ public class ArchiveCommandTest {
     public void execute_validIndex_archivesAndHidesThePerson() {
         Person personToArchive = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         int sizeBefore = model.getFilteredPersonList().size();
-        Person archivedPerson = personToArchive.withArchived(true);
+        Person archivedPerson = personToArchive.copyWithArchived(true);
         String expectedMessage = String.format(ArchiveCommand.MESSAGE_ARCHIVE_PERSON_SUCCESS,
                 Messages.format(archivedPerson));
 
@@ -45,7 +45,7 @@ public class ArchiveCommandTest {
     @Test
     public void execute_alreadyArchived_throwsCommandException() {
         Person person = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        model.setPerson(person, person.withArchived(true));
+        model.setPerson(person, person.copyWithArchived(true));
         model.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
 
         assertCommandFailure(new ArchiveCommand(INDEX_FIRST_PERSON), model, ArchiveCommand.MESSAGE_ALREADY_ARCHIVED);
@@ -60,18 +60,14 @@ public class ArchiveCommandTest {
     }
 
     @Test
-    public void execute_filteredList_archivesTheShownPerson() {
+    public void execute_filteredList_archivesTheShownPerson() throws Exception {
         // the first displayed person is the second person in the full list
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
         Person shownPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
 
-        try {
-            new ArchiveCommand(INDEX_FIRST_PERSON).execute(model);
-        } catch (Exception e) {
-            throw new AssertionError("archive should succeed", e);
-        }
+        new ArchiveCommand(INDEX_FIRST_PERSON).execute(model);
 
-        assertTrue(model.getAddressBook().getPersonList().contains(shownPerson.withArchived(true)));
+        assertTrue(model.getAddressBook().getPersonList().contains(shownPerson.copyWithArchived(true)));
         assertFalse(model.getAddressBook().getPersonList().contains(shownPerson));
     }
 

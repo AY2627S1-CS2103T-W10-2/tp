@@ -36,7 +36,7 @@ public class ClearCommandTest {
     private void archiveFirstPeople(Model model, int count) {
         for (int i = 0; i < count; i++) {
             Person person = model.getFilteredPersonList().get(0);
-            model.setPerson(person, person.withArchived(true));
+            model.setPerson(person, person.copyWithArchived(true));
         }
     }
 

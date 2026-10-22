@@ -8,14 +8,14 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
 /**
- * Clears the contacts that are not archived. Archived contacts are kept, so that they are not lost by accident.
+ * Clears the persons that are not archived. Archived persons are kept, so that they are not lost by accident.
  */
 public class ClearCommand extends Command {
 
     public static final String COMMAND_WORD = "clear";
-    public static final String MESSAGE_SUCCESS = "Address book has been cleared!";
-    public static final String MESSAGE_SUCCESS_KEEPING_ONE_ARCHIVED = "Contacts cleared. 1 archived contact was kept.";
-    public static final String MESSAGE_SUCCESS_KEEPING_ARCHIVED = "Contacts cleared. %1$d archived contacts were kept.";
+    public static final String MESSAGE_SUCCESS = "Persons cleared.";
+    public static final String MESSAGE_SUCCESS_KEEPING_ONE_ARCHIVED = "Persons cleared. 1 archived person was kept.";
+    public static final String MESSAGE_SUCCESS_KEEPING_ARCHIVED = "Persons cleared. %1$d archived persons were kept.";
 
     @Override
     public CommandResult execute(Model model) {

@@ -113,7 +113,7 @@ public class ModelManagerTest {
     @Test
     public void filteredList_hidesArchivedPersonsFromTheStart() {
         modelManager = new ModelManager(new AddressBookBuilder()
-                .withPerson(ALICE).withPerson(BENSON.withArchived(true)).build(), new UserPrefs());
+                .withPerson(ALICE).withPerson(BENSON.copyWithArchived(true)).build(), new UserPrefs());
 
         assertEquals(List.of(ALICE), modelManager.getFilteredPersonList());
         assertFalse(modelManager.showingArchivesProperty().get());

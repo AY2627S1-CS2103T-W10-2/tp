@@ -38,7 +38,7 @@ public class EditCommandTest {
     @Test
     public void execute_archivedPerson_isRejectedAndNothingChanges() {
         Person person = model.getFilteredPersonList().get(0);
-        model.setPerson(person, person.withArchived(true));
+        model.setPerson(person, person.copyWithArchived(true));
         model.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();
 
