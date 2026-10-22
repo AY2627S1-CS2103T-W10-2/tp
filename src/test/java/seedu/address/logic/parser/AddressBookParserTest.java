@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.ArchiveCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
@@ -23,6 +24,8 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.UnarchiveCommand;
+import seedu.address.logic.commands.ViewArchivesCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
@@ -159,5 +162,19 @@ public class AddressBookParserTest {
         assertEquals(new DeleteCommand(INDEX_FIRST_PERSON),
                 parser.parseCommand("DeLeTe " + INDEX_FIRST_PERSON.getOneBased()));
         assertTrue(parser.parseCommand("FiNd Alex") instanceof FindCommand);
+    }
+
+    @Test
+    public void parseCommand_archiveCommands() throws Exception {
+        assertTrue(parser.parseCommand(ArchiveCommand.COMMAND_WORD + " 1") instanceof ArchiveCommand);
+        assertTrue(parser.parseCommand("ARCHIVE 1") instanceof ArchiveCommand);
+        assertTrue(parser.parseCommand(UnarchiveCommand.COMMAND_WORD + " 1") instanceof UnarchiveCommand);
+        assertTrue(parser.parseCommand("Unarchive 1") instanceof UnarchiveCommand);
+        assertTrue(parser.parseCommand(ViewArchivesCommand.COMMAND_WORD) instanceof ViewArchivesCommand);
+        assertTrue(parser.parseCommand("ARCHIVES") instanceof ViewArchivesCommand);
+        // unlike list, archives does not ignore text after it, as it is one letter away from archive
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewArchivesCommand.MESSAGE_USAGE), ()
+                -> parser.parseCommand("archives 1"));
     }
 }
