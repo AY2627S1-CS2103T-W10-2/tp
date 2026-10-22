@@ -80,7 +80,9 @@ public class LogicManagerTest {
         logic.execute("add n/Priya Nair c/cs2103t");
         logic.execute("find Priya");
         List<Person> displayedPersons = List.copyOf(model.getFilteredPersonList());
-        String expectedMessage = "CS2103T: 2 contacts\nNUS Hackers: 1 contact\n\n2 contexts listed.";
+        String expectedMessage = String.format(ContextsCommand.MESSAGE_CONTEXT_PLURAL, "CS2103T", 2) + "\n"
+                + String.format(ContextsCommand.MESSAGE_CONTEXT_SINGULAR, "NUS Hackers", 1) + "\n\n"
+                + String.format(ContextsCommand.MESSAGE_SUCCESS_PLURAL, 2);
 
         assertEquals(new CommandResult(expectedMessage), logic.execute("CoNtExTs ignored"));
         assertEquals(displayedPersons, model.getFilteredPersonList());

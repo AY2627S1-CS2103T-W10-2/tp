@@ -214,9 +214,9 @@ Marcus Lim | `CS2103T`
 Running `contexts` shows:
 
 ```text
-CS2103: 2 contacts
-CS2103T: 2 contacts
-NUS Hackers: 1 contact
+CS2103: 2 people
+CS2103T: 2 people
+NUS Hackers: 1 person
 
 3 contexts listed.
 ```
@@ -369,7 +369,7 @@ Action | Format, Examples
 --------|------------------
 **Add** | `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL]` <br> e.g., `add n/James Ho c/CS2103T c/NUS Hackers p/22224444 e/jamesho@example.com`
 **Clear** | `clear`
-**Contexts** | `contexts` — Lists all contexts with contact counts, without changing the displayed contact list.
+**Contexts** | `contexts`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find Alex CS2103T`

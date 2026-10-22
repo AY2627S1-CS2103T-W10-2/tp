@@ -601,7 +601,7 @@ testers are expected to do more *exploratory* testing.
       Priya Nair with `cs2103` and `CS2103T`, and Marcus Lim with `CS2103T`.
 
    1. Test case: `contexts`<br>
-      Expected: The result display shows `CS2103: 2 contacts`, `CS2103T: 2 contacts`, `NUS Hackers: 1 contact`,
+      Expected: The result display shows `CS2103: 2 people`, `CS2103T: 2 people`, `NUS Hackers: 1 person`,
       a blank line, and `3 contexts listed.` The contact list is unchanged.
 
    1. Test case: `find Priya`, followed by `contexts`<br>

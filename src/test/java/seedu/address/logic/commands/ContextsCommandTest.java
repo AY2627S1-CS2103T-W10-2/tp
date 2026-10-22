@@ -37,7 +37,7 @@ public class ContextsCommandTest {
     public void execute_singleContext_showsSingularCountAndSummary() {
         Model model = createModel(createPerson("Alex Tan", "CS2103T"));
 
-        assertCommandSuccess(new ContextsCommand(), model, "CS2103T: 1 contact\n\n1 context listed.",
+        assertCommandSuccess(new ContextsCommand(), model, expectedOverview(contextLine("CS2103T", 1)),
                 new ModelManager(model.getAddressBook(), new UserPrefs()));
     }
 
@@ -45,7 +45,7 @@ public class ContextsCommandTest {
     public void execute_sharedContext_countsEachPerson() {
         Model model = createModel(createPerson("Alex Tan", "CS2103T"), createPerson("Priya Nair", "cs2103t"));
 
-        assertCommandSuccess(new ContextsCommand(), model, "CS2103T: 2 contacts\n\n1 context listed.",
+        assertCommandSuccess(new ContextsCommand(), model, expectedOverview(contextLine("CS2103T", 2)),
                 new ModelManager(model.getAddressBook(), new UserPrefs()));
     }
 
@@ -55,8 +55,8 @@ public class ContextsCommandTest {
         Person priya = createPerson("Priya Nair", "NUS Hackers", "CS2103T", "Alpha");
         Person marcus = createPerson("Marcus Lim", "CS2103T");
         Model model = createModel(alex, priya, marcus);
-        String expectedMessage = "Alpha: 1 contact\nCS2103: 1 contact\ncs2103t: 3 contacts\n"
-                + "nus Hackers: 2 contacts\nZeta: 1 contact\n\n5 contexts listed.";
+        String expectedMessage = expectedOverview(contextLine("Alpha", 1), contextLine("CS2103", 1),
+                contextLine("cs2103t", 3), contextLine("nus Hackers", 2), contextLine("Zeta", 1));
 
         assertCommandSuccess(new ContextsCommand(), model, expectedMessage,
                 new ModelManager(model.getAddressBook(), new UserPrefs()));
@@ -68,7 +68,7 @@ public class ContextsCommandTest {
                 createPerson("Alex Tan", "CS2103T", "NUS Hackers"));
 
         assertCommandSuccess(new ContextsCommand(), model,
-                "CS2103T: 2 contacts\nNUS Hackers: 1 contact\n\n2 contexts listed.",
+                expectedOverview(contextLine("CS2103T", 2), contextLine("NUS Hackers", 1)),
                 new ModelManager(model.getAddressBook(), new UserPrefs()));
     }
 
@@ -83,7 +83,7 @@ public class ContextsCommandTest {
         expectedModel.updateFilteredPersonList(predicate);
 
         assertCommandSuccess(new ContextsCommand(), model,
-                "CS2103T: 1 contact\nNUS Hackers: 1 contact\n\n2 contexts listed.", expectedModel);
+                expectedOverview(contextLine("CS2103T", 1), contextLine("NUS Hackers", 1)), expectedModel);
 
         // The existing predicate must still apply to subsequent updates, not just retain a snapshot.
         Person renamedAlex = new PersonBuilder(alex).withName("Marcus Lim").build();
@@ -98,7 +98,7 @@ public class ContextsCommandTest {
         model.updateFilteredPersonList(person -> false);
         expectedModel.updateFilteredPersonList(person -> false);
 
-        assertCommandSuccess(new ContextsCommand(), model, "CS2103T: 1 contact\n\n1 context listed.", expectedModel);
+        assertCommandSuccess(new ContextsCommand(), model, expectedOverview(contextLine("CS2103T", 1)), expectedModel);
     }
 
     @Test
@@ -107,22 +107,34 @@ public class ContextsCommandTest {
         Person priya = createPerson("Priya Nair", "CS2103T");
         Model model = createModel(alex);
         ContextsCommand command = new ContextsCommand();
-        assertEquals("cs2103t: 1 contact\n\n1 context listed.", command.execute(model).getFeedbackToUser());
+        assertEquals(expectedOverview(contextLine("cs2103t", 1)), command.execute(model).getFeedbackToUser());
 
         model.addPerson(priya);
-        assertEquals("cs2103t: 2 contacts\n\n1 context listed.", command.execute(model).getFeedbackToUser());
+        assertEquals(expectedOverview(contextLine("cs2103t", 2)), command.execute(model).getFeedbackToUser());
 
         Person editedPriya = new PersonBuilder(priya).withContexts("NUS Hackers").build();
         model.setPerson(priya, editedPriya);
-        assertEquals("cs2103t: 1 contact\nNUS Hackers: 1 contact\n\n2 contexts listed.",
+        assertEquals(expectedOverview(contextLine("cs2103t", 1), contextLine("NUS Hackers", 1)),
                 command.execute(model).getFeedbackToUser());
 
         model.setPerson(editedPriya, priya);
         model.deletePerson(alex);
-        assertEquals("CS2103T: 1 contact\n\n1 context listed.", command.execute(model).getFeedbackToUser());
+        assertEquals(expectedOverview(contextLine("CS2103T", 1)), command.execute(model).getFeedbackToUser());
 
         model.setAddressBook(new AddressBook());
         assertEquals(ContextsCommand.MESSAGE_NO_CONTEXTS, command.execute(model).getFeedbackToUser());
+    }
+
+    private String contextLine(String context, int count) {
+        String messageFormat = count == 1
+                ? ContextsCommand.MESSAGE_CONTEXT_SINGULAR : ContextsCommand.MESSAGE_CONTEXT_PLURAL;
+        return String.format(messageFormat, context, count);
+    }
+
+    private String expectedOverview(String... contextLines) {
+        String summaryFormat = contextLines.length == 1
+                ? ContextsCommand.MESSAGE_SUCCESS_SINGULAR : ContextsCommand.MESSAGE_SUCCESS_PLURAL;
+        return String.join("\n", contextLines) + "\n\n" + String.format(summaryFormat, contextLines.length);
     }
 
     private Person createPerson(String name, String... contexts) {
