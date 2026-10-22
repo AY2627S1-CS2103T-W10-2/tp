@@ -32,7 +32,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
 
-   * `clear` : Deletes all contacts.
+   * `clear` : Deletes all persons except archived ones.
 
    * `exit` : Exits the app.
 
@@ -62,7 +62,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
   For example, `add`, `ADD` and `Add` all work, but `N/John Doe` is not read as `n/John Doe`.
 
 * Commands that take no parameters, such as `help`, `list`, `exit` and `clear`, ignore anything typed after them.<br>
-  For example, `help 123` is interpreted as `help`.
+  For example, `help 123` is interpreted as `help`. The exception is `archives`, which rejects anything typed after it (see [`archives`](#viewing-archived-persons-archives)).
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -181,6 +181,7 @@ Examples:
 **Note:**
 
 * The `list` command does not add, remove, edit, or reorder persons.
+* Archived persons are not listed. Use [`archives`](#viewing-archived-persons-archives) to see them.
 * Person index numbers refer to the currently displayed list. After restoring the complete list, check the displayed index before using commands such as `edit` or `delete`.
 * If there are no persons, the displayed list remains empty and the result display shows `0 people listed.`
 
@@ -194,6 +195,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
+* An archived person cannot be edited: AddressBook shows `This person is archived and can't be edited. Unarchive the person first.` Use [`unarchive`](#unarchiving-a-person-unarchive) first.
 * Existing values will be updated to the input values.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
@@ -204,22 +206,36 @@ Examples:
 
 ### Finding persons by name or context: `find`
 
-Finds persons whose names or contexts contain any of the given keywords.
+Finds persons using either general keywords or field-specific name and context clues.
 
-Format: `find KEYWORD [MORE_KEYWORDS]…`
+Formats:
+
+* `find KEYWORD [MORE_KEYWORDS]…`
+* `find [n/NAME_PART] [c/CONTEXT_PART]…`
 
 * The command word and search are case-insensitive; for example, `FIND cs2103t` works.
 * Partial matches are supported; for example, `Alex` matches both `Alex Tan` and `Alexander Lim`.
-* A keyword can match either a person's name or any of their contexts.
-* Persons matching at least one keyword are returned (an `OR` search).
+* In a keyword search, a keyword can match either a person's name or any of their contexts. Persons matching at least
+  one keyword are returned (an `OR` search).
+* In a field-specific search, `n/` searches only the person's name and each `c/` searches only the person's contexts.
+  A person is returned only if every clue matches (an `AND` search).
+* `n/` may appear at most once. `c/` is repeatable.
+* Prefixes may appear in any order, so `find n/Tony c/CS2103T` and `find c/CS2103T n/Tony` are equivalent.
+* Each prefix value is one clue. For example, `n/Tony Zhang` searches for the partial name `Tony Zhang`.
+* Keywords and prefixed clues cannot be mixed in one command.
+* Archived persons are never found, whichever kind of search you use. Use [`archives`](#viewing-archived-persons-archives) to see them.
 * Each `find` command searches the full person list, even if a previous command filtered the displayed results.
-* Extra spaces before, between, or after keywords are ignored.
+* Extra spaces before, between, or after keywords and clues are ignored. Repeated spaces inside a clue are treated as
+  one space.
 * If no persons match, the app shows `No persons found!`.
 
 Examples:
 * `find Alex` returns persons such as `Alex Tan` and `Alexander Lim`.
 * `find CS2103T` returns persons with `CS2103T` as a context.
 * `find Alex CS2103T` returns persons matching either `Alex` or `CS2103T`.
+* `find n/Tony Zhang c/CS2103T` returns persons whose name contains `Tony Zhang` and who have a context containing
+  `CS2103T`.
+* `find c/CS2103T c/Hack` returns persons matching both context clues.
 
 ### Deleting a person: `delete`
 
@@ -231,15 +247,81 @@ Format: `delete INDEX`
 * The index refers to the index number shown in the displayed person list.
 * The index **must be a positive integer** 1, 2, 3, …​
 
+* Deleting removes the person for good. To keep a person but hide them, use [`archive`](#archiving-a-person-archive) instead.
+* If the archived persons are shown (see [`archives`](#viewing-archived-persons-archives)), `delete` deletes an archived person.
+
 Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
-### Clearing all entries: `clear`
+### Archiving a person: `archive`
 
-Clears all entries from the address book.
+Moves a person out of your normal list without deleting them. Use this for people you no longer need every day, such as a project team that has finished, while keeping them for later.
+
+Format: `archive INDEX`
+
+* Archives the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list.
+* The index **must be a positive integer** 1, 2, 3, …​
+* An archived person is not shown by `list` and is not found by `find`. They stay saved, with all their details, and they still count when AddressBook checks for a duplicate phone number or email.
+* A person who is already archived cannot be archived again.
+
+Examples:
+* `list` followed by `archive 2` archives the 2nd person in the list.
+* `find CS2103T` followed by `archive 1` archives the 1st person in the results of the `find` command.
+
+Outputs:
+
+Situation | Message
+----------|--------
+Success | `Archived person:` followed by the person's details
+The index is larger than the displayed list | `The person index provided is invalid.`
+The person is already archived | `That person is already archived.`
+`INDEX` is missing or is not a positive whole number | `Invalid command format!` followed by the usage of `archive`
+
+### Viewing archived persons: `archives`
+
+Shows only the archived persons, under the heading **Archives**.
+
+Format: `archives`
+
+* The heading **Archives** is shown above the list while the archived persons are displayed.
+* The numbers on the cards start from 1 again, and refer to this list. Use them with `unarchive` and `delete`.
+* Use `list` to go back to your normal list. `add`, `find` and `clear` also take you back to it.
+* If there are no archived persons, the result display shows `No archived persons.` and the list is empty.
+* Otherwise the result display shows `Listed 1 archived person.` when there is one archived person, and `Listed N archived persons.` when there are more, where `N` is the number of archived persons.
+* Unlike `list`, `archives` does not ignore anything typed after it, because it is one letter away from `archive`. `archives 1` shows an `Invalid command format!` message instead of quietly switching to the archived list when `archive 1` was meant.
+
+### Unarchiving a person: `unarchive`
+
+Moves an archived person back to your normal list.
+
+Format: `unarchive INDEX`
+
+* Unarchives the person at the specified `INDEX`. The index refers to the index number shown in the displayed list, so show the archived persons with [`archives`](#viewing-archived-persons-archives) first.
+* The index **must be a positive integer** 1, 2, 3, …​
+* If the person at that index is not archived, for example because you are looking at your normal list, nothing is changed and AddressBook tells you to run `archives` first.
+* After a successful `unarchive`, you stay in the archived list, so you can unarchive several persons in a row. The person is back in your normal list, which you reach with `list`.
+
+Examples:
+* `archives` followed by `unarchive 1` brings the 1st archived person back.
+
+Outputs:
+
+Situation | Message
+----------|--------
+Success | `Unarchived person:` followed by the person's details
+The index is larger than the displayed list | `The person index provided is invalid.`
+The person is not archived | `That person is not archived. Run archives to see archived persons, then use unarchive INDEX.`
+`INDEX` is missing or is not a positive whole number | `Invalid command format!` followed by the usage of `unarchive`
+
+### Clearing all non-archived persons: `clear`
+
+Clears all persons from the address book, except the archived ones.
 
 Format: `clear`
+
+* Archived persons are kept, so that one `clear` cannot wipe your archive. The result message is `Persons cleared.`, followed by how many archived persons were kept, for example `Persons cleared. 2 archived persons were kept.`
+* To remove an archived person for good, show them with [`archives`](#viewing-archived-persons-archives) and use `delete`.
 
 ### Exiting the program: `exit`
 
@@ -268,7 +350,8 @@ Each person is stored like this:
     "contexts" : [ "CS2103T", "Hiking club" ]
   }, {
     "name" : "Roy Balakrishnan",
-    "contexts" : [ "Internship" ]
+    "contexts" : [ "Internship" ],
+    "archived" : true
   } ]
 }
 ```
@@ -276,7 +359,9 @@ Each person is stored like this:
 * `name` and at least one entry in `contexts` are required.
 * `phone` and `email` are optional. You can leave them out, as for Roy above, or set them to `null`.
 * Each context is a plain piece of text, such as `"CS2103T"`, and must follow the same rules as a context entered in the `add` command.
-* Two persons cannot have the same phone number or the same email.
+* `archived` is optional. `true` means the person is archived (see [`archive`](#archiving-a-person-archive)), as for Roy above. `false`, `null`, or leaving it out, means the person is not archived, so data files saved by earlier versions still work.
+* `archived` must be `true` or `false`, without quotes. Any other value, such as `"yes"` or `5`, makes the data file unreadable (see [If the data file cannot be read](#if-the-data-file-cannot-be-read)).
+* Two persons cannot have the same phone number or the same email, whether they are archived or not.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 Edit the data file only while AddressBook is closed, and only if you are confident that you can update it correctly. Certain edits can cause AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range).
@@ -297,10 +382,6 @@ To recover your data:
 4. Start AddressBook again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
 If AddressBook fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name.
-
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -326,9 +407,12 @@ _Details coming soon ..._
 Action | Format, Examples
 --------|------------------
 **Add** | `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL]` <br> e.g., `add n/James Ho c/CS2103T c/NUS Hackers p/22224444 e/jamesho@example.com`
+**Archive** | `archive INDEX`<br> e.g., `archive 2`
+**Archives** | `archives`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find Alex CS2103T`
+**Find** | `find KEYWORD [MORE_KEYWORDS]…` or `find [n/NAME_PART] [c/CONTEXT_PART]…`<br> e.g., `find n/Tony Zhang c/CS2103T`
 **List** | `list`
 **Help** | `help`
+**Unarchive** | `unarchive INDEX`<br> e.g., `unarchive 1`
