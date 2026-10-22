@@ -84,10 +84,10 @@ Adds a person to the address book.
 
 Every person has at least one context: how you know them, such as a module, project, CCA, internship or event.
 
-Format: `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL]`
+Format: `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [nt/NOTE]`
 
-* `n/NAME` and at least one `c/CONTEXT` are compulsory. `p/PHONE` and `e/EMAIL` are optional.
-* To give more than one context, repeat `c/`, one context each. `n/`, `p/` and `e/` can each be given only once.
+* `n/NAME` and at least one `c/CONTEXT` are compulsory. All other fields are optional.
+* To give more than one context, repeat `c/`, one context each. Every other prefix can be given only once.
 * Spaces before and after each value are ignored.
 
 Examples:
@@ -95,6 +95,7 @@ Examples:
 * `add n/Priya Nair c/Hack&Roll 2026 c/NUS Hackers p/91234567 e/priya@u.nus.edu` adds `Priya Nair` with two contexts, a phone number and an email.
 * `add n/Jean-Luc O'Brien c/Google internship e/jl.obrien@gmail.com` adds `Jean-Luc O'Brien` with an email but no phone number.
 * `add e/mei@u.nus.edu c/CS2101 n/Lim Mei` adds `Lim Mei`, showing that parameters can be in any order.
+* `add n/Alex Tan c/CS2103T a/Alex i/Ben Lee nt/Met at Hack&Roll` also records an alias, who introduced Alex, and a personal note.
 
 **Parameter rules**
 
@@ -104,6 +105,9 @@ Parameter | Rules | Valid | Invalid
 `c/CONTEXT` | Starts with a letter or digit. Only English letters, digits, spaces and `&` `-` `.` `'` `#`. At most 50 characters. | `CS2103T`, `Hack&Roll 2026`, `Tut #3` | `CS2103T/T09`, `(orbital)`
 `p/PHONE` | An optional `+`, then 3 to 15 digits. No spaces, hyphens or brackets. | `91234567`, `+6591234567` | `9123-4567`, `+65 9123 4567`, `12`
 `e/EMAIL` | Of the form `local-part@domain`, at most 254 characters. See the email rules below. | `e0123456@u.nus.edu`, `alex.tan+work@gmail.com` | `alex@`, `.alex@gmail.com`, `alex..tan@gmail.com`
+`a/ALIAS` | Alternative name; follows the same character and 100-character rules as `n/NAME`. | `Alex`, `Jean-Luc` | `Alex123`, empty `a/`
+`i/INTRODUCER` | Plain name of the person who introduced this contact; follows the same rules as `n/NAME`. It does not need to be another saved contact. | `Ben Lee` | `Ben123`, empty `i/`
+`nt/NOTE` | Short, single-line note of at most 300 characters. No line breaks or control characters. | `Met at Hack&Roll` | Empty `nt/`, a note over 300 characters
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 `/` is not allowed in names, so enter a name such as `Raj s/o Kumar` as `Raj s o Kumar` or `Raj son of Kumar`.
@@ -117,6 +121,7 @@ How values are saved:
 * Names, contexts and emails keep the capitalisation you typed.
 * Several spaces in a row inside a context are saved as one space. For example, if you type `NUS`, three spaces, then `Hackers`, the context is saved as `NUS Hackers`. The 50-character limit is checked after this, so extra spaces never make a context too long.
 * Names are saved exactly as typed, including several spaces in a row.
+* Aliases and introducer names have surrounding spaces removed and repeated spaces inside collapsed to one. Notes have surrounding spaces removed.
 * Contexts that differ only in capitalisation or repeated spaces count as the same context. If you give the same context twice, such as `c/CS2103T c/cs2103t`, the person gets it once, spelt as you first typed it.
 
 **If the command succeeds**
@@ -125,7 +130,7 @@ The list shows all persons again, with the new person at the bottom. The result 
 
 `New person added: Priya Nair; Contexts: [Hack&Roll 2026] [NUS Hackers]; Phone: 91234567; Email: priya@u.nus.edu`
 
-Contexts are listed in alphabetical order, ignoring capitalisation. A missing phone number or email is left out.
+Contexts are listed in alphabetical order, ignoring capitalisation. Missing optional fields are left out. If supplied, alias, introducer and note appear in the result and on the person card.
 
 **Duplicate persons**
 
@@ -145,10 +150,10 @@ Problem | Example | Message shown
 --------|---------|--------------
 `n/` or `c/` missing | `add n/Alex Tan` | `Invalid command format!`, followed by how to use `add`
 Text before the first prefix, or an uppercase prefix | `add Alex n/Alex Tan c/CS2103T`<br>`add N/Alex Tan c/CS2103T` | `Invalid command format!`, followed by how to use `add`
-`n/`, `p/` or `e/` given more than once | `add n/Alex n/Alex Tan c/CS2103T` | `Multiple values specified for the following single-valued field(s): n/`
-Nothing after `n/`, `c/`, `p/` or `e/` | `add n/Alex Tan c/` | Depending on the prefix:<br>`Name cannot be empty.`<br>`Contexts cannot be empty.`<br>`Phone number cannot be empty. Leave out p/ if there is no phone number.`<br>`Email cannot be empty. Leave out e/ if there is no email.`
+Any prefix other than `c/` given more than once | `add n/Alex n/Alex Tan c/CS2103T` | `Multiple values specified for the following single-valued field(s): n/`
+Nothing after a prefix | `add n/Alex Tan c/` | Depending on the prefix:<br>`Name cannot be empty.`<br>`Contexts cannot be empty.`<br>`Phone number cannot be empty. Leave out p/ if there is no phone number.`<br>`Email cannot be empty. Leave out e/ if there is no email.`<br>`Alias cannot be empty.`<br>`Introducer cannot be empty.`<br>`Note cannot be empty.`
 A value that breaks its rule | `add n/Alex Tan c/CS2103T p/9123-4567` | That parameter's rule, such as `Phone numbers should contain only digits, may start with +, and have 3 to 15 digits.`
-A prefix that `add` does not use, such as `a/` or `t/` | `add n/Alex Tan a/Blk 123 c/CS2103T` | The prefix and its text become part of the value before it. Here the name becomes `Alex Tan a/Blk 123`, so the name rule is shown.
+A prefix that `add` does not use, such as `t/` | `add n/Alex Tan t/friend c/CS2103T` | The prefix and its text become part of the value before it. Here the name becomes `Alex Tan t/friend`, so the name rule is shown.
 
 ### Listing all persons: `list`
 
@@ -439,7 +444,7 @@ Each person is stored like this:
 ```
 
 * `name` and at least one entry in `contexts` are required.
-* `phone` and `email` are optional. You can leave them out, as for Roy above, or set them to `null`.
+* `phone`, `email`, `alias`, `introducer` and `note` are optional. You can leave them out, as for Roy above, or set them to `null`.
 * Each context is a plain piece of text, such as `"CS2103T"`, and must follow the same rules as a context entered in the `add` command.
 * `archived` is optional. `true` means the person is archived (see [`archive`](#archiving-a-person-archive)), as for Roy above. `false`, `null`, or leaving it out, means the person is not archived, so data files saved by earlier versions still work.
 * `archived` must be `true` or `false`, without quotes. Any other value, such as `"yes"` or `5`, makes the data file unreadable (see [If the data file cannot be read](#if-the-data-file-cannot-be-read)).
@@ -488,7 +493,7 @@ If AddressBook fails to read the data file more than once, each failure keeps it
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL]` <br> e.g., `add n/James Ho c/CS2103T c/NUS Hackers p/22224444 e/jamesho@example.com`
+**Add** | `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [nt/NOTE]` <br> e.g., `add n/James Ho c/CS2103T a/Jim nt/Met at Hack&Roll`
 **Archive** | `archive INDEX`<br> e.g., `archive 2`
 **Archives** | `archives`
 **Clear** | `clear`

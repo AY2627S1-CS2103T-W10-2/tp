@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,19 +16,29 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
+import seedu.address.model.person.Alias;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Introducer;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
+    private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAdaptedPersonTest");
+    private static final Path LEGACY_PERSON_FILE =
+            TEST_DATA_FOLDER.resolve("legacyPersonWithoutAdditionalDetails.json");
+
     private static final String INVALID_NAME = "R@chel";
     private static final String INVALID_PHONE = "+65";
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_CONTEXT = " ";
+    private static final String INVALID_ALIAS = "Alex123";
+    private static final String INVALID_INTRODUCER = "Ben123";
+    private static final String INVALID_NOTE = " ";
 
     private static final String VALID_NAME = BENSON.getName().toString();
     private static final String VALID_PHONE = BENSON.getPhone().get().toString();
@@ -47,6 +59,19 @@ public class JsonAdaptedPersonTest {
         Person converted = new JsonAdaptedPerson(withoutOptionals).toModelType();
         assertEquals(withoutOptionals, converted);
         assertTrue(converted.getPhone().isEmpty() && converted.getEmail().isEmpty());
+    }
+
+    @Test
+    public void toModelType_personWithAdditionalDetails_returnsPerson() throws Exception {
+        Person withDetails = new PersonBuilder(BENSON).withAlias("Ben")
+                .withIntroducer("Alex Tan").withNote("Met at Hack&Roll").build();
+        assertEquals(withDetails, new JsonAdaptedPerson(withDetails).toModelType());
+    }
+
+    @Test
+    public void toModelType_legacyJsonWithoutAdditionalDetails_returnsPerson() throws Exception {
+        JsonAdaptedPerson readBack = JsonUtil.readJsonFile(LEGACY_PERSON_FILE, JsonAdaptedPerson.class).get();
+        assertEquals(BENSON, readBack.toModelType());
     }
 
     @Test
@@ -109,6 +134,34 @@ public class JsonAdaptedPersonTest {
     public void toModelType_noContexts_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, new ArrayList<>());
         assertThrows(IllegalValueException.class, Person.MESSAGE_CONTEXT_REQUIRED, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_invalidAlias_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_CONTEXTS,
+                INVALID_ALIAS, null, null);
+        assertThrows(IllegalValueException.class, Alias.MESSAGE_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_invalidIntroducer_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_CONTEXTS,
+                null, INVALID_INTRODUCER, null);
+        assertThrows(IllegalValueException.class, Introducer.MESSAGE_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_invalidNote_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_CONTEXTS,
+                null, null, INVALID_NOTE);
+        assertThrows(IllegalValueException.class, Note.MESSAGE_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_archivedPersonWithAdditionalDetails_returnsPerson() throws Exception {
+        Person archivedWithDetails = new PersonBuilder(BENSON).withAlias("Ben")
+                .withIntroducer("Alex Tan").withNote("Met at Hack&Roll").withArchived(true).build();
+        assertEquals(archivedWithDetails, new JsonAdaptedPerson(archivedWithDetails).toModelType());
     }
 
     @Test

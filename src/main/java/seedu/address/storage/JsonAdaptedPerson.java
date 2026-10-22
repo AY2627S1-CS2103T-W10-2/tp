@@ -10,9 +10,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.person.Alias;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Introducer;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 
@@ -27,6 +30,9 @@ class JsonAdaptedPerson {
     private final String name;
     private final String phone; // null if the person has no phone
     private final String email; // null if the person has no email
+    private final String alias;
+    private final String introducer;
+    private final String note;
     private final List<JsonAdaptedContext> contexts = new ArrayList<>();
     // the raw JSON value: null if the key is missing (the person is not archived), otherwise it must be a Boolean
     private final Object archived;
@@ -38,10 +44,14 @@ class JsonAdaptedPerson {
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("contexts") List<JsonAdaptedContext> contexts,
-            @JsonProperty("archived") Object archived) {
+            @JsonProperty("alias") String alias, @JsonProperty("introducer") String introducer,
+            @JsonProperty("note") String note, @JsonProperty("archived") Object archived) {
         this.name = name;
         this.phone = phone;
         this.email = email;
+        this.alias = alias;
+        this.introducer = introducer;
+        this.note = note;
         if (contexts != null) {
             this.contexts.addAll(contexts);
         }
@@ -49,10 +59,26 @@ class JsonAdaptedPerson {
     }
 
     /**
-     * Constructs a {@code JsonAdaptedPerson} that is not archived.
+     * Creates a person from data using the original fields. Kept for existing callers and older data tests.
      */
     public JsonAdaptedPerson(String name, String phone, String email, List<JsonAdaptedContext> contexts) {
-        this(name, phone, email, contexts, null);
+        this(name, phone, email, contexts, null, null, null, null);
+    }
+
+    /**
+     * Constructs a {@code JsonAdaptedPerson} with an archived value and no additional details.
+     */
+    public JsonAdaptedPerson(String name, String phone, String email, List<JsonAdaptedContext> contexts,
+            Object archived) {
+        this(name, phone, email, contexts, null, null, null, archived);
+    }
+
+    /**
+     * Constructs a {@code JsonAdaptedPerson} with additional details and no archived value.
+     */
+    public JsonAdaptedPerson(String name, String phone, String email, List<JsonAdaptedContext> contexts,
+            String alias, String introducer, String note) {
+        this(name, phone, email, contexts, alias, introducer, note, null);
     }
 
     /**
@@ -62,6 +88,9 @@ class JsonAdaptedPerson {
         name = source.getName().fullName;
         phone = source.getPhone().map(p -> p.value).orElse(null);
         email = source.getEmail().map(e -> e.value).orElse(null);
+        alias = source.getAlias().map(a -> a.value).orElse(null);
+        introducer = source.getIntroducer().map(i -> i.value).orElse(null);
+        note = source.getNote().map(n -> n.value).orElse(null);
         contexts.addAll(source.getContexts().stream()
                 .map(JsonAdaptedContext::new)
                 .collect(Collectors.toList()));
@@ -113,12 +142,37 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(Person.MESSAGE_CONTEXT_REQUIRED);
         }
         final Set<Context> modelContexts = new HashSet<>(personContexts);
+        Alias modelAlias = null;
+        if (alias != null) {
+            if (!Alias.isValidAlias(alias)) {
+                throw new IllegalValueException(Alias.MESSAGE_CONSTRAINTS);
+            }
+            modelAlias = new Alias(alias);
+        }
+
+        Introducer modelIntroducer = null;
+        if (introducer != null) {
+            if (!Introducer.isValidIntroducer(introducer)) {
+                throw new IllegalValueException(Introducer.MESSAGE_CONSTRAINTS);
+            }
+            modelIntroducer = new Introducer(introducer);
+        }
+
+        Note modelNote = null;
+        if (note != null) {
+            if (!Note.isValidNote(note)) {
+                throw new IllegalValueException(Note.MESSAGE_CONSTRAINTS);
+            }
+            modelNote = new Note(note);
+        }
+
         // a missing or null "archived" means the person is not archived; anything but true or false is invalid
         if (archived != null && !(archived instanceof Boolean)) {
             throw new IllegalValueException(MESSAGE_INVALID_ARCHIVED);
         }
         final boolean modelArchived = Boolean.TRUE.equals(archived);
-        return new Person(modelName, modelPhone, modelEmail, modelContexts, null, null, null, modelArchived);
+        return new Person(modelName, modelPhone, modelEmail, modelContexts,
+                modelAlias, modelIntroducer, modelNote, modelArchived);
     }
 
 }

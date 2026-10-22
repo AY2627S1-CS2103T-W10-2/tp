@@ -64,6 +64,9 @@ public class Messages {
         // a missing phone or email is left out rather than shown as an empty field
         person.getPhone().ifPresent(phone -> builder.append("; Phone: ").append(phone));
         person.getEmail().ifPresent(email -> builder.append("; Email: ").append(email));
+        person.getAlias().ifPresent(alias -> builder.append("; Alias: ").append(alias));
+        person.getIntroducer().ifPresent(introducer -> builder.append("; Introduced by: ").append(introducer));
+        person.getNote().ifPresent(note -> builder.append("; Note: ").append(note));
         return builder.toString();
     }
 

@@ -24,6 +24,8 @@ import seedu.address.commons.util.FileUtil;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Context;
+import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -133,6 +135,20 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void readAndSaveAddressBook_archivedAdditionalDetailsPreserved() throws Exception {
+        Path filePath = testFolder.resolve("ContactDetailsAddressBook.json");
+        Person person = new PersonBuilder().withAlias("May").withIntroducer("Ben Lee")
+                .withNote("Met at Hack&Roll").withArchived(true).build();
+        AddressBook original = new AddressBook();
+        original.addPerson(person);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        storage.saveAddressBook(original);
+
+        assertEquals(original, new AddressBook(storage.readAddressBook().get()));
     }
 
     @Test
