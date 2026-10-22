@@ -1,5 +1,6 @@
 package seedu.address.testutil;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,7 +67,8 @@ public class EditPersonDescriptorBuilder {
      * in the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withContextsToAdd(String... contexts) {
-        Set<Context> contextSet = Stream.of(contexts).map(Context::new).collect(Collectors.toSet());
+        Set<Context> contextSet = Stream.of(contexts).map(Context::new)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         descriptor.setContextsToAdd(contextSet);
         return this;
     }
@@ -76,7 +78,8 @@ public class EditPersonDescriptorBuilder {
      * in the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withContextsToRemove(String... contexts) {
-        Set<Context> contextSet = Stream.of(contexts).map(Context::new).collect(Collectors.toSet());
+        Set<Context> contextSet = Stream.of(contexts).map(Context::new)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         descriptor.setContextsToRemove(contextSet);
         return this;
     }
