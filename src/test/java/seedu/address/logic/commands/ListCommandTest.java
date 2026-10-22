@@ -1,5 +1,7 @@
 package seedu.address.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
 import seedu.address.testutil.AddressBookBuilder;
 
 /**
@@ -61,5 +64,17 @@ public class ListCommandTest {
 
         assertCommandSuccess(new ListCommand(), singlePersonModel,
                 expectedSinglePersonMessage, expectedSinglePersonModel);
+    }
+
+    @Test
+    public void execute_archivedPersonsAreNotListed() {
+        Person first = model.getFilteredPersonList().get(0);
+        model.setPerson(first, first.copyWithArchived(true));
+        int expectedCount = model.getAddressBook().getPersonList().size() - 1;
+
+        new ListCommand().execute(model);
+
+        assertEquals(expectedCount, model.getFilteredPersonList().size());
+        assertTrue(model.getFilteredPersonList().stream().noneMatch(Person::isArchived));
     }
 }

@@ -22,24 +22,37 @@ import seedu.address.model.person.Phone;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+    public static final String MESSAGE_INVALID_ARCHIVED = "Person's archived field must be true or false.";
 
     private final String name;
     private final String phone; // null if the person has no phone
     private final String email; // null if the person has no email
     private final List<JsonAdaptedContext> contexts = new ArrayList<>();
+    // the raw JSON value: null if the key is missing (the person is not archived), otherwise it must be a Boolean
+    private final Object archived;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
+     * {@code archived} may be null, which means the person is not archived; any other value must be a Boolean.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
-            @JsonProperty("email") String email, @JsonProperty("contexts") List<JsonAdaptedContext> contexts) {
+            @JsonProperty("email") String email, @JsonProperty("contexts") List<JsonAdaptedContext> contexts,
+            @JsonProperty("archived") Object archived) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         if (contexts != null) {
             this.contexts.addAll(contexts);
         }
+        this.archived = archived;
+    }
+
+    /**
+     * Constructs a {@code JsonAdaptedPerson} that is not archived.
+     */
+    public JsonAdaptedPerson(String name, String phone, String email, List<JsonAdaptedContext> contexts) {
+        this(name, phone, email, contexts, null);
     }
 
     /**
@@ -52,6 +65,7 @@ class JsonAdaptedPerson {
         contexts.addAll(source.getContexts().stream()
                 .map(JsonAdaptedContext::new)
                 .collect(Collectors.toList()));
+        archived = source.isArchived();
     }
 
     /**
@@ -99,7 +113,12 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(Person.MESSAGE_CONTEXT_REQUIRED);
         }
         final Set<Context> modelContexts = new HashSet<>(personContexts);
-        return new Person(modelName, modelPhone, modelEmail, modelContexts);
+        // a missing or null "archived" means the person is not archived; anything but true or false is invalid
+        if (archived != null && !(archived instanceof Boolean)) {
+            throw new IllegalValueException(MESSAGE_INVALID_ARCHIVED);
+        }
+        final boolean modelArchived = Boolean.TRUE.equals(archived);
+        return new Person(modelName, modelPhone, modelEmail, modelContexts, null, null, null, modelArchived);
     }
 
 }
