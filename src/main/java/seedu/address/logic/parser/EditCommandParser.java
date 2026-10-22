@@ -76,6 +76,7 @@ public class EditCommandParser implements Parser<EditCommand> {
 
     /**
      * Records the phone to set, or that the phone should be removed, in {@code descriptor}.
+     * Mirrors {@link #parseEmailForEdit}, so a change to one should be made to the other.
      *
      * @throws ParseException if {@code -p/} has a value, is given with {@code p/}, or {@code p/} is empty.
      */
@@ -102,6 +103,7 @@ public class EditCommandParser implements Parser<EditCommand> {
 
     /**
      * Records the email to set, or that the email should be removed, in {@code descriptor}.
+     * Mirrors {@link #parsePhoneForEdit}, so a change to one should be made to the other.
      *
      * @throws ParseException if {@code -e/} has a value, is given with {@code e/}, or {@code e/} is empty.
      */
