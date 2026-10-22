@@ -160,5 +160,9 @@ public class AddressBookParserTest {
         assertTrue(parser.parseCommand("Unarchive 1") instanceof UnarchiveCommand);
         assertTrue(parser.parseCommand(ViewArchivesCommand.COMMAND_WORD) instanceof ViewArchivesCommand);
         assertTrue(parser.parseCommand("ARCHIVES") instanceof ViewArchivesCommand);
+        // unlike list, archives does not ignore text after it, as it is one letter away from archive
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewArchivesCommand.MESSAGE_USAGE), ()
+                -> parser.parseCommand("archives 1"));
     }
 }

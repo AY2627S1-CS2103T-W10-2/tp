@@ -19,14 +19,14 @@ public class UnarchiveCommand extends Command {
     public static final String COMMAND_WORD = "unarchive";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Moves the archived contact identified by the index number used in the displayed list "
-            + "back to the normal contact list. Use the archives command to see archived contacts first.\n"
+            + ": Moves the archived person identified by the index number used in the displayed list "
+            + "back to the normal person list. Use the archives command to see archived persons first.\n"
             + "Parameters: INDEX (must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " 1";
 
-    public static final String MESSAGE_UNARCHIVE_PERSON_SUCCESS = "Unarchived contact: %1$s";
-    public static final String MESSAGE_NOT_ARCHIVED = "That contact is not archived. "
-            + "Run archives to see archived contacts, then use unarchive INDEX.";
+    public static final String MESSAGE_UNARCHIVE_PERSON_SUCCESS = "Unarchived person: %1$s";
+    public static final String MESSAGE_NOT_ARCHIVED = "That person is not archived. "
+            + "Run archives to see archived persons, then use unarchive INDEX.";
 
     private final Index targetIndex;
 
@@ -53,7 +53,7 @@ public class UnarchiveCommand extends Command {
             throw new CommandException(MESSAGE_NOT_ARCHIVED);
         }
 
-        Person unarchivedPerson = personToUnarchive.withArchived(false);
+        Person unarchivedPerson = personToUnarchive.copyWithArchived(false);
         model.setPerson(personToUnarchive, unarchivedPerson);
         return new CommandResult(String.format(MESSAGE_UNARCHIVE_PERSON_SUCCESS, Messages.format(unarchivedPerson)));
     }
