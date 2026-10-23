@@ -235,6 +235,8 @@ Other commands take the archive into account as follows:
 
 #### Implementation
 
+![Multi-clue search activity diagram](images/MultiClueSearchActivityDiagram.png)
+
 The `find` command supports two search modes while preserving the existing keyword-search behaviour:
 
 * An unprefixed command such as `find Alex CS2103T` uses `PersonContainsKeywordsPredicate`. A person matches when
