@@ -25,7 +25,7 @@ else ([else])
 endif
 
 if () then ([p/ given\nbut empty])
-    :Show "phone cannot be empty" error;
+    :Show "phone number cannot be empty" error;
     stop
 else ([else])
 endif
