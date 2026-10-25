@@ -1,0 +1,49 @@
+@startuml
+skin rose
+skinparam ActivityFontSize 15
+skinparam ArrowFontSize 12
+title Activity: Handle phone prefixes in edit
+
+start
+
+if () then ([p/ or -p/ given\nmore than once])
+    :Show duplicate prefix error;
+    stop
+else ([else])
+endif
+
+if () then ([-p/ given\nwith a value])
+    :Show "-p/ does not take a value" error;
+    stop
+else ([else])
+endif
+
+if () then ([both p/ and\n-p/ given])
+    :Show "cannot set and remove" error;
+    stop
+else ([else])
+endif
+
+if () then ([p/ given\nbut empty])
+    :Show "phone cannot be empty" error;
+    stop
+else ([else])
+endif
+
+if () then ([only p/ given])
+    if () then ([phone is invalid])
+        :Show invalid phone error;
+        stop
+    else ([else])
+        :Record new phone;
+    endif
+else ([else])
+    if () then ([only -p/ given])
+        :Record phone removal;
+    else ([neither given])
+        :Keep current phone;
+    endif
+endif
+
+stop
+@enduml
