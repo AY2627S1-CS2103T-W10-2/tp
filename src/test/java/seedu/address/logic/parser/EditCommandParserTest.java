@@ -92,8 +92,9 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1" + INVALID_ADD_CONTEXT_DESC, Context.MESSAGE_CONSTRAINTS); // invalid context
         assertParseFailure(parser, "1" + EMPTY_NAME_DESC, ParserUtil.MESSAGE_EMPTY_NAME); // empty name
         // empty phone or email points to -p/ or -e/
-        assertParseFailure(parser, "1" + EMPTY_PHONE_DESC, EditCommandParser.MESSAGE_EMPTY_PHONE);
-        assertParseFailure(parser, "1" + EMPTY_EMAIL_DESC, EditCommandParser.MESSAGE_EMPTY_EMAIL);
+        assertParseFailure(parser, "1" + EMPTY_PHONE_DESC,
+                "Phone number cannot be empty. Use -p/ to remove the phone number.");
+        assertParseFailure(parser, "1" + EMPTY_EMAIL_DESC, "Email cannot be empty. Use -e/ to remove the email.");
 
         // invalid phone followed by valid email
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC + EMAIL_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
@@ -236,23 +237,21 @@ public class EditCommandParserTest {
     @Test
     public void parse_removeWithValue_failure() {
         assertParseFailure(parser, "1" + REMOVE_PHONE_DESC + "91234567",
-                EditCommandParser.MESSAGE_REMOVE_PHONE_WITH_VALUE);
+                "-p/ does not take a value. Use p/PHONE to change the phone number.");
         assertParseFailure(parser, "1" + REMOVE_EMAIL_DESC + "amy@example.com",
-                EditCommandParser.MESSAGE_REMOVE_EMAIL_WITH_VALUE);
+                "-e/ does not take a value. Use e/EMAIL to change the email.");
     }
 
     @Test
     public void parse_setAndRemoveSameField_failure() {
-        assertParseFailure(parser, "1" + PHONE_DESC_AMY + REMOVE_PHONE_DESC,
-                EditCommandParser.MESSAGE_SET_AND_REMOVE_PHONE);
+        String setAndRemovePhoneMessage = "Cannot set and remove the phone number in the same command.";
+        assertParseFailure(parser, "1" + PHONE_DESC_AMY + REMOVE_PHONE_DESC, setAndRemovePhoneMessage);
         assertParseFailure(parser, "1" + EMAIL_DESC_AMY + REMOVE_EMAIL_DESC,
-                EditCommandParser.MESSAGE_SET_AND_REMOVE_EMAIL);
+                "Cannot set and remove the email in the same command.");
 
         // the conflict is reported before an empty or invalid phone
-        assertParseFailure(parser, "1" + EMPTY_PHONE_DESC + REMOVE_PHONE_DESC,
-                EditCommandParser.MESSAGE_SET_AND_REMOVE_PHONE);
-        assertParseFailure(parser, "1" + INVALID_PHONE_DESC + REMOVE_PHONE_DESC,
-                EditCommandParser.MESSAGE_SET_AND_REMOVE_PHONE);
+        assertParseFailure(parser, "1" + EMPTY_PHONE_DESC + REMOVE_PHONE_DESC, setAndRemovePhoneMessage);
+        assertParseFailure(parser, "1" + INVALID_PHONE_DESC + REMOVE_PHONE_DESC, setAndRemovePhoneMessage);
     }
 
     @Test
