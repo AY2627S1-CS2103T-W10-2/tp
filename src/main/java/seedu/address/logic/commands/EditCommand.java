@@ -123,12 +123,10 @@ public class EditCommand extends Command {
         assert personToEdit != null;
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
-        Phone updatedPhone = editPersonDescriptor.isPhoneRemoved()
-                ? null
-                : editPersonDescriptor.getPhone().orElse(personToEdit.getPhone().orElse(null));
-        Email updatedEmail = editPersonDescriptor.isEmailRemoved()
-                ? null
-                : editPersonDescriptor.getEmail().orElse(personToEdit.getEmail().orElse(null));
+        Phone updatedPhone = applyOptionalFieldEdit(editPersonDescriptor.getPhone(),
+                editPersonDescriptor.isPhoneRemoved(), personToEdit.getPhone());
+        Email updatedEmail = applyOptionalFieldEdit(editPersonDescriptor.getEmail(),
+                editPersonDescriptor.isEmailRemoved(), personToEdit.getEmail());
         Set<Context> updatedContexts = applyContextChanges(personToEdit, editPersonDescriptor);
         // edit cannot change these fields yet, so they are carried over unchanged
         Alias alias = personToEdit.getAlias().orElse(null);
@@ -137,6 +135,17 @@ public class EditCommand extends Command {
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedContexts, alias, introducer, note)
                 .copyWithArchived(personToEdit.isArchived());
+    }
+
+    /**
+     * Returns the value of an optional field after an edit: {@code null} if the field is removed,
+     * otherwise {@code newValue} if given, otherwise {@code currentValue}. {@code null} means no value.
+     */
+    private static <T> T applyOptionalFieldEdit(Optional<T> newValue, boolean isRemoved, Optional<T> currentValue) {
+        if (isRemoved) {
+            return null;
+        }
+        return newValue.orElse(currentValue.orElse(null));
     }
 
     /**
