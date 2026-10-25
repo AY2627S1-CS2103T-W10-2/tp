@@ -128,12 +128,15 @@ public class EditCommand extends Command {
         Email updatedEmail = applyOptionalFieldEdit(editPersonDescriptor.getEmail(),
                 editPersonDescriptor.isEmailRemoved(), personToEdit.getEmail());
         Set<Context> updatedContexts = applyContextChanges(personToEdit, editPersonDescriptor);
-        // edit cannot change these fields yet, so they are carried over unchanged
-        Alias alias = personToEdit.getAlias().orElse(null);
-        Introducer introducer = personToEdit.getIntroducer().orElse(null);
-        Note note = personToEdit.getNote().orElse(null);
+        Alias updatedAlias = applyOptionalFieldEdit(editPersonDescriptor.getAlias(),
+                editPersonDescriptor.isAliasRemoved(), personToEdit.getAlias());
+        Introducer updatedIntroducer = applyOptionalFieldEdit(editPersonDescriptor.getIntroducer(),
+                editPersonDescriptor.isIntroducerRemoved(), personToEdit.getIntroducer());
+        Note updatedNote = applyOptionalFieldEdit(editPersonDescriptor.getNote(),
+                editPersonDescriptor.isNoteRemoved(), personToEdit.getNote());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedContexts, alias, introducer, note)
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedContexts,
+                updatedAlias, updatedIntroducer, updatedNote)
                 .copyWithArchived(personToEdit.isArchived());
     }
 
@@ -227,10 +230,16 @@ public class EditCommand extends Command {
         private Name name;
         private Phone phone;
         private Email email;
+        private Alias alias;
+        private Introducer introducer;
+        private Note note;
         private Set<Context> contextsToAdd;
         private Set<Context> contextsToRemove;
         private boolean isPhoneRemoved;
         private boolean isEmailRemoved;
+        private boolean isAliasRemoved;
+        private boolean isIntroducerRemoved;
+        private boolean isNoteRemoved;
 
         public EditPersonDescriptor() {}
 
@@ -242,18 +251,25 @@ public class EditCommand extends Command {
             setName(toCopy.name);
             setPhone(toCopy.phone);
             setEmail(toCopy.email);
+            setAlias(toCopy.alias);
+            setIntroducer(toCopy.introducer);
+            setNote(toCopy.note);
             setContextsToAdd(toCopy.contextsToAdd);
             setContextsToRemove(toCopy.contextsToRemove);
             setPhoneRemoved(toCopy.isPhoneRemoved);
             setEmailRemoved(toCopy.isEmailRemoved);
+            setAliasRemoved(toCopy.isAliasRemoved);
+            setIntroducerRemoved(toCopy.isIntroducerRemoved);
+            setNoteRemoved(toCopy.isNoteRemoved);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, contextsToAdd, contextsToRemove)
-                    || isPhoneRemoved || isEmailRemoved;
+            return CollectionUtil.isAnyNonNull(name, phone, email, alias, introducer, note,
+                    contextsToAdd, contextsToRemove)
+                    || isPhoneRemoved || isEmailRemoved || isAliasRemoved || isIntroducerRemoved || isNoteRemoved;
         }
 
         public void setName(Name name) {
@@ -280,6 +296,30 @@ public class EditCommand extends Command {
             return Optional.ofNullable(email);
         }
 
+        public void setAlias(Alias alias) {
+            this.alias = alias;
+        }
+
+        public Optional<Alias> getAlias() {
+            return Optional.ofNullable(alias);
+        }
+
+        public void setIntroducer(Introducer introducer) {
+            this.introducer = introducer;
+        }
+
+        public Optional<Introducer> getIntroducer() {
+            return Optional.ofNullable(introducer);
+        }
+
+        public void setNote(Note note) {
+            this.note = note;
+        }
+
+        public Optional<Note> getNote() {
+            return Optional.ofNullable(note);
+        }
+
         public void setPhoneRemoved(boolean isPhoneRemoved) {
             this.isPhoneRemoved = isPhoneRemoved;
         }
@@ -294,6 +334,30 @@ public class EditCommand extends Command {
 
         public boolean isEmailRemoved() {
             return isEmailRemoved;
+        }
+
+        public void setAliasRemoved(boolean isAliasRemoved) {
+            this.isAliasRemoved = isAliasRemoved;
+        }
+
+        public boolean isAliasRemoved() {
+            return isAliasRemoved;
+        }
+
+        public void setIntroducerRemoved(boolean isIntroducerRemoved) {
+            this.isIntroducerRemoved = isIntroducerRemoved;
+        }
+
+        public boolean isIntroducerRemoved() {
+            return isIntroducerRemoved;
+        }
+
+        public void setNoteRemoved(boolean isNoteRemoved) {
+            this.isNoteRemoved = isNoteRemoved;
+        }
+
+        public boolean isNoteRemoved() {
+            return isNoteRemoved;
         }
 
         /**
@@ -346,10 +410,16 @@ public class EditCommand extends Command {
             return Objects.equals(name, otherEditPersonDescriptor.name)
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
+                    && Objects.equals(alias, otherEditPersonDescriptor.alias)
+                    && Objects.equals(introducer, otherEditPersonDescriptor.introducer)
+                    && Objects.equals(note, otherEditPersonDescriptor.note)
                     && Objects.equals(contextsToAdd, otherEditPersonDescriptor.contextsToAdd)
                     && Objects.equals(contextsToRemove, otherEditPersonDescriptor.contextsToRemove)
                     && isPhoneRemoved == otherEditPersonDescriptor.isPhoneRemoved
-                    && isEmailRemoved == otherEditPersonDescriptor.isEmailRemoved;
+                    && isEmailRemoved == otherEditPersonDescriptor.isEmailRemoved
+                    && isAliasRemoved == otherEditPersonDescriptor.isAliasRemoved
+                    && isIntroducerRemoved == otherEditPersonDescriptor.isIntroducerRemoved
+                    && isNoteRemoved == otherEditPersonDescriptor.isNoteRemoved;
         }
 
         @Override
@@ -358,10 +428,16 @@ public class EditCommand extends Command {
                     .add("name", name)
                     .add("phone", phone)
                     .add("email", email)
+                    .add("alias", alias)
+                    .add("introducer", introducer)
+                    .add("note", note)
                     .add("contextsToAdd", contextsToAdd)
                     .add("contextsToRemove", contextsToRemove)
                     .add("isPhoneRemoved", isPhoneRemoved)
                     .add("isEmailRemoved", isEmailRemoved)
+                    .add("isAliasRemoved", isAliasRemoved)
+                    .add("isIntroducerRemoved", isIntroducerRemoved)
+                    .add("isNoteRemoved", isNoteRemoved)
                     .toString();
         }
     }

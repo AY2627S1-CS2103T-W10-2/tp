@@ -6,9 +6,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.model.person.Alias;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Introducer;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 
@@ -35,6 +38,9 @@ public class EditPersonDescriptorBuilder {
         descriptor.setName(person.getName());
         person.getPhone().ifPresent(descriptor::setPhone);
         person.getEmail().ifPresent(descriptor::setEmail);
+        person.getAlias().ifPresent(descriptor::setAlias);
+        person.getIntroducer().ifPresent(descriptor::setIntroducer);
+        person.getNote().ifPresent(descriptor::setNote);
         descriptor.setContextsToAdd(person.getContexts());
     }
 
@@ -63,6 +69,30 @@ public class EditPersonDescriptorBuilder {
     }
 
     /**
+     * Sets the {@code Alias} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withAlias(String alias) {
+        descriptor.setAlias(new Alias(alias));
+        return this;
+    }
+
+    /**
+     * Sets the {@code Introducer} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withIntroducer(String introducer) {
+        descriptor.setIntroducer(new Introducer(introducer));
+        return this;
+    }
+
+    /**
+     * Sets the {@code Note} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withNote(String note) {
+        descriptor.setNote(new Note(note));
+        return this;
+    }
+
+    /**
      * Marks the phone for removal in the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withPhoneRemoved() {
@@ -75,6 +105,30 @@ public class EditPersonDescriptorBuilder {
      */
     public EditPersonDescriptorBuilder withEmailRemoved() {
         descriptor.setEmailRemoved(true);
+        return this;
+    }
+
+    /**
+     * Marks the alias for removal in the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withAliasRemoved() {
+        descriptor.setAliasRemoved(true);
+        return this;
+    }
+
+    /**
+     * Marks the introducer for removal in the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withIntroducerRemoved() {
+        descriptor.setIntroducerRemoved(true);
+        return this;
+    }
+
+    /**
+     * Marks the note for removal in the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withNoteRemoved() {
+        descriptor.setNoteRemoved(true);
         return this;
     }
 
