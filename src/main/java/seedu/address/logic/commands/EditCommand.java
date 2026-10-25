@@ -58,6 +58,7 @@ public class EditCommand extends Command {
             + PREFIX_CONTEXT_REMOVE + "CS2040S";
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
+    public static final String MESSAGE_NO_CHANGES = "No changes made to %1$s.";
     public static final String MESSAGE_ARCHIVED_NOT_EDITABLE =
             "This person is archived and can't be edited. Unarchive the person first.";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
@@ -109,9 +110,43 @@ public class EditCommand extends Command {
             throw new CommandException(Messages.getErrorMessageForDuplicatePerson(existingPerson.get(), editedPerson));
         }
 
-        model.setPerson(personToEdit, editedPerson);
+        boolean isChanged = !hasSameDetails(personToEdit, editedPerson);
+        if (isChanged) {
+            model.setPerson(personToEdit, editedPerson);
+        }
         model.updateFilteredPersonList(PREDICATE_SHOW_ACTIVE);
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+
+        String feedback = isChanged
+                ? String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                : String.format(MESSAGE_NO_CHANGES, personToEdit.getName());
+        return new CommandResult(feedback);
+    }
+
+    /**
+     * Returns true if {@code editedPerson} has the same details as {@code personToEdit}, spelt the same way.
+     * {@code Person#equals} is not used because it ignores case in emails and contexts,
+     * so a capitalisation fix would not count as a change.
+     */
+    private static boolean hasSameDetails(Person personToEdit, Person editedPerson) {
+        assert personToEdit != null && editedPerson != null;
+
+        return personToEdit.getName().equals(editedPerson.getName())
+                && personToEdit.getPhone().equals(editedPerson.getPhone())
+                && getEmailValue(personToEdit).equals(getEmailValue(editedPerson))
+                && getContextDescriptions(personToEdit).equals(getContextDescriptions(editedPerson))
+                && personToEdit.getAlias().equals(editedPerson.getAlias())
+                && personToEdit.getIntroducer().equals(editedPerson.getIntroducer())
+                && personToEdit.getNote().equals(editedPerson.getNote());
+    }
+
+    private static Optional<String> getEmailValue(Person person) {
+        return person.getEmail().map(email -> email.value);
+    }
+
+    private static Set<String> getContextDescriptions(Person person) {
+        return person.getContexts().stream()
+                .map(context -> context.description)
+                .collect(Collectors.toSet());
     }
 
     /**
