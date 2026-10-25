@@ -59,8 +59,8 @@ public class EditCommandTest {
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
-        Person editedPerson = new PersonBuilder().withAlias(VALID_ALIAS_AMY).withIntroducer(VALID_INTRODUCER_AMY)
-                .withNote(VALID_NOTE_AMY).build();
+        Person editedPerson = new PersonBuilder().withAlias(VALID_ALIAS_AMY)
+                .withIntroducer(VALID_INTRODUCER_AMY).withNote(VALID_NOTE_AMY).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 

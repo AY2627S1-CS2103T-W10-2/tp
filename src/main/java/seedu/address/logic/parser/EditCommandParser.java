@@ -41,14 +41,16 @@ public class EditCommandParser implements Parser<EditCommand> {
     private static final String MESSAGE_EMPTY_VALUE = "%1$s Use %2$s to remove the %3$s.";
     private static final String MESSAGE_REMOVE_WITH_VALUE =
             "%1$s does not take a value. Use %2$s%3$s to change the %4$s.";
-    private static final String MESSAGE_SET_AND_REMOVE = "Cannot set and remove the %1$s in the same command.";
+    private static final String MESSAGE_SET_AND_REMOVE =
+            "Cannot set and remove the %1$s in the same command.";
 
-    private static final OptionalField<Phone> PHONE_FIELD = new OptionalField<>(PREFIX_PHONE, PREFIX_PHONE_REMOVE,
-            "phone number", "PHONE", ParserUtil.MESSAGE_EMPTY_PHONE, ParserUtil::parsePhone);
-    private static final OptionalField<Email> EMAIL_FIELD = new OptionalField<>(PREFIX_EMAIL, PREFIX_EMAIL_REMOVE,
-            "email", "EMAIL", ParserUtil.MESSAGE_EMPTY_EMAIL, ParserUtil::parseEmail);
-    private static final OptionalField<Alias> ALIAS_FIELD = new OptionalField<>(PREFIX_ALIAS, PREFIX_ALIAS_REMOVE,
-            "alias", "ALIAS", ParserUtil.MESSAGE_EMPTY_ALIAS, ParserUtil::parseAlias);
+    private static final OptionalField<Phone> PHONE_FIELD = new OptionalField<>(PREFIX_PHONE,
+            PREFIX_PHONE_REMOVE, "phone number", "PHONE", ParserUtil.MESSAGE_EMPTY_PHONE,
+            ParserUtil::parsePhone);
+    private static final OptionalField<Email> EMAIL_FIELD = new OptionalField<>(PREFIX_EMAIL,
+            PREFIX_EMAIL_REMOVE, "email", "EMAIL", ParserUtil.MESSAGE_EMPTY_EMAIL, ParserUtil::parseEmail);
+    private static final OptionalField<Alias> ALIAS_FIELD = new OptionalField<>(PREFIX_ALIAS,
+            PREFIX_ALIAS_REMOVE, "alias", "ALIAS", ParserUtil.MESSAGE_EMPTY_ALIAS, ParserUtil::parseAlias);
     private static final OptionalField<Introducer> INTRODUCER_FIELD = new OptionalField<>(PREFIX_INTRODUCER,
             PREFIX_INTRODUCER_REMOVE, "introducer", "INTRODUCER", ParserUtil.MESSAGE_EMPTY_INTRODUCER,
             ParserUtil::parseIntroducer);
@@ -118,8 +120,8 @@ public class EditCommandParser implements Parser<EditCommand> {
      * Records the value of {@code field} to set with {@code setValue}, and whether {@code field} should be
      * removed with {@code setRemoved}. Every field that edit can remove follows these rules.
      *
-     * @throws ParseException if the remove prefix has a value, is given with the set prefix, or the set prefix
-     *     is empty or has an invalid value.
+     * @throws ParseException if the remove prefix has a value, is given with the set prefix,
+     *     or the set prefix is empty or has an invalid value.
      */
     private static <T> void parseOptionalField(ArgumentMultimap argMultimap, OptionalField<T> field,
             Consumer<T> setValue, Consumer<Boolean> setRemoved) throws ParseException {

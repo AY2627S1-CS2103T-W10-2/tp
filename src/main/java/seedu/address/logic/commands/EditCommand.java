@@ -158,7 +158,8 @@ public class EditCommand extends Command {
      * Returns the value of an optional field after an edit: {@code null} if the field is removed,
      * otherwise {@code newValue} if given, otherwise {@code currentValue}. {@code null} means no value.
      */
-    private static <T> T applyOptionalFieldEdit(Optional<T> newValue, boolean isRemoved, Optional<T> currentValue) {
+    private static <T> T applyOptionalFieldEdit(Optional<T> newValue, boolean isRemoved,
+            Optional<T> currentValue) {
         if (isRemoved) {
             return null;
         }
@@ -283,7 +284,8 @@ public class EditCommand extends Command {
         public boolean isAnyFieldEdited() {
             return CollectionUtil.isAnyNonNull(name, phone, email, alias, introducer, note,
                     contextsToAdd, contextsToRemove)
-                    || isPhoneRemoved || isEmailRemoved || isAliasRemoved || isIntroducerRemoved || isNoteRemoved;
+                    || isPhoneRemoved || isEmailRemoved
+                    || isAliasRemoved || isIntroducerRemoved || isNoteRemoved;
         }
 
         public void setName(Name name) {

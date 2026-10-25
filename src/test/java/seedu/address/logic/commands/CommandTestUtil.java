@@ -69,7 +69,7 @@ public class CommandTestUtil {
     public static final String INVALID_EMAIL_DESC = " " + PREFIX_EMAIL + "bob!yahoo"; // missing '@' symbol
     public static final String INVALID_CONTEXT_DESC = " " + PREFIX_CONTEXT + "(orbital)"; // '(' not allowed in contexts
     public static final String INVALID_ADD_CONTEXT_DESC = " " + PREFIX_CONTEXT_ADD + "(orbital)";
-    public static final String INVALID_ALIAS_DESC = " " + PREFIX_ALIAS + "Ames2"; // digits not allowed in aliases
+    public static final String INVALID_ALIAS_DESC = " " + PREFIX_ALIAS + "Ames2"; // digits not allowed
     public static final String INVALID_INTRODUCER_DESC = " " + PREFIX_INTRODUCER + "Ben&"; // '&' not allowed
     public static final String INVALID_NOTE_DESC = " " + PREFIX_NOTE + "a".repeat(301); // over 300 characters
 

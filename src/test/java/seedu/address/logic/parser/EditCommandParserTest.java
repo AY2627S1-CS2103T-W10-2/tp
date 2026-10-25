@@ -118,17 +118,20 @@ public class EditCommandParserTest {
         // empty phone or email points to -p/ or -e/
         assertParseFailure(parser, "1" + EMPTY_PHONE_DESC,
                 "Phone number cannot be empty. Use -p/ to remove the phone number.");
-        assertParseFailure(parser, "1" + EMPTY_EMAIL_DESC, "Email cannot be empty. Use -e/ to remove the email.");
+        assertParseFailure(parser, "1" + EMPTY_EMAIL_DESC,
+                "Email cannot be empty. Use -e/ to remove the email.");
 
         // alias, introducer and note follow the same rules as in add
         assertParseFailure(parser, "1" + INVALID_ALIAS_DESC, Alias.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1" + INVALID_INTRODUCER_DESC, Introducer.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1" + INVALID_NOTE_DESC, Note.MESSAGE_CONSTRAINTS);
         // an empty alias, introducer or note points to its remove prefix
-        assertParseFailure(parser, "1" + EMPTY_ALIAS_DESC, "Alias cannot be empty. Use -a/ to remove the alias.");
+        assertParseFailure(parser, "1" + EMPTY_ALIAS_DESC,
+                "Alias cannot be empty. Use -a/ to remove the alias.");
         assertParseFailure(parser, "1" + EMPTY_INTRODUCER_DESC,
                 "Introducer cannot be empty. Use -i/ to remove the introducer.");
-        assertParseFailure(parser, "1" + EMPTY_NOTE_DESC, "Note cannot be empty. Use -nt/ to remove the note.");
+        assertParseFailure(parser, "1" + EMPTY_NOTE_DESC,
+                "Note cannot be empty. Use -nt/ to remove the note.");
 
         // invalid phone followed by valid email
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC + EMAIL_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
@@ -295,7 +298,8 @@ public class EditCommandParserTest {
         assertParseSuccess(parser, "1" + REMOVE_NOTE_DESC, new EditCommand(INDEX_FIRST_PERSON, descriptor));
 
         // set the alias and remove the introducer in one command
-        descriptor = new EditPersonDescriptorBuilder().withAlias(VALID_ALIAS_AMY).withIntroducerRemoved().build();
+        descriptor = new EditPersonDescriptorBuilder().withAlias(VALID_ALIAS_AMY)
+                .withIntroducerRemoved().build();
         assertParseSuccess(parser, "1" + ALIAS_DESC_AMY + REMOVE_INTRODUCER_DESC,
                 new EditCommand(INDEX_FIRST_PERSON, descriptor));
 
