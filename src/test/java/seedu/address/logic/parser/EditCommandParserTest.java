@@ -3,31 +3,52 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.commands.CommandTestUtil.ADD_CONTEXT_DESC_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.ADD_CONTEXT_DESC_HUSBAND;
+import static seedu.address.logic.commands.CommandTestUtil.ALIAS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.EMPTY_ADD_CONTEXT_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.EMPTY_ALIAS_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.EMPTY_EMAIL_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.EMPTY_INTRODUCER_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.EMPTY_NAME_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.EMPTY_NOTE_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.EMPTY_PHONE_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.EMPTY_REMOVE_CONTEXT_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.INTRODUCER_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_ADD_CONTEXT_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.INVALID_ALIAS_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_EMAIL_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.INVALID_INTRODUCER_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_NAME_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.INVALID_NOTE_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_PHONE_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.NOTE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.REMOVE_ALIAS_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.REMOVE_CONTEXT_DESC_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.REMOVE_EMAIL_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.REMOVE_INTRODUCER_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.REMOVE_NOTE_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.REMOVE_PHONE_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_ALIAS_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTRODUCER_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER_REMOVE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
@@ -42,9 +63,12 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.model.person.Alias;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Introducer;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
@@ -81,7 +105,7 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
 
         // invalid prefix being parsed as preamble
-        assertParseFailure(parser, "1 i/ string", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "1 t/ string", MESSAGE_INVALID_FORMAT);
     }
 
     @Test
@@ -95,6 +119,16 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1" + EMPTY_PHONE_DESC,
                 "Phone number cannot be empty. Use -p/ to remove the phone number.");
         assertParseFailure(parser, "1" + EMPTY_EMAIL_DESC, "Email cannot be empty. Use -e/ to remove the email.");
+
+        // alias, introducer and note follow the same rules as in add
+        assertParseFailure(parser, "1" + INVALID_ALIAS_DESC, Alias.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1" + INVALID_INTRODUCER_DESC, Introducer.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1" + INVALID_NOTE_DESC, Note.MESSAGE_CONSTRAINTS);
+        // an empty alias, introducer or note points to its remove prefix
+        assertParseFailure(parser, "1" + EMPTY_ALIAS_DESC, "Alias cannot be empty. Use -a/ to remove the alias.");
+        assertParseFailure(parser, "1" + EMPTY_INTRODUCER_DESC,
+                "Introducer cannot be empty. Use -i/ to remove the introducer.");
+        assertParseFailure(parser, "1" + EMPTY_NOTE_DESC, "Note cannot be empty. Use -nt/ to remove the note.");
 
         // invalid phone followed by valid email
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC + EMAIL_DESC_AMY, Phone.MESSAGE_CONSTRAINTS);
@@ -112,10 +146,12 @@ public class EditCommandParserTest {
     public void parse_allFieldsSpecified_success() {
         Index targetIndex = INDEX_SECOND_PERSON;
         String userInput = targetIndex.getOneBased() + PHONE_DESC_BOB + ADD_CONTEXT_DESC_HUSBAND
-                + EMAIL_DESC_AMY + NAME_DESC_AMY + ADD_CONTEXT_DESC_FRIEND;
+                + EMAIL_DESC_AMY + NOTE_DESC_AMY + NAME_DESC_AMY + ALIAS_DESC_AMY + ADD_CONTEXT_DESC_FRIEND
+                + INTRODUCER_DESC_AMY;
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_AMY)
-                .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_AMY)
+                .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_AMY).withAlias(VALID_ALIAS_AMY)
+                .withIntroducer(VALID_INTRODUCER_AMY).withNote(VALID_NOTE_AMY)
                 .withContextsToAdd(VALID_CONTEXT_HUSBAND, VALID_CONTEXT_FRIEND).build();
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
 
@@ -152,6 +188,24 @@ public class EditCommandParserTest {
         // email
         userInput = targetIndex.getOneBased() + EMAIL_DESC_AMY;
         descriptor = new EditPersonDescriptorBuilder().withEmail(VALID_EMAIL_AMY).build();
+        expectedCommand = new EditCommand(targetIndex, descriptor);
+        assertParseSuccess(parser, userInput, expectedCommand);
+
+        // alias
+        userInput = targetIndex.getOneBased() + ALIAS_DESC_AMY;
+        descriptor = new EditPersonDescriptorBuilder().withAlias(VALID_ALIAS_AMY).build();
+        expectedCommand = new EditCommand(targetIndex, descriptor);
+        assertParseSuccess(parser, userInput, expectedCommand);
+
+        // introducer
+        userInput = targetIndex.getOneBased() + INTRODUCER_DESC_AMY;
+        descriptor = new EditPersonDescriptorBuilder().withIntroducer(VALID_INTRODUCER_AMY).build();
+        expectedCommand = new EditCommand(targetIndex, descriptor);
+        assertParseSuccess(parser, userInput, expectedCommand);
+
+        // note
+        userInput = targetIndex.getOneBased() + NOTE_DESC_AMY;
+        descriptor = new EditPersonDescriptorBuilder().withNote(VALID_NOTE_AMY).build();
         expectedCommand = new EditCommand(targetIndex, descriptor);
         assertParseSuccess(parser, userInput, expectedCommand);
 
@@ -235,11 +289,35 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_removeAliasIntroducerOrNote_success() {
+        // -nt/ alone; it is not read as an empty nt/
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withNoteRemoved().build();
+        assertParseSuccess(parser, "1" + REMOVE_NOTE_DESC, new EditCommand(INDEX_FIRST_PERSON, descriptor));
+
+        // set the alias and remove the introducer in one command
+        descriptor = new EditPersonDescriptorBuilder().withAlias(VALID_ALIAS_AMY).withIntroducerRemoved().build();
+        assertParseSuccess(parser, "1" + ALIAS_DESC_AMY + REMOVE_INTRODUCER_DESC,
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
+
+        // remove all three
+        descriptor = new EditPersonDescriptorBuilder().withAliasRemoved().withIntroducerRemoved()
+                .withNoteRemoved().build();
+        assertParseSuccess(parser, "1" + REMOVE_ALIAS_DESC + REMOVE_INTRODUCER_DESC + REMOVE_NOTE_DESC,
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
     public void parse_removeWithValue_failure() {
         assertParseFailure(parser, "1" + REMOVE_PHONE_DESC + "91234567",
                 "-p/ does not take a value. Use p/PHONE to change the phone number.");
         assertParseFailure(parser, "1" + REMOVE_EMAIL_DESC + "amy@example.com",
                 "-e/ does not take a value. Use e/EMAIL to change the email.");
+        assertParseFailure(parser, "1" + REMOVE_ALIAS_DESC + VALID_ALIAS_AMY,
+                "-a/ does not take a value. Use a/ALIAS to change the alias.");
+        assertParseFailure(parser, "1" + REMOVE_INTRODUCER_DESC + VALID_INTRODUCER_AMY,
+                "-i/ does not take a value. Use i/INTRODUCER to change the introducer.");
+        assertParseFailure(parser, "1" + REMOVE_NOTE_DESC + VALID_NOTE_AMY,
+                "-nt/ does not take a value. Use nt/NOTE to change the note.");
     }
 
     @Test
@@ -248,6 +326,12 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1" + PHONE_DESC_AMY + REMOVE_PHONE_DESC, setAndRemovePhoneMessage);
         assertParseFailure(parser, "1" + EMAIL_DESC_AMY + REMOVE_EMAIL_DESC,
                 "Cannot set and remove the email in the same command.");
+        assertParseFailure(parser, "1" + ALIAS_DESC_AMY + REMOVE_ALIAS_DESC,
+                "Cannot set and remove the alias in the same command.");
+        assertParseFailure(parser, "1" + INTRODUCER_DESC_AMY + REMOVE_INTRODUCER_DESC,
+                "Cannot set and remove the introducer in the same command.");
+        assertParseFailure(parser, "1" + NOTE_DESC_AMY + REMOVE_NOTE_DESC,
+                "Cannot set and remove the note in the same command.");
 
         // the conflict is reported before an empty or invalid phone
         assertParseFailure(parser, "1" + EMPTY_PHONE_DESC + REMOVE_PHONE_DESC, setAndRemovePhoneMessage);
@@ -258,5 +342,16 @@ public class EditCommandParserTest {
     public void parse_repeatedRemovePrefix_failure() {
         assertParseFailure(parser, "1" + REMOVE_PHONE_DESC + REMOVE_PHONE_DESC,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE_REMOVE));
+        assertParseFailure(parser, "1" + REMOVE_ALIAS_DESC + REMOVE_INTRODUCER_DESC + REMOVE_NOTE_DESC
+                + REMOVE_ALIAS_DESC + REMOVE_INTRODUCER_DESC + REMOVE_NOTE_DESC,
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ALIAS_REMOVE, PREFIX_INTRODUCER_REMOVE,
+                        PREFIX_NOTE_REMOVE));
+    }
+
+    @Test
+    public void parse_repeatedAliasIntroducerOrNote_failure() {
+        assertParseFailure(parser, "1" + ALIAS_DESC_AMY + INTRODUCER_DESC_AMY + NOTE_DESC_AMY
+                + ALIAS_DESC_AMY + INTRODUCER_DESC_AMY + NOTE_DESC_AMY,
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE));
     }
 }

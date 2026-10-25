@@ -2,12 +2,18 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_ADD;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL_REMOVE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
 
@@ -18,7 +24,10 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Alias;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Introducer;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
 
 /**
@@ -38,6 +47,13 @@ public class EditCommandParser implements Parser<EditCommand> {
             "phone number", "PHONE", ParserUtil.MESSAGE_EMPTY_PHONE, ParserUtil::parsePhone);
     private static final OptionalField<Email> EMAIL_FIELD = new OptionalField<>(PREFIX_EMAIL, PREFIX_EMAIL_REMOVE,
             "email", "EMAIL", ParserUtil.MESSAGE_EMPTY_EMAIL, ParserUtil::parseEmail);
+    private static final OptionalField<Alias> ALIAS_FIELD = new OptionalField<>(PREFIX_ALIAS, PREFIX_ALIAS_REMOVE,
+            "alias", "ALIAS", ParserUtil.MESSAGE_EMPTY_ALIAS, ParserUtil::parseAlias);
+    private static final OptionalField<Introducer> INTRODUCER_FIELD = new OptionalField<>(PREFIX_INTRODUCER,
+            PREFIX_INTRODUCER_REMOVE, "introducer", "INTRODUCER", ParserUtil.MESSAGE_EMPTY_INTRODUCER,
+            ParserUtil::parseIntroducer);
+    private static final OptionalField<Note> NOTE_FIELD = new OptionalField<>(PREFIX_NOTE, PREFIX_NOTE_REMOVE,
+            "note", "NOTE", ParserUtil.MESSAGE_EMPTY_NOTE, ParserUtil::parseNote);
 
     /**
      * Parses the given {@code String} of arguments in the context of the EditCommand
@@ -47,7 +63,8 @@ public class EditCommandParser implements Parser<EditCommand> {
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE,
-                PREFIX_PHONE_REMOVE, PREFIX_EMAIL, PREFIX_EMAIL_REMOVE,
+                PREFIX_PHONE_REMOVE, PREFIX_EMAIL, PREFIX_EMAIL_REMOVE, PREFIX_ALIAS, PREFIX_ALIAS_REMOVE,
+                PREFIX_INTRODUCER, PREFIX_INTRODUCER_REMOVE, PREFIX_NOTE, PREFIX_NOTE_REMOVE,
                 PREFIX_CONTEXT, PREFIX_CONTEXT_ADD, PREFIX_CONTEXT_REMOVE);
 
         Index index;
@@ -63,7 +80,8 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_PHONE_REMOVE,
-                PREFIX_EMAIL, PREFIX_EMAIL_REMOVE);
+                PREFIX_EMAIL, PREFIX_EMAIL_REMOVE, PREFIX_ALIAS, PREFIX_ALIAS_REMOVE,
+                PREFIX_INTRODUCER, PREFIX_INTRODUCER_REMOVE, PREFIX_NOTE, PREFIX_NOTE_REMOVE);
 
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
@@ -74,6 +92,12 @@ public class EditCommandParser implements Parser<EditCommand> {
                 editPersonDescriptor::setPhone, editPersonDescriptor::setPhoneRemoved);
         parseOptionalField(argMultimap, EMAIL_FIELD,
                 editPersonDescriptor::setEmail, editPersonDescriptor::setEmailRemoved);
+        parseOptionalField(argMultimap, ALIAS_FIELD,
+                editPersonDescriptor::setAlias, editPersonDescriptor::setAliasRemoved);
+        parseOptionalField(argMultimap, INTRODUCER_FIELD,
+                editPersonDescriptor::setIntroducer, editPersonDescriptor::setIntroducerRemoved);
+        parseOptionalField(argMultimap, NOTE_FIELD,
+                editPersonDescriptor::setNote, editPersonDescriptor::setNoteRemoved);
         if (!argMultimap.getAllValues(PREFIX_CONTEXT_ADD).isEmpty()) {
             editPersonDescriptor.setContextsToAdd(
                     ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT_ADD)));

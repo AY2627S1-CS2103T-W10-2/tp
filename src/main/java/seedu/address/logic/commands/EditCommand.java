@@ -1,11 +1,17 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_ADD;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL_REMOVE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
 import static seedu.address.model.Model.PREDICATE_SHOW_ACTIVE;
@@ -47,11 +53,19 @@ public class EditCommand extends Command {
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
+            + "[" + PREFIX_ALIAS + "ALIAS] "
+            + "[" + PREFIX_INTRODUCER + "INTRODUCER] "
+            + "[" + PREFIX_NOTE + "NOTE] "
             + "[" + PREFIX_PHONE_REMOVE + "] "
             + "[" + PREFIX_EMAIL_REMOVE + "] "
+            + "[" + PREFIX_ALIAS_REMOVE + "] "
+            + "[" + PREFIX_INTRODUCER_REMOVE + "] "
+            + "[" + PREFIX_NOTE_REMOVE + "] "
             + "[" + PREFIX_CONTEXT_ADD + "CONTEXT]... "
             + "[" + PREFIX_CONTEXT_REMOVE + "CONTEXT]...\n"
-            + "Use " + PREFIX_PHONE_REMOVE + " or " + PREFIX_EMAIL_REMOVE + " to remove a phone or email.\n"
+            + "Use " + PREFIX_PHONE_REMOVE + ", " + PREFIX_EMAIL_REMOVE + ", " + PREFIX_ALIAS_REMOVE + ", "
+            + PREFIX_INTRODUCER_REMOVE + " or " + PREFIX_NOTE_REMOVE
+            + " to remove the phone, email, alias, introducer or note.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
             + PREFIX_CONTEXT_ADD + "NUS Hackers "
