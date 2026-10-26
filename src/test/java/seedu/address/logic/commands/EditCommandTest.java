@@ -198,6 +198,22 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_renameAndAddExistingContext_noteUsesNewName() {
+        // the note names the person after the edit, matching the success message above it
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
+                .withName("Alice Tan").withContextsToAdd("cs2103t").build());
+        Person editedAlice = new PersonBuilder(ALICE).withName("Alice Tan").build();
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice))
+                + "\nNote: Alice Tan already has context(s): [CS2103T]. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, editedAlice);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_unmatchedContextToRemove_failure() {
         // "CS2130T" is a typo of Alice's "CS2103T"
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
