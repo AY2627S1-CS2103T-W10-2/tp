@@ -38,14 +38,14 @@ ModelManager -right-> "1" UserPrefs
 UserPrefs .up.|> ReadOnlyUserPrefs
 
 AddressBook *--> "1" UniquePersonList
-UniquePersonList -down-> Person : all
+UniquePersonList --> "*" Person : all
 Person *--> Name
-Person *--> Phone
-Person *--> Email
+Person *--> "0..1" Phone
+Person *--> "0..1" Email
 Person *--> "1..*" Context
-Person *--> Alias
-Person *--> Introducer
-Person *--> Note
+Person *--> "0..1" Alias
+Person *--> "0..1" Introducer
+Person *--> "0..1" Note
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
@@ -57,5 +57,5 @@ Context -[hidden]right-> Alias
 Alias -[hidden]right-> Introducer
 Introducer -[hidden]right-> Note
 
-ModelManager -down-> Person : filtered
+ModelManager --> "*" Person : filtered
 @enduml
