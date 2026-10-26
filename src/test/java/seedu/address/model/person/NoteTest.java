@@ -26,6 +26,9 @@ public class NoteTest {
     public void isValidNote() {
         assertFalse(Note.isValidNote(null));
         assertFalse(Note.isValidNote("Note\t"));
+        assertFalse(Note.isValidNote("line one\u2028line two")); // Unicode line separator
+        assertFalse(Note.isValidNote("para one\u2029para two")); // Unicode paragraph separator
+        assertFalse(Note.isValidNote("next\u0085line")); // next-line control character
         assertTrue(Note.isValidNote("  Project UI, v1.4!  "));
         assertTrue(Note.isValidNote("A".repeat(300)));
     }

@@ -28,6 +28,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.UnarchiveCommand;
 import seedu.address.logic.commands.ViewArchivesCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.model.person.PersonMatchesCluesPredicate;
@@ -156,6 +157,13 @@ public class AddressBookParserTest {
     public void parseCommand_unrecognisedInput_throwsParseException() {
         assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE), ()
             -> parser.parseCommand(""));
+    }
+
+    @Test
+    public void parseCommand_lineSeparatorInArguments_reportsFieldError() {
+        // a line separator in the note must give the note error, not the generic "Invalid command format!"
+        assertThrows(ParseException.class, Note.MESSAGE_CONSTRAINTS, () -> parser.parseCommand(
+                AddCommand.COMMAND_WORD + " n/Amy Bee c/CS2103T nt/a\u2028b"));
     }
 
     @Test
