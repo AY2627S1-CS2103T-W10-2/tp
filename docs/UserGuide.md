@@ -238,7 +238,11 @@ and also matches partial names and contexts.
 
 Edits the person at the given index in the displayed list.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [nt/NOTE] [-p/] [-e/] [-a/] [-i/] [-nt/] [+c/CONTEXT]…​ [-c/CONTEXT]…​`
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [nt/NOTE]`<br>
+`[-p/] [-e/] [-a/] [-i/] [-nt/]`<br>
+`[+c/CONTEXT]…​ [-c/CONTEXT]…​`
+
+The format is split over lines to make it easier to read. Type the whole command on one line.
 
 * `INDEX` is the number shown beside the person in the displayed list, such as `1` or `2`. After a `find`, it refers to the filtered list.
 * At least one of the other parameters must be given. Anything you leave out stays as it is.
