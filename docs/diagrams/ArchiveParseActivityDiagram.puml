@@ -1,0 +1,34 @@
+@startuml
+skin rose
+skinparam ActivityFontSize 15
+skinparam ArrowFontSize 12
+start
+:User enters archive or unarchive
+with arguments;
+
+if () then ([no c/ prefix])
+    :Parse arguments as an INDEX;
+    if () then ([valid index])
+        :Create ArchiveCommand
+        (or UnarchiveCommand);
+    else ([else])
+        :Show invalid command format;
+        stop
+    endif
+else ([c/ prefix present])
+    if () then ([an index or another prefix is present,\nor c/ appears more than once])
+        :Show invalid command format;
+        stop
+    else ([else])
+        if () then ([CONTEXT is empty or invalid])
+            :Show the context constraints;
+            stop
+        else ([else])
+            :Create ArchiveByContextCommand
+            (or UnarchiveByContextCommand);
+        endif
+    endif
+endif
+:Command is executed;
+stop
+@enduml

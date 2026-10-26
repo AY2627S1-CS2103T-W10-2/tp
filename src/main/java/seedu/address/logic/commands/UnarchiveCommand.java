@@ -20,9 +20,10 @@ public class UnarchiveCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Moves the archived person identified by the index number used in the displayed list "
-            + "back to the normal person list. Use the archives command to see archived persons first.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
-            + "Example: " + COMMAND_WORD + " 1";
+            + "back to the normal person list, or every archived person with the given context. "
+            + "Use the archives command to see archived persons first.\n"
+            + "Parameters: INDEX (must be a positive integer) or c/CONTEXT\n"
+            + "Examples: " + COMMAND_WORD + " 1, " + COMMAND_WORD + " c/CS2103T";
 
     public static final String MESSAGE_UNARCHIVE_PERSON_SUCCESS = "Unarchived person: %1$s";
     public static final String MESSAGE_NOT_ARCHIVED = "That person is not archived. "

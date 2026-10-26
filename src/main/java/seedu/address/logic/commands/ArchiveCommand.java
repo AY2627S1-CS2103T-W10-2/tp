@@ -20,9 +20,10 @@ public class ArchiveCommand extends Command {
     public static final String COMMAND_WORD = "archive";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Archives the person identified by the index number used in the displayed person list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
-            + "Example: " + COMMAND_WORD + " 1";
+            + ": Archives the person identified by the index number used in the displayed person list, "
+            + "or every person with the given context.\n"
+            + "Parameters: INDEX (must be a positive integer) or c/CONTEXT\n"
+            + "Examples: " + COMMAND_WORD + " 1, " + COMMAND_WORD + " c/CS2103T";
 
     public static final String MESSAGE_ARCHIVE_PERSON_SUCCESS = "Archived person: %1$s";
     public static final String MESSAGE_ALREADY_ARCHIVED = "That person is already archived.";

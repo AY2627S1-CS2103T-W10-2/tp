@@ -345,16 +345,20 @@ Examples:
 
 Moves a person out of your normal list without deleting them. Use this for people you no longer need every day, such as a project team that has finished, while keeping them for later.
 
-Format: `archive INDEX`
+Format: `archive INDEX` or `archive c/CONTEXT`
 
 * Archives the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list.
 * The index **must be a positive integer** 1, 2, 3, …​
 * An archived person is not shown by `list` and is not found by `find`. They stay saved, with all their details, and they still count when AddressBook checks for a duplicate phone number or email.
 * A person who is already archived cannot be archived again.
+* `archive c/CONTEXT` archives every person who has that context and is not archived yet. It works on all persons in the address book, not only the ones currently displayed, so an earlier `find` makes no difference.
+* The context must match exactly, ignoring capitalisation: `c/cs2103t` matches `CS2103T`, but `c/CS` does not.
+* `c/CONTEXT` cannot be combined with an index or any other prefix, and only one `c/` is allowed.
 
 Examples:
 * `list` followed by `archive 2` archives the 2nd person in the list.
 * `find CS2103T` followed by `archive 1` archives the 1st person in the results of the `find` command.
+* `archive c/CS2103T` archives everyone who has the context `CS2103T`.
 
 Outputs:
 
@@ -364,6 +368,10 @@ Success | `Archived person:` followed by the person's details
 The index is larger than the displayed list | `The person index provided is invalid.`
 The person is already archived | `That person is already archived.`
 `INDEX` is missing or is not a positive whole number | `Invalid command format!` followed by the usage of `archive`
+Success with `c/CONTEXT` | `Archived N person(s) with context CONTEXT.`
+No person to archive has that context | `No persons to archive with context CONTEXT.`
+`c/CONTEXT` is combined with an index or another prefix, or `c/` is repeated | `Invalid command format!` followed by the usage of `archive`
+`CONTEXT` is empty or not a valid context | The message about what a valid context is
 
 ### Viewing archived persons: `archives`
 
@@ -382,15 +390,17 @@ Format: `archives`
 
 Moves an archived person back to your normal list.
 
-Format: `unarchive INDEX`
+Format: `unarchive INDEX` or `unarchive c/CONTEXT`
 
 * Unarchives the person at the specified `INDEX`. The index refers to the index number shown in the displayed list, so show the archived persons with [`archives`](#viewing-archived-persons-archives) first.
 * The index **must be a positive integer** 1, 2, 3, …​
 * If the person at that index is not archived, for example because you are looking at your normal list, nothing is changed and AddressBook tells you to run `archives` first.
+* `unarchive c/CONTEXT` unarchives every archived person who has that context. Like `archive c/CONTEXT`, it works on all persons in the address book, not only the ones currently displayed, and the context must match exactly, ignoring capitalisation.
 * After a successful `unarchive`, you stay in the archived list, so you can unarchive several persons in a row. The person is back in your normal list, which you reach with `list`.
 
 Examples:
 * `archives` followed by `unarchive 1` brings the 1st archived person back.
+* `unarchive c/CS2103T` brings back everyone archived with the context `CS2103T`.
 
 Outputs:
 
@@ -400,6 +410,10 @@ Success | `Unarchived person:` followed by the person's details
 The index is larger than the displayed list | `The person index provided is invalid.`
 The person is not archived | `That person is not archived. Run archives to see archived persons, then use unarchive INDEX.`
 `INDEX` is missing or is not a positive whole number | `Invalid command format!` followed by the usage of `unarchive`
+Success with `c/CONTEXT` | `Unarchived N person(s) with context CONTEXT.`
+No archived person has that context | `No archived persons with context CONTEXT.`
+`c/CONTEXT` is combined with an index or another prefix, or `c/` is repeated | `Invalid command format!` followed by the usage of `unarchive`
+`CONTEXT` is empty or not a valid context | The message about what a valid context is
 
 ### Clearing all non-archived persons: `clear`
 
@@ -494,7 +508,7 @@ If AddressBook fails to read the data file more than once, each failure keeps it
 Action | Format, Examples
 --------|------------------
 **Add** | `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [nt/NOTE]` <br> e.g., `add n/James Ho c/CS2103T a/Jim nt/Met at Hack&Roll`
-**Archive** | `archive INDEX`<br> e.g., `archive 2`
+**Archive** | `archive INDEX` or `archive c/CONTEXT`<br> e.g., `archive 2`, `archive c/CS2103T`
 **Archives** | `archives`
 **Clear** | `clear`
 **Contexts** | `contexts`
@@ -503,4 +517,4 @@ Action | Format, Examples
 **Find** | `find KEYWORD [MORE_KEYWORDS]…` or `find [n/NAME_PART] [c/CONTEXT_PART]…`<br> e.g., `find n/Tony Zhang c/CS2103T`
 **List** | `list`
 **Help** | `help`
-**Unarchive** | `unarchive INDEX`<br> e.g., `unarchive 1`
+**Unarchive** | `unarchive INDEX` or `unarchive c/CONTEXT`<br> e.g., `unarchive 1`, `unarchive c/CS2103T`
