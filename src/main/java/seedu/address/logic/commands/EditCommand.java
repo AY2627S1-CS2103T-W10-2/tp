@@ -124,19 +124,18 @@ public class EditCommand extends Command {
 
     /**
      * Returns true if {@code editedPerson} has the same details as {@code personToEdit}, spelt the same way.
-     * {@code Person#equals} is not used because it ignores case in emails and contexts,
-     * so a capitalisation fix would not count as a change.
+     * Builds on {@code Person#equals} so a field added to {@code Person} later is compared too.
      */
     private static boolean hasSameDetails(Person personToEdit, Person editedPerson) {
         assert personToEdit != null && editedPerson != null;
 
-        return personToEdit.getName().equals(editedPerson.getName())
-                && personToEdit.getPhone().equals(editedPerson.getPhone())
+        // Person#equals compares every field, but ignores case in emails and contexts,
+        // e.g. alice@example.com equals Alice@Example.com
+        // The two checks after it compare emails and contexts with their exact spelling,
+        // so a capitalisation fix counts as a change
+        return personToEdit.equals(editedPerson)
                 && getEmailValue(personToEdit).equals(getEmailValue(editedPerson))
-                && getContextDescriptions(personToEdit).equals(getContextDescriptions(editedPerson))
-                && personToEdit.getAlias().equals(editedPerson.getAlias())
-                && personToEdit.getIntroducer().equals(editedPerson.getIntroducer())
-                && personToEdit.getNote().equals(editedPerson.getNote());
+                && getContextDescriptions(personToEdit).equals(getContextDescriptions(editedPerson));
     }
 
     private static Optional<String> getEmailValue(Person person) {
