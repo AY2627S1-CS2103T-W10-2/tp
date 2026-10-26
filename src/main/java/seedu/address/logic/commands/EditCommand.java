@@ -62,7 +62,7 @@ public class EditCommand extends Command {
             "This person is archived and can't be edited. Unarchive the person first.";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
 
-    public static final String MESSAGE_CONTEXTS_NOT_FOUND = "Note: %1$s does not have context(s): %2$s. "
+    public static final String MESSAGE_CONTEXTS_NOT_FOUND_SKIPPED = "Note: %1$s does not have context(s): %2$s. "
             + "Check the spelling. Skipped.";
     public static final String MESSAGE_NO_CONTEXT_LEFT = "A person must have at least one context. "
             + "Add a new context with +c/ before removing the last one.";
@@ -110,7 +110,7 @@ public class EditCommand extends Command {
         String feedback = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
         List<Context> unmatchedContexts = findUnmatchedContexts(personToEdit, editPersonDescriptor);
         if (!unmatchedContexts.isEmpty()) {
-            feedback += "\n" + String.format(MESSAGE_CONTEXTS_NOT_FOUND,
+            feedback += "\n" + String.format(MESSAGE_CONTEXTS_NOT_FOUND_SKIPPED,
                     editedPerson.getName(), formatContexts(unmatchedContexts));
         }
         return new CommandResult(feedback);
