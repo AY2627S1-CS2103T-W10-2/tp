@@ -124,26 +124,32 @@ public class EditCommandParser implements Parser<EditCommand> {
      *     or the set prefix is empty or has an invalid value.
      */
     private static <T> void parseOptionalField(ArgumentMultimap argMultimap, OptionalField<T> field,
-            Consumer<T> setValue, Consumer<Boolean> setRemoved) throws ParseException {
+            Consumer<T> setValue, RemovalSetter setRemoved) throws ParseException {
+        // Each is empty if its prefix was not typed, e.g. value holds "91234567" for p/91234567
         Optional<String> value = argMultimap.getValue(field.setPrefix());
         Optional<String> valueToRemove = argMultimap.getValue(field.removePrefix());
 
+        // The checks run in this order so a command breaking several rules gets the most relevant error
+        // The remove prefix takes no value, e.g. -p/123
         if (valueToRemove.isPresent() && !valueToRemove.get().isBlank()) {
             throw new ParseException(String.format(MESSAGE_REMOVE_WITH_VALUE,
                     field.removePrefix(), field.setPrefix(), field.placeholder(), field.description()));
         }
+        // The field cannot be set and removed together, e.g. p/91234567 -p/
         if (value.isPresent() && valueToRemove.isPresent()) {
             throw new ParseException(String.format(MESSAGE_SET_AND_REMOVE, field.description()));
         }
+        // An empty set prefix is likely a slip, so the error points to the remove prefix, e.g. p/
         if (value.isPresent() && value.get().isBlank()) {
             throw new ParseException(String.format(MESSAGE_EMPTY_VALUE,
                     field.emptyMessage(), field.removePrefix(), field.description()));
         }
 
+        // Record the parsed new value and the remove flag in the descriptor
         if (value.isPresent()) {
             setValue.accept(field.parser().parse(value.get()));
         }
-        setRemoved.accept(valueToRemove.isPresent());
+        setRemoved.set(valueToRemove.isPresent());
     }
 
     /**
@@ -160,6 +166,15 @@ public class EditCommandParser implements Parser<EditCommand> {
     @FunctionalInterface
     private interface FieldParser<T> {
         T parse(String value) throws ParseException;
+    }
+
+    /**
+     * Represents a function that records whether a field should be removed, such as
+     * {@link EditCommand.EditPersonDescriptor#setPhoneRemoved}.
+     */
+    @FunctionalInterface
+    private interface RemovalSetter {
+        void set(boolean isRemoved);
     }
 
 }
