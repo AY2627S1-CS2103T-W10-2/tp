@@ -280,7 +280,8 @@ number, not because `p/` is empty. Removing uses its own prefix instead of an em
 easy to send by accident, such as by pressing Enter before typing the number. The error for an empty `p/` points the
 user to `-p/`.
 
-`e/` and `-e/` follow the same rules. `parsePhoneForEdit` and `parseEmailForEdit` mirror each other, so a change to
+The diagram uses phone as the example, but the activity is the same for every other optional field prefix and its
+removal prefix (such as `e/` and `-e/`). Only the prefix changes. `parsePhoneForEdit` and `parseEmailForEdit` mirror each other, so a change to
 one should be made to the other.
 
 ### \[Proposed\] Undo/redo feature
