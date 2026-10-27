@@ -2,12 +2,18 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_ADD;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL_REMOVE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -34,6 +40,12 @@ public class CommandTestUtil {
     public static final String VALID_PHONE_BOB = "22222222";
     public static final String VALID_EMAIL_AMY = "amy@example.com";
     public static final String VALID_EMAIL_BOB = "bob@example.com";
+    public static final String VALID_ALIAS_AMY = "Ames";
+    public static final String VALID_ALIAS_BOB = "Bobby";
+    public static final String VALID_INTRODUCER_AMY = "Ben Lim";
+    public static final String VALID_INTRODUCER_BOB = "Cara Tan";
+    public static final String VALID_NOTE_AMY = "Met at Hack&Roll";
+    public static final String VALID_NOTE_BOB = "Likes hiking";
     public static final String VALID_CONTEXT_HUSBAND = "husband";
     public static final String VALID_CONTEXT_FRIEND = "friend";
 
@@ -43,6 +55,9 @@ public class CommandTestUtil {
     public static final String PHONE_DESC_BOB = " " + PREFIX_PHONE + VALID_PHONE_BOB;
     public static final String EMAIL_DESC_AMY = " " + PREFIX_EMAIL + VALID_EMAIL_AMY;
     public static final String EMAIL_DESC_BOB = " " + PREFIX_EMAIL + VALID_EMAIL_BOB;
+    public static final String ALIAS_DESC_AMY = " " + PREFIX_ALIAS + VALID_ALIAS_AMY;
+    public static final String INTRODUCER_DESC_AMY = " " + PREFIX_INTRODUCER + VALID_INTRODUCER_AMY;
+    public static final String NOTE_DESC_AMY = " " + PREFIX_NOTE + VALID_NOTE_AMY;
     public static final String CONTEXT_DESC_FRIEND = " " + PREFIX_CONTEXT + VALID_CONTEXT_FRIEND;
     public static final String CONTEXT_DESC_HUSBAND = " " + PREFIX_CONTEXT + VALID_CONTEXT_HUSBAND;
     public static final String ADD_CONTEXT_DESC_FRIEND = " " + PREFIX_CONTEXT_ADD + VALID_CONTEXT_FRIEND;
@@ -54,16 +69,25 @@ public class CommandTestUtil {
     public static final String INVALID_EMAIL_DESC = " " + PREFIX_EMAIL + "bob!yahoo"; // missing '@' symbol
     public static final String INVALID_CONTEXT_DESC = " " + PREFIX_CONTEXT + "(orbital)"; // '(' not allowed in contexts
     public static final String INVALID_ADD_CONTEXT_DESC = " " + PREFIX_CONTEXT_ADD + "(orbital)";
+    public static final String INVALID_ALIAS_DESC = " " + PREFIX_ALIAS + "Ames2"; // digits not allowed
+    public static final String INVALID_INTRODUCER_DESC = " " + PREFIX_INTRODUCER + "Ben&"; // '&' not allowed
+    public static final String INVALID_NOTE_DESC = " " + PREFIX_NOTE + "a".repeat(301); // over 300 characters
 
     public static final String EMPTY_NAME_DESC = " " + PREFIX_NAME;
     public static final String EMPTY_PHONE_DESC = " " + PREFIX_PHONE;
     public static final String EMPTY_EMAIL_DESC = " " + PREFIX_EMAIL;
+    public static final String EMPTY_ALIAS_DESC = " " + PREFIX_ALIAS;
+    public static final String EMPTY_INTRODUCER_DESC = " " + PREFIX_INTRODUCER;
+    public static final String EMPTY_NOTE_DESC = " " + PREFIX_NOTE;
     public static final String EMPTY_CONTEXT_DESC = " " + PREFIX_CONTEXT;
     public static final String EMPTY_ADD_CONTEXT_DESC = " " + PREFIX_CONTEXT_ADD;
     public static final String EMPTY_REMOVE_CONTEXT_DESC = " " + PREFIX_CONTEXT_REMOVE;
 
     public static final String REMOVE_PHONE_DESC = " " + PREFIX_PHONE_REMOVE;
     public static final String REMOVE_EMAIL_DESC = " " + PREFIX_EMAIL_REMOVE;
+    public static final String REMOVE_ALIAS_DESC = " " + PREFIX_ALIAS_REMOVE;
+    public static final String REMOVE_INTRODUCER_DESC = " " + PREFIX_INTRODUCER_REMOVE;
+    public static final String REMOVE_NOTE_DESC = " " + PREFIX_NOTE_REMOVE;
 
     public static final String PREAMBLE_WHITESPACE = "\t  \r  \n";
     public static final String PREAMBLE_NON_EMPTY = "NonEmptyPreamble";
