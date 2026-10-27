@@ -11,49 +11,48 @@ import seedu.address.model.person.Context;
 import seedu.address.model.person.Person;
 
 /**
- * Archives or unarchives every person in the address book who has a given context. The subclasses decide which of
- * the two it is. The whole address book is used, not the displayed list, so the result does not depend on any
- * earlier find, list or archives command.
+ * Archives or unarchives every person in the address book who has a given context. Archiving and unarchiving are
+ * the same change with opposite values, so one class does both. The whole address book is used, not the displayed
+ * list, so the result does not depend on any earlier find, list or archives command.
  */
-public abstract class SetArchivedByContextCommand extends Command {
+public class SetArchivedByContextCommand extends Command {
+
+    public static final String MESSAGE_ARCHIVE_SUCCESS = "Archived %1$d person(s) with context %2$s.";
+    public static final String MESSAGE_NO_PERSONS_TO_ARCHIVE = "No persons to archive with context %1$s.";
+    public static final String MESSAGE_UNARCHIVE_SUCCESS = "Unarchived %1$d person(s) with context %2$s.";
+    public static final String MESSAGE_NO_PERSONS_TO_UNARCHIVE = "No archived persons with context %1$s.";
 
     private final Context context;
+    private final boolean archived;
 
     /**
-     * Creates a command that changes the archived state of the persons who have the given {@code context}.
+     * Creates a command that sets the persons who have the given {@code context} to {@code archived}.
      */
-    protected SetArchivedByContextCommand(Context context) {
+    public SetArchivedByContextCommand(Context context, boolean archived) {
         requireNonNull(context);
         this.context = context;
+        this.archived = archived;
     }
-
-    /** Returns the archived state that the matching persons are changed to. */
-    protected abstract boolean getTargetArchivedState();
-
-    /** Returns the message shown when no person with {@code context} can be changed. */
-    protected abstract String getNoMatchMessage(Context context);
-
-    /** Returns the message shown after {@code count} persons with {@code context} were changed. */
-    protected abstract String getSuccessMessage(int count, Context context);
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        boolean targetState = getTargetArchivedState();
 
         // copied first, because setPerson changes the list that is being read
         List<Person> targets = List.copyOf(model.getAddressBook().getPersonList()).stream()
-                .filter(person -> person.getContexts().contains(context) && person.isArchived() != targetState)
+                .filter(person -> person.getContexts().contains(context) && person.isArchived() != archived)
                 .toList();
 
         if (targets.isEmpty()) {
-            throw new CommandException(getNoMatchMessage(context));
+            String noMatchMessage = archived ? MESSAGE_NO_PERSONS_TO_ARCHIVE : MESSAGE_NO_PERSONS_TO_UNARCHIVE;
+            throw new CommandException(String.format(noMatchMessage, context));
         }
 
         for (Person person : targets) {
-            model.setPerson(person, person.copyWithArchived(targetState));
+            model.setPerson(person, person.copyWithArchived(archived));
         }
-        return new CommandResult(getSuccessMessage(targets.size(), context));
+        String successMessage = archived ? MESSAGE_ARCHIVE_SUCCESS : MESSAGE_UNARCHIVE_SUCCESS;
+        return new CommandResult(String.format(successMessage, targets.size(), context));
     }
 
     @Override
@@ -62,18 +61,19 @@ public abstract class SetArchivedByContextCommand extends Command {
             return true;
         }
 
-        // getClass keeps an archive command from being equal to an unarchive command
-        if (other == null || other.getClass() != getClass()) {
+        // instanceof handles nulls
+        if (!(other instanceof SetArchivedByContextCommand otherCommand)) {
             return false;
         }
 
-        return context.equals(((SetArchivedByContextCommand) other).context);
+        return context.equals(otherCommand.context) && archived == otherCommand.archived;
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("context", context)
+                .add("archived", archived)
                 .toString();
     }
 }

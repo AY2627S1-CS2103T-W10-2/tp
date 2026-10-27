@@ -34,9 +34,9 @@ public class ArchiveByContextCommandTest {
         assertEquals(3, matching);
         assertEquals(5, total);
 
-        CommandResult result = new ArchiveByContextCommand(CS2103T).execute(model);
+        CommandResult result = new SetArchivedByContextCommand(CS2103T, true).execute(model);
 
-        assertEquals(String.format(ArchiveByContextCommand.MESSAGE_ARCHIVE_SUCCESS, matching, CS2103T),
+        assertEquals(String.format(SetArchivedByContextCommand.MESSAGE_ARCHIVE_SUCCESS, matching, CS2103T),
                 result.getFeedbackToUser());
         assertTrue(personsWith(CS2103T).stream().allMatch(Person::isArchived));
         assertEquals(total - matching, model.getFilteredPersonList().size());
@@ -47,7 +47,7 @@ public class ArchiveByContextCommandTest {
     public void execute_differentCase_archivesMatchingPersons() throws Exception {
         int matching = personsWith(CS2103T).size();
 
-        new ArchiveByContextCommand(new Context("cs2103t")).execute(model);
+        new SetArchivedByContextCommand(new Context("cs2103t"), true).execute(model);
 
         assertEquals(matching, model.getAddressBook().getPersonList().stream().filter(Person::isArchived).count());
     }
@@ -56,8 +56,8 @@ public class ArchiveByContextCommandTest {
     public void execute_substringOfContext_throwsCommandException() {
         Context partial = new Context("CS");
 
-        assertCommandFailure(new ArchiveByContextCommand(partial), model,
-                String.format(ArchiveByContextCommand.MESSAGE_NO_PERSONS_TO_ARCHIVE, partial));
+        assertCommandFailure(new SetArchivedByContextCommand(partial, true), model,
+                String.format(SetArchivedByContextCommand.MESSAGE_NO_PERSONS_TO_ARCHIVE, partial));
     }
 
     @Test
@@ -66,18 +66,18 @@ public class ArchiveByContextCommandTest {
         model.setPerson(first, first.copyWithArchived(true));
         int stillActive = personsWith(CS2103T).size() - 1;
 
-        CommandResult result = new ArchiveByContextCommand(CS2103T).execute(model);
+        CommandResult result = new SetArchivedByContextCommand(CS2103T, true).execute(model);
 
-        assertEquals(String.format(ArchiveByContextCommand.MESSAGE_ARCHIVE_SUCCESS, stillActive, CS2103T),
+        assertEquals(String.format(SetArchivedByContextCommand.MESSAGE_ARCHIVE_SUCCESS, stillActive, CS2103T),
                 result.getFeedbackToUser());
     }
 
     @Test
     public void execute_allAlreadyArchived_throwsCommandException() throws Exception {
-        new ArchiveByContextCommand(CS2103T).execute(model);
+        new SetArchivedByContextCommand(CS2103T, true).execute(model);
 
-        assertCommandFailure(new ArchiveByContextCommand(CS2103T), model,
-                String.format(ArchiveByContextCommand.MESSAGE_NO_PERSONS_TO_ARCHIVE, CS2103T));
+        assertCommandFailure(new SetArchivedByContextCommand(CS2103T, true), model,
+                String.format(SetArchivedByContextCommand.MESSAGE_NO_PERSONS_TO_ARCHIVE, CS2103T));
     }
 
     @Test
@@ -86,7 +86,7 @@ public class ArchiveByContextCommandTest {
         model.updateFilteredPersonList(person -> person.equals(ContextAddressBook.ONLY_CHESS));
         assertEquals(1, model.getFilteredPersonList().size());
 
-        new ArchiveByContextCommand(CS2103T).execute(model);
+        new SetArchivedByContextCommand(CS2103T, true).execute(model);
 
         assertEquals(matching, model.getAddressBook().getPersonList().stream().filter(Person::isArchived).count());
         assertFalse(model.getAddressBook().getPersonList().stream()
@@ -95,21 +95,22 @@ public class ArchiveByContextCommandTest {
 
     @Test
     public void equals() {
-        ArchiveByContextCommand command = new ArchiveByContextCommand(CS2103T);
+        SetArchivedByContextCommand command = new SetArchivedByContextCommand(CS2103T, true);
 
         assertTrue(command.equals(command));
-        assertTrue(command.equals(new ArchiveByContextCommand(new Context("cs2103t"))));
+        assertTrue(command.equals(new SetArchivedByContextCommand(new Context("cs2103t"), true)));
         assertFalse(command.equals(null));
         assertFalse(command.equals(1));
-        assertFalse(command.equals(new ArchiveByContextCommand(new Context(ContextAddressBook.HIKING))));
+        assertFalse(command.equals(new SetArchivedByContextCommand(new Context(ContextAddressBook.HIKING), true)));
 
         // same context, different action
-        assertFalse(command.equals(new UnarchiveByContextCommand(CS2103T)));
+        assertFalse(command.equals(new SetArchivedByContextCommand(CS2103T, false)));
     }
 
     @Test
     public void toStringMethod() {
-        ArchiveByContextCommand command = new ArchiveByContextCommand(CS2103T);
-        assertEquals(ArchiveByContextCommand.class.getCanonicalName() + "{context=CS2103T}", command.toString());
+        SetArchivedByContextCommand command = new SetArchivedByContextCommand(CS2103T, true);
+        assertEquals(SetArchivedByContextCommand.class.getCanonicalName() + "{context=CS2103T, archived=true}",
+                command.toString());
     }
 }

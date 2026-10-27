@@ -206,8 +206,8 @@ The new commands follow the pattern of `delete`:
 
 ![Classes used by the archive and unarchive commands](images/ArchiveCommandClassDiagram.png)
 
-* `ArchiveByContextCommand` and `UnarchiveByContextCommand` extend the abstract `SetArchivedByContextCommand`, which holds the steps they share. A subclass only says which archived state it sets (`getTargetArchivedState()`) and what its messages are. This is the template method pattern.
-* `ArchiveCommandParser` and `UnarchiveCommandParser` first ask `ContextArgumentParser` whether the arguments are in the `c/` form. If there is no `c/`, they continue with the index as before. This is why both parsers now return `Command` and not `ArchiveCommand` or `UnarchiveCommand`.
+* Archiving and unarchiving are the same change with opposite values, so each way of choosing persons has one command class with an `archived` flag: `SetArchivedByIndexCommand` (the index form) and `SetArchivedByContextCommand` (the `c/` form). `ArchiveCommand` and `UnarchiveCommand` are thin subclasses of `SetArchivedByIndexCommand`. They only give the command word, the usage message and the flag, so the code and tests that refer to them did not change.
+* One `ArchiveCommandParser` serves both command words. `AddressBookParser` creates it with `true` for `archive` and with `false` for `unarchive`. It first asks `ContextArgumentParser` whether the arguments are in the `c/` form. If there is no `c/`, it continues with the index as before. This is why the parser returns `Command` and not `ArchiveCommand`.
 
 ![Decisions made when parsing archive and unarchive](images/ArchiveParseActivityDiagram.png)
 
@@ -217,7 +217,7 @@ The sequence diagram shows what happens when the user enters `archive c/CS2103T`
 
 ![Interactions for the `archive c/CS2103T` command](images/ArchiveByContextSequenceDiagram.png)
 
-`unarchive c/CS2103T` is the same, with `UnarchiveCommandParser`, `UnarchiveByContextCommand` and `copyWithArchived(false)`.
+`unarchive c/CS2103T` is the same, with the flag `false`, so the command calls `copyWithArchived(false)`.
 
 The command reads `Model#getAddressBook()` and **not** `Model#getFilteredPersonList()`. A context command has no index, so nothing ties it to what is on screen, and an earlier `find` must not change which persons it affects. The persons to change are copied into a list before the loop, because `Model#setPerson` changes the list that they were read from. Only persons whose state really changes are counted, and if there are none the command fails with a message that names the context. The context is matched with `Context#equals`, so it is exact and ignores capitalisation.
 

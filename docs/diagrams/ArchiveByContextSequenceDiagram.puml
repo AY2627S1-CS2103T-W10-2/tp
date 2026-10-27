@@ -7,7 +7,7 @@ participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant ":ArchiveCommandParser" as ArchiveCommandParser LOGIC_COLOR
 participant "<<class>>\nContextArgumentParser" as ContextArgumentParser LOGIC_COLOR
-participant "a:ArchiveByContextCommand" as ArchiveByContextCommand LOGIC_COLOR
+participant "a:SetArchivedByContextCommand" as SetArchivedByContextCommand LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
@@ -24,7 +24,7 @@ LogicManager -> AddressBookParser : parseCommand("archive c/CS2103T")
 activate AddressBookParser
 
 create ArchiveCommandParser
-AddressBookParser -> ArchiveCommandParser
+AddressBookParser -> ArchiveCommandParser : ArchiveCommandParser(true)
 activate ArchiveCommandParser
 
 ArchiveCommandParser --> AddressBookParser
@@ -39,12 +39,12 @@ activate ContextArgumentParser
 ContextArgumentParser --> ArchiveCommandParser : Optional<Context>
 deactivate ContextArgumentParser
 
-create ArchiveByContextCommand
-ArchiveCommandParser -> ArchiveByContextCommand : ArchiveByContextCommand(context)
-activate ArchiveByContextCommand
+create SetArchivedByContextCommand
+ArchiveCommandParser -> SetArchivedByContextCommand : SetArchivedByContextCommand(context, true)
+activate SetArchivedByContextCommand
 
-ArchiveByContextCommand --> ArchiveCommandParser
-deactivate ArchiveByContextCommand
+SetArchivedByContextCommand --> ArchiveCommandParser
+deactivate SetArchivedByContextCommand
 
 ArchiveCommandParser --> AddressBookParser : a
 deactivate ArchiveCommandParser
@@ -55,23 +55,23 @@ destroy ArchiveCommandParser
 AddressBookParser --> LogicManager : a
 deactivate AddressBookParser
 
-LogicManager -> ArchiveByContextCommand : execute(m)
-activate ArchiveByContextCommand
+LogicManager -> SetArchivedByContextCommand : execute(m)
+activate SetArchivedByContextCommand
 
-ArchiveByContextCommand -> Model : getAddressBook()
+SetArchivedByContextCommand -> Model : getAddressBook()
 activate Model
 
-Model --> ArchiveByContextCommand : addressBook
+Model --> SetArchivedByContextCommand : addressBook
 deactivate Model
 
-note right of ArchiveByContextCommand
+note right of SetArchivedByContextCommand
   Persons with the context who are
   not archived yet are copied into
   a list first, then changed one by one.
 end note
 
 loop for each matching person p
-    ArchiveByContextCommand -> Person : copyWithArchived(true)
+    SetArchivedByContextCommand -> Person : copyWithArchived(true)
     activate Person
 
     create ArchivedPerson
@@ -81,25 +81,25 @@ loop for each matching person p
     ArchivedPerson --> Person
     deactivate ArchivedPerson
 
-    Person --> ArchiveByContextCommand : archivedP
+    Person --> SetArchivedByContextCommand : archivedP
     deactivate Person
 
-    ArchiveByContextCommand -> Model : setPerson(p, archivedP)
+    SetArchivedByContextCommand -> Model : setPerson(p, archivedP)
     activate Model
 
-    Model --> ArchiveByContextCommand
+    Model --> SetArchivedByContextCommand
     deactivate Model
 end
 
 create CommandResult
-ArchiveByContextCommand -> CommandResult
+SetArchivedByContextCommand -> CommandResult
 activate CommandResult
 
-CommandResult --> ArchiveByContextCommand
+CommandResult --> SetArchivedByContextCommand
 deactivate CommandResult
 
-ArchiveByContextCommand --> LogicManager : r
-deactivate ArchiveByContextCommand
+SetArchivedByContextCommand --> LogicManager : r
+deactivate SetArchivedByContextCommand
 
 [<--LogicManager
 deactivate LogicManager

@@ -5,37 +5,33 @@ skinparam arrowColor LOGIC_COLOR_T4
 skinparam classBackgroundColor LOGIC_COLOR
 
 Class ArchiveCommandParser
-Class UnarchiveCommandParser
 Class ContextArgumentParser
 
 Class "{abstract}\nCommand" as Command
+Class SetArchivedByIndexCommand
 Class ArchiveCommand
 Class UnarchiveCommand
-Class "{abstract}\nSetArchivedByContextCommand" as SetArchivedByContextCommand
-Class ArchiveByContextCommand
-Class UnarchiveByContextCommand
+Class SetArchivedByContextCommand
 
 Class Model MODEL_COLOR
 Class Context MODEL_COLOR
 
-Command <|-down- ArchiveCommand
-Command <|-down- UnarchiveCommand
+Command <|-down- SetArchivedByIndexCommand
 Command <|-down- SetArchivedByContextCommand
-SetArchivedByContextCommand <|-down- ArchiveByContextCommand
-SetArchivedByContextCommand <|-down- UnarchiveByContextCommand
+SetArchivedByIndexCommand <|-down- ArchiveCommand
+SetArchivedByIndexCommand <|-down- UnarchiveCommand
 
 SetArchivedByContextCommand -right->"1" Context
 SetArchivedByContextCommand .right.> Model : <<call>>
+SetArchivedByIndexCommand .right.> Model : <<call>>
 
 ArchiveCommandParser .up.> ArchiveCommand
-ArchiveCommandParser .up.> ArchiveByContextCommand
-UnarchiveCommandParser .up.> UnarchiveCommand
-UnarchiveCommandParser .up.> UnarchiveByContextCommand
+ArchiveCommandParser .up.> UnarchiveCommand
+ArchiveCommandParser .up.> SetArchivedByContextCommand
 ArchiveCommandParser -right-> ContextArgumentParser
-UnarchiveCommandParser -left-> ContextArgumentParser
 
 note bottom of ContextArgumentParser
-  Dotted arrows from a parser:
+  Dotted arrows from the parser:
   <<create>> the command
 end note
 @enduml

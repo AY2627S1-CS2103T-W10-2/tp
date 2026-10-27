@@ -8,13 +8,13 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.commands.UnarchiveByContextCommand;
+import seedu.address.logic.commands.SetArchivedByContextCommand;
 import seedu.address.logic.commands.UnarchiveCommand;
 import seedu.address.model.person.Context;
 
 public class UnarchiveCommandParserTest {
 
-    private UnarchiveCommandParser parser = new UnarchiveCommandParser();
+    private ArchiveCommandParser parser = new ArchiveCommandParser(false);
 
     @Test
     public void parse_validArgs_returnsCommand() {
@@ -34,11 +34,12 @@ public class UnarchiveCommandParserTest {
 
     @Test
     public void parse_validContext_returnsByContextCommand() {
-        UnarchiveByContextCommand expected = new UnarchiveByContextCommand(new Context("CS2103T"));
+        SetArchivedByContextCommand expected = new SetArchivedByContextCommand(new Context("CS2103T"), false);
         assertParseSuccess(parser, " c/CS2103T", expected);
         assertParseSuccess(parser, "   c/  CS2103T  ", expected);
         assertParseSuccess(parser, " c/cs2103t", expected);
-        assertParseSuccess(parser, " c/Hiking  club", new UnarchiveByContextCommand(new Context("Hiking club")));
+        assertParseSuccess(parser, " c/Hiking  club",
+                new SetArchivedByContextCommand(new Context("Hiking club"), false));
     }
 
     @Test

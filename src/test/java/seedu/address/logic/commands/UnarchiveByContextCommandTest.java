@@ -27,7 +27,7 @@ public class UnarchiveByContextCommandTest {
     @BeforeEach
     public void archiveEveryoneWithContext() throws Exception {
         matching = personsWith(CS2103T).size();
-        new ArchiveByContextCommand(CS2103T).execute(model);
+        new SetArchivedByContextCommand(CS2103T, true).execute(model);
     }
 
     private List<Person> personsWith(Context context) {
@@ -37,9 +37,9 @@ public class UnarchiveByContextCommandTest {
 
     @Test
     public void execute_matchingContext_unarchivesEveryMatchingPerson() throws Exception {
-        CommandResult result = new UnarchiveByContextCommand(CS2103T).execute(model);
+        CommandResult result = new SetArchivedByContextCommand(CS2103T, false).execute(model);
 
-        assertEquals(String.format(UnarchiveByContextCommand.MESSAGE_UNARCHIVE_SUCCESS, matching, CS2103T),
+        assertEquals(String.format(SetArchivedByContextCommand.MESSAGE_UNARCHIVE_SUCCESS, matching, CS2103T),
                 result.getFeedbackToUser());
         assertTrue(personsWith(CS2103T).stream().noneMatch(Person::isArchived));
         assertEquals(model.getAddressBook().getPersonList().size(), model.getFilteredPersonList().size());
@@ -53,7 +53,7 @@ public class UnarchiveByContextCommandTest {
                 .filter(person -> person.isArchived() && !person.getContexts().contains(hiking)).count();
         assertTrue(archivedWithoutHiking > 0);
 
-        new UnarchiveByContextCommand(hiking).execute(model);
+        new SetArchivedByContextCommand(hiking, false).execute(model);
 
         assertEquals(archivedWithoutHiking, model.getAddressBook().getPersonList().stream()
                 .filter(Person::isArchived).count());
@@ -61,10 +61,10 @@ public class UnarchiveByContextCommandTest {
 
     @Test
     public void execute_noArchivedPersonWithContext_throwsCommandException() throws Exception {
-        new UnarchiveByContextCommand(CS2103T).execute(model);
+        new SetArchivedByContextCommand(CS2103T, false).execute(model);
 
-        assertCommandFailure(new UnarchiveByContextCommand(CS2103T), model,
-                String.format(UnarchiveByContextCommand.MESSAGE_NO_PERSONS_TO_UNARCHIVE, CS2103T));
+        assertCommandFailure(new SetArchivedByContextCommand(CS2103T, false), model,
+                String.format(SetArchivedByContextCommand.MESSAGE_NO_PERSONS_TO_UNARCHIVE, CS2103T));
     }
 
     @Test
@@ -72,7 +72,7 @@ public class UnarchiveByContextCommandTest {
         // the archived people are hidden, so the shown list is about different people
         model.updateFilteredPersonList(person -> person.equals(ContextAddressBook.ONLY_CHESS));
 
-        new UnarchiveByContextCommand(CS2103T).execute(model);
+        new SetArchivedByContextCommand(CS2103T, false).execute(model);
 
         assertFalse(model.getAddressBook().getPersonList().stream()
                 .anyMatch(person -> person.getContexts().contains(CS2103T) && person.isArchived()));
@@ -80,19 +80,20 @@ public class UnarchiveByContextCommandTest {
 
     @Test
     public void equals() {
-        UnarchiveByContextCommand command = new UnarchiveByContextCommand(CS2103T);
+        SetArchivedByContextCommand command = new SetArchivedByContextCommand(CS2103T, false);
 
         assertTrue(command.equals(command));
-        assertTrue(command.equals(new UnarchiveByContextCommand(new Context("cs2103t"))));
+        assertTrue(command.equals(new SetArchivedByContextCommand(new Context("cs2103t"), false)));
         assertFalse(command.equals(null));
         assertFalse(command.equals(1));
-        assertFalse(command.equals(new UnarchiveByContextCommand(new Context(ContextAddressBook.HIKING))));
-        assertFalse(command.equals(new ArchiveByContextCommand(CS2103T)));
+        assertFalse(command.equals(new SetArchivedByContextCommand(new Context(ContextAddressBook.HIKING), false)));
+        assertFalse(command.equals(new SetArchivedByContextCommand(CS2103T, true)));
     }
 
     @Test
     public void toStringMethod() {
-        UnarchiveByContextCommand command = new UnarchiveByContextCommand(CS2103T);
-        assertEquals(UnarchiveByContextCommand.class.getCanonicalName() + "{context=CS2103T}", command.toString());
+        SetArchivedByContextCommand command = new SetArchivedByContextCommand(CS2103T, false);
+        assertEquals(SetArchivedByContextCommand.class.getCanonicalName() + "{context=CS2103T, archived=false}",
+                command.toString());
     }
 }

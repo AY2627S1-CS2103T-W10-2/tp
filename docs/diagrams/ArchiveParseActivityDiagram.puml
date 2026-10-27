@@ -24,8 +24,8 @@ else ([c/ prefix present])
             :Show the context constraints;
             stop
         else ([else])
-            :Create ArchiveByContextCommand
-            (or UnarchiveByContextCommand);
+            :Create SetArchivedByContextCommand
+            with the archive or unarchive flag;
         endif
     endif
 endif
