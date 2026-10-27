@@ -40,6 +40,16 @@ public class PersonListPanel extends UiPart<Region> {
                 setGraphic(new PersonCard(person, getIndex() + 1).getRoot());
             }
         }
+
+        /**
+         * Returns true if {@code newPerson} is a different object from {@code oldPerson}.
+         * The default uses {@code Person#equals}, which ignores case in emails and contexts,
+         * so the card would keep showing the old spelling after a capitalisation fix.
+         */
+        @Override
+        protected boolean isItemChanged(Person oldPerson, Person newPerson) {
+            return oldPerson != newPerson;
+        }
     }
 
 }
