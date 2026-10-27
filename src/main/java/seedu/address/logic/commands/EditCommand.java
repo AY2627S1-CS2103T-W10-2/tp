@@ -79,6 +79,7 @@ public class EditCommand extends Command {
     public static final String MESSAGE_CONTEXTS_NOT_FOUND = "%1$s does not have context(s): %2$s. Check the spelling.";
     public static final String MESSAGE_NO_CONTEXT_LEFT = "A person must have at least one context. "
             + "Add a new context with +c/ before removing the last one.";
+    public static final String MESSAGE_CONTEXTS_SKIPPED = "Note: %1$s already has context(s): %2$s. Skipped.";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -125,7 +126,14 @@ public class EditCommand extends Command {
 
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ACTIVE);
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+
+        String feedback = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        List<Context> skippedContexts = findSkippedContexts(personToEdit, editPersonDescriptor);
+        if (!skippedContexts.isEmpty()) {
+            feedback += "\n" + String.format(MESSAGE_CONTEXTS_SKIPPED,
+                    editedPerson.getName(), formatContexts(skippedContexts));
+        }
+        return new CommandResult(feedback);
     }
 
     /**
@@ -184,6 +192,29 @@ public class EditCommand extends Command {
             }
         }
         return unmatchedContexts;
+    }
+
+    /**
+     * Returns the contexts in {@code editPersonDescriptor} to add that {@code personToEdit} still has after
+     * the removals, in the order they were given. Each is spelt the way the person has it.
+     */
+    private static List<Context> findSkippedContexts(Person personToEdit,
+            EditPersonDescriptor editPersonDescriptor) {
+        assert personToEdit != null;
+
+        Set<Context> keptContexts = new LinkedHashSet<>(personToEdit.getContexts());
+        keptContexts.removeAll(editPersonDescriptor.getContextsToRemove().orElse(Set.of()));
+        Set<Context> contextsToAdd = editPersonDescriptor.getContextsToAdd().orElse(Set.of());
+
+        List<Context> skippedContexts = new ArrayList<>();
+        for (Context contextToAdd : contextsToAdd) {
+            // Context#equals ignores case, so look up the kept context to get the person's spelling
+            keptContexts.stream()
+                    .filter(contextToAdd::equals)
+                    .findFirst()
+                    .ifPresent(skippedContexts::add);
+        }
+        return skippedContexts;
     }
 
     /**

@@ -64,7 +64,10 @@ public class EditCommandTest {
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        // the first person already has the default context, so it is skipped
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                + "\n" + String.format(EditCommand.MESSAGE_CONTEXTS_SKIPPED, editedPerson.getName(),
+                        "[" + PersonBuilder.DEFAULT_CONTEXT + "]");
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(model.getFilteredPersonList().get(0), editedPerson);
@@ -222,11 +225,50 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_addExistingContext_keepsExistingSpelling() {
-        // Alice already has "CS2103T", so "cs2103t" is skipped and the success message still shows "CS2103T"
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withContextsToAdd("cs2103t").build();
+    public void execute_addExistingContext_keepsExistingSpellingAndShowsNote() {
+        // Alice already has "CS2103T", so "cs2103t" is skipped and both messages show "CS2103T"
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withContextsToAdd("cs2103t").build());
 
-        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, ALICE);
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(ALICE))
+                + "\nNote: Alice Pauline already has context(s): [CS2103T]. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_addExistingAndNewContexts_notesOnlySkippedContexts() {
+        // Benson has "Hiking club" and "CS2103T"; the note keeps the typed order and Benson's spelling
+        EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, new EditPersonDescriptorBuilder()
+                .withContextsToAdd("cs2103t", "NUS Hackers", "hiking CLUB").build());
+        Person editedBenson = new PersonBuilder(BENSON).withContexts("Hiking club", "CS2103T", "NUS Hackers").build();
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(editedBenson))
+                + "\nNote: Benson Meier already has context(s): [CS2103T] [Hiking club]. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(BENSON, editedBenson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_renameAndAddExistingContext_noteUsesNewName() {
+        // the note names the person after the edit, matching the success message above it
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
+                .withName("Alice Tan").withContextsToAdd("cs2103t").build());
+        Person editedAlice = new PersonBuilder(ALICE).withName("Alice Tan").build();
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice))
+                + "\nNote: Alice Tan already has context(s): [CS2103T]. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, editedAlice);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
     @Test
