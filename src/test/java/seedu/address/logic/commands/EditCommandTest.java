@@ -5,8 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_ALIAS_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_ALIAS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_HUSBAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTRODUCER_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTRODUCER_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
@@ -35,6 +41,9 @@ import seedu.address.testutil.PersonBuilder;
  */
 public class EditCommandTest {
 
+    private static final Person ALICE_WITH_DETAILS = new PersonBuilder(ALICE).withAlias(VALID_ALIAS_AMY)
+            .withIntroducer(VALID_INTRODUCER_AMY).withNote(VALID_NOTE_AMY).build();
+
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
@@ -50,7 +59,8 @@ public class EditCommandTest {
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
-        Person editedPerson = new PersonBuilder().build();
+        Person editedPerson = new PersonBuilder().withAlias(VALID_ALIAS_AMY)
+                .withIntroducer(VALID_INTRODUCER_AMY).withNote(VALID_NOTE_AMY).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 
@@ -131,6 +141,54 @@ public class EditCommandTest {
         expectedModel.setPerson(aliceWithDetails, editedPerson);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_setAliasIntroducerAndNote_success() {
+        // Alice has none of these fields yet
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAlias(VALID_ALIAS_AMY)
+                .withIntroducer(VALID_INTRODUCER_AMY).withNote(VALID_NOTE_AMY).build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, ALICE_WITH_DETAILS);
+    }
+
+    @Test
+    public void execute_replaceAliasIntroducerAndNote_success() {
+        model.setPerson(ALICE, ALICE_WITH_DETAILS);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAlias(VALID_ALIAS_BOB)
+                .withIntroducer(VALID_INTRODUCER_BOB).withNote(VALID_NOTE_BOB).build();
+        Person editedAlice = new PersonBuilder(ALICE).withAlias(VALID_ALIAS_BOB)
+                .withIntroducer(VALID_INTRODUCER_BOB).withNote(VALID_NOTE_BOB).build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedAlice);
+    }
+
+    @Test
+    public void execute_removeAliasIntroducerAndNote_success() {
+        // Alice keeps her phone, email and contexts
+        model.setPerson(ALICE, ALICE_WITH_DETAILS);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAliasRemoved()
+                .withIntroducerRemoved().withNoteRemoved().build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, ALICE);
+    }
+
+    @Test
+    public void execute_removeNote_keepsAliasAndIntroducer() {
+        model.setPerson(ALICE, ALICE_WITH_DETAILS);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withNoteRemoved().build();
+        Person editedAlice = new PersonBuilder(ALICE).withAlias(VALID_ALIAS_AMY)
+                .withIntroducer(VALID_INTRODUCER_AMY).build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedAlice);
+    }
+
+    @Test
+    public void execute_removeMissingAlias_noChange() {
+        // removing an alias the person does not have is accepted and changes nothing
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAliasRemoved().build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, ALICE);
     }
 
     @Test
