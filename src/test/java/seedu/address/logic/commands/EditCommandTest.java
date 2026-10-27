@@ -5,8 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_ALIAS_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_ALIAS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_HUSBAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTRODUCER_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTRODUCER_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
@@ -35,6 +41,9 @@ import seedu.address.testutil.PersonBuilder;
  */
 public class EditCommandTest {
 
+    private static final Person ALICE_WITH_DETAILS = new PersonBuilder(ALICE).withAlias(VALID_ALIAS_AMY)
+            .withIntroducer(VALID_INTRODUCER_AMY).withNote(VALID_NOTE_AMY).build();
+
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
@@ -50,11 +59,15 @@ public class EditCommandTest {
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
-        Person editedPerson = new PersonBuilder().build();
+        Person editedPerson = new PersonBuilder().withAlias(VALID_ALIAS_AMY)
+                .withIntroducer(VALID_INTRODUCER_AMY).withNote(VALID_NOTE_AMY).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        // the first person already has the default context, so it is skipped
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                + "\n" + String.format(EditCommand.MESSAGE_CONTEXTS_SKIPPED, editedPerson.getName(),
+                        "[" + PersonBuilder.DEFAULT_CONTEXT + "]");
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(model.getFilteredPersonList().get(0), editedPerson);
@@ -127,6 +140,52 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_setAliasIntroducerAndNote_success() {
+        // Alice has none of these fields yet
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAlias(VALID_ALIAS_AMY)
+                .withIntroducer(VALID_INTRODUCER_AMY).withNote(VALID_NOTE_AMY).build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, ALICE_WITH_DETAILS);
+    }
+
+    @Test
+    public void execute_replaceAliasIntroducerAndNote_success() {
+        model.setPerson(ALICE, ALICE_WITH_DETAILS);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAlias(VALID_ALIAS_BOB)
+                .withIntroducer(VALID_INTRODUCER_BOB).withNote(VALID_NOTE_BOB).build();
+        Person editedAlice = new PersonBuilder(ALICE).withAlias(VALID_ALIAS_BOB)
+                .withIntroducer(VALID_INTRODUCER_BOB).withNote(VALID_NOTE_BOB).build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedAlice);
+    }
+
+    @Test
+    public void execute_removeAliasIntroducerAndNote_success() {
+        // Alice keeps her phone, email and contexts
+        model.setPerson(ALICE, ALICE_WITH_DETAILS);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAliasRemoved()
+                .withIntroducerRemoved().withNoteRemoved().build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, ALICE);
+    }
+
+    @Test
+    public void execute_removeNote_keepsAliasAndIntroducer() {
+        model.setPerson(ALICE, ALICE_WITH_DETAILS);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withNoteRemoved().build();
+        Person editedAlice = new PersonBuilder(ALICE).withAlias(VALID_ALIAS_AMY)
+                .withIntroducer(VALID_INTRODUCER_AMY).build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedAlice);
+    }
+
+    @Test
+    public void execute_removeMissingAlias_noChange() {
+        // removing an alias the person does not have is accepted and changes nothing
+        assertNoChange(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder().withAliasRemoved().build());
+    }
+
+    @Test
     public void execute_removeContext_success() {
         // Benson has the contexts "Hiking club" and "CS2103T"
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
@@ -157,11 +216,17 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_addExistingContext_noChange() {
-        // Alice already has "CS2103T", so "cs2103t" is skipped and her existing spelling is kept
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withContextsToAdd("cs2103t").build();
+    public void execute_addExistingContext_noChangeWithNote() {
+        // Alice already has "CS2103T", so "cs2103t" is skipped, nothing changes and the note shows "CS2103T"
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withContextsToAdd("cs2103t").build());
 
-        assertNoChange(INDEX_FIRST_PERSON, descriptor);
+        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, ALICE.getName())
+                + "\nNote: Alice Pauline already has context(s): [CS2103T]. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
     @Test
@@ -190,6 +255,39 @@ public class EditCommandTest {
         // emails match ignoring case, so check the saved spelling directly
         assertEquals("Alice@Example.com",
                 model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getEmail().get().value);
+    }
+
+    @Test
+    public void execute_addExistingAndNewContexts_notesOnlySkippedContexts() {
+        // Benson has "Hiking club" and "CS2103T"; the note keeps the typed order and Benson's spelling
+        EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, new EditPersonDescriptorBuilder()
+                .withContextsToAdd("cs2103t", "NUS Hackers", "hiking CLUB").build());
+        Person editedBenson = new PersonBuilder(BENSON).withContexts("Hiking club", "CS2103T", "NUS Hackers").build();
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(editedBenson))
+                + "\nNote: Benson Meier already has context(s): [CS2103T] [Hiking club]. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(BENSON, editedBenson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_renameAndAddExistingContext_noteUsesNewName() {
+        // the note names the person after the edit, matching the success message above it
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
+                .withName("Alice Tan").withContextsToAdd("cs2103t").build());
+        Person editedAlice = new PersonBuilder(ALICE).withName("Alice Tan").build();
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice))
+                + "\nNote: Alice Tan already has context(s): [CS2103T]. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, editedAlice);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
     @Test
