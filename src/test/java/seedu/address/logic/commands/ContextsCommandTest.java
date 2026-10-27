@@ -2,7 +2,10 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.model.Model.PREDICATE_SHOW_ACTIVE;
+import static seedu.address.model.Model.PREDICATE_SHOW_ARCHIVED;
 
 import java.util.List;
 
@@ -50,7 +53,52 @@ public class ContextsCommandTest {
     }
 
     @Test
-    public void execute_multipleContexts_groupsNormalisedNamesAndSortsIgnoringCase() {
+    public void execute_archivedPersons_excludesTheirCountsContextsAndSpelling() {
+        Person archived = createPerson("Marcus Lim", "cs2103t", "Old Project").copyWithArchived(true);
+        Model model = createModel(archived, createPerson("Alex Tan", "CS2103T"),
+                createPerson("Priya Nair", "cs2103t", "NUS Hackers"));
+
+        assertCommandSuccess(new ContextsCommand(), model,
+                expectedOverview(contextLine("CS2103T", 2), contextLine("NUS Hackers", 1)),
+                new ModelManager(model.getAddressBook(), new UserPrefs()));
+    }
+
+    @Test
+    public void execute_onlyArchivedPersons_showsNoActiveContexts() {
+        Model model = createModel(createPerson("Alex Tan", "CS2103T").copyWithArchived(true));
+
+        assertCommandSuccess(new ContextsCommand(), model, ContextsCommand.MESSAGE_NO_ACTIVE_CONTEXTS,
+                new ModelManager(model.getAddressBook(), new UserPrefs()));
+    }
+
+    @Test
+    public void execute_archiveView_countsActivePersonsAndPreservesView() {
+        Person archived = createPerson("Marcus Lim", "Old Project").copyWithArchived(true);
+        Model model = createModel(archived, createPerson("Alex Tan", "CS2103T"));
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        model.updateFilteredPersonList(PREDICATE_SHOW_ARCHIVED);
+        expectedModel.updateFilteredPersonList(PREDICATE_SHOW_ARCHIVED);
+
+        assertCommandSuccess(new ContextsCommand(), model, expectedOverview(contextLine("CS2103T", 1)), expectedModel);
+        assertTrue(model.showingArchivesProperty().get());
+        assertEquals(List.of(archived), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_onlyArchivedPersonsInArchiveView_preservesView() {
+        Person archived = createPerson("Alex Tan", "CS2103T").copyWithArchived(true);
+        Model model = createModel(archived);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        model.updateFilteredPersonList(PREDICATE_SHOW_ARCHIVED);
+        expectedModel.updateFilteredPersonList(PREDICATE_SHOW_ARCHIVED);
+
+        assertCommandSuccess(new ContextsCommand(), model, ContextsCommand.MESSAGE_NO_ACTIVE_CONTEXTS, expectedModel);
+        assertTrue(model.showingArchivesProperty().get());
+        assertEquals(List.of(archived), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_multipleContexts_groupsNormalizedNamesAndSortsIgnoringCase() {
         Person alex = createPerson("Alex Tan", "nus   Hackers", "cs2103t", "CS2103T", "CS2103", "Zeta");
         Person priya = createPerson("Priya Nair", "NUS Hackers", "CS2103T", "Alpha");
         Person marcus = createPerson("Marcus Lim", "CS2103T");
@@ -73,14 +121,15 @@ public class ContextsCommandTest {
     }
 
     @Test
-    public void execute_filteredList_countsAllContactsAndPreservesFilter() {
+    public void execute_filteredList_countsAllActivePersonsAndPreservesFilter() {
         Person alex = createPerson("Alex Tan", "CS2103T");
         Person priya = createPerson("Priya Nair", "NUS Hackers");
-        Model model = createModel(alex, priya);
+        Person archived = createPerson("Alex Lee", "Old Project").copyWithArchived(true);
+        Model model = createModel(alex, priya, archived);
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         PersonContainsKeywordsPredicate predicate = new PersonContainsKeywordsPredicate(List.of("Alex"));
-        model.updateFilteredPersonList(predicate);
-        expectedModel.updateFilteredPersonList(predicate);
+        model.updateFilteredPersonList(PREDICATE_SHOW_ACTIVE.and(predicate));
+        expectedModel.updateFilteredPersonList(PREDICATE_SHOW_ACTIVE.and(predicate));
 
         assertCommandSuccess(new ContextsCommand(), model,
                 expectedOverview(contextLine("CS2103T", 1), contextLine("NUS Hackers", 1)), expectedModel);
@@ -123,6 +172,29 @@ public class ContextsCommandTest {
 
         model.setAddressBook(new AddressBook());
         assertEquals(ContextsCommand.MESSAGE_NO_CONTEXTS, command.execute(model).getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_archiveStatusChanges_recomputesCountsAndDisplaySpelling() {
+        Person alex = createPerson("Alex Tan", "cs2103t");
+        Person priya = createPerson("Priya Nair", "CS2103T");
+        Model model = createModel(alex, priya);
+        ContextsCommand command = new ContextsCommand();
+        assertEquals(expectedOverview(contextLine("cs2103t", 2)), command.execute(model).getFeedbackToUser());
+
+        Person archivedAlex = alex.copyWithArchived(true);
+        model.setPerson(alex, archivedAlex);
+        assertEquals(expectedOverview(contextLine("CS2103T", 1)), command.execute(model).getFeedbackToUser());
+
+        Person archivedPriya = priya.copyWithArchived(true);
+        model.setPerson(priya, archivedPriya);
+        assertEquals(ContextsCommand.MESSAGE_NO_ACTIVE_CONTEXTS, command.execute(model).getFeedbackToUser());
+
+        model.setPerson(archivedAlex, alex);
+        assertEquals(expectedOverview(contextLine("cs2103t", 1)), command.execute(model).getFeedbackToUser());
+
+        model.setPerson(archivedPriya, priya);
+        assertEquals(expectedOverview(contextLine("cs2103t", 2)), command.execute(model).getFeedbackToUser());
     }
 
     private String contextLine(String context, int count) {
