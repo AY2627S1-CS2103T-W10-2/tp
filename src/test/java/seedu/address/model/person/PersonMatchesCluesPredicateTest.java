@@ -19,6 +19,9 @@ public class PersonMatchesCluesPredicateTest {
             .withPhone("91234567")
             .withEmail("tony@example.com")
             .withContexts("CS2103T", "Hack&Roll")
+            .withAlias("Toto")
+            .withIntroducer("Alice Tan")
+            .withNote("Met my project  teammate at Hack&Roll")
             .build();
 
     @Test
@@ -57,6 +60,54 @@ public class PersonMatchesCluesPredicateTest {
                 Optional.of("zHaNg"), List.of("cS2103"));
 
         assertTrue(predicate.test(TONY));
+    }
+
+    @Test
+    public void test_allSupportedCluesMatch_returnsTrue() {
+        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
+                Optional.of("ton"), Optional.of("1234"), Optional.of("@EXAMPLE.COM"),
+                List.of("2103", "hack"), Optional.of("tot"), Optional.of("alice"),
+                Optional.of("project teammate"));
+
+        assertTrue(predicate.test(TONY));
+    }
+
+    @Test
+    public void test_eachAdditionalFieldMatchesOwnClue_returnsTrue() {
+        assertTrue(createPredicate(Optional.empty(), Optional.of("1234"), Optional.empty(),
+                List.of(), Optional.empty(), Optional.empty(), Optional.empty()).test(TONY));
+        assertTrue(createPredicate(Optional.empty(), Optional.empty(), Optional.of("@example"),
+                List.of(), Optional.empty(), Optional.empty(), Optional.empty()).test(TONY));
+        assertTrue(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                List.of(), Optional.of("toto"), Optional.empty(), Optional.empty()).test(TONY));
+        assertTrue(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                List.of(), Optional.empty(), Optional.of("tan"), Optional.empty()).test(TONY));
+        assertTrue(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                List.of(), Optional.empty(), Optional.empty(), Optional.of("hack&roll")).test(TONY));
+    }
+
+    @Test
+    public void test_missingOptionalFieldWithCorrespondingClue_returnsFalse() {
+        Person personWithMissingOptionalFields = new PersonBuilder()
+                .withoutPhone()
+                .withoutEmail()
+                .build();
+
+        assertFalse(createPredicate(Optional.empty(), Optional.of("1234"), Optional.empty(),
+                List.of(), Optional.empty(), Optional.empty(), Optional.empty())
+                .test(personWithMissingOptionalFields));
+        assertFalse(createPredicate(Optional.empty(), Optional.empty(), Optional.of("@example"),
+                List.of(), Optional.empty(), Optional.empty(), Optional.empty())
+                .test(personWithMissingOptionalFields));
+        assertFalse(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                List.of(), Optional.of("toto"), Optional.empty(), Optional.empty())
+                .test(personWithMissingOptionalFields));
+        assertFalse(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                List.of(), Optional.empty(), Optional.of("tan"), Optional.empty())
+                .test(personWithMissingOptionalFields));
+        assertFalse(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
+                List.of(), Optional.empty(), Optional.empty(), Optional.of("project"))
+                .test(personWithMissingOptionalFields));
     }
 
     @Test
@@ -114,7 +165,15 @@ public class PersonMatchesCluesPredicateTest {
                 Optional.of("Tony"), List.of("CS2103T"));
 
         String expected = PersonMatchesCluesPredicate.class.getCanonicalName()
-                + "{nameClue=Tony, contextClues=[CS2103T]}";
+                + "{nameClue=Tony, phoneClue=null, emailClue=null, contextClues=[CS2103T], "
+                + "aliasClue=null, introducerClue=null, noteClue=null}";
         assertEquals(expected, predicate.toString());
+    }
+
+    private static PersonMatchesCluesPredicate createPredicate(Optional<String> nameClue,
+            Optional<String> phoneClue, Optional<String> emailClue, List<String> contextClues,
+            Optional<String> aliasClue, Optional<String> introducerClue, Optional<String> noteClue) {
+        return new PersonMatchesCluesPredicate(nameClue, phoneClue, emailClue, contextClues,
+                aliasClue, introducerClue, noteClue);
     }
 }

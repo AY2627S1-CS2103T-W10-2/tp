@@ -1,7 +1,12 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
@@ -45,6 +50,17 @@ public class FindCommandParserTest {
     }
 
     @Test
+    public void parse_allStructuredFieldsInAnyOrder_returnsFindCommand() {
+        FindCommand expectedFindCommand = new FindCommand(new PersonMatchesCluesPredicate(
+                Optional.of("Tony Zhang"), Optional.of("9123"), Optional.of("@u.nus.edu"),
+                List.of("CS2103T", "Hack"), Optional.of("Toto"), Optional.of("Alice Tan"),
+                Optional.of("project teammate")));
+
+        assertParseSuccess(parser, "nt/project   teammate c/CS2103T a/Toto p/9123 "
+                + "n/Tony Zhang i/Alice Tan e/@u.nus.edu c/Hack", expectedFindCommand);
+    }
+
+    @Test
     public void parse_nameOnly_returnsFindCommand() {
         FindCommand expectedFindCommand = new FindCommand(new PersonMatchesCluesPredicate(
                 Optional.of("Tony"), List.of()));
@@ -71,7 +87,12 @@ public class FindCommandParserTest {
     @Test
     public void parse_emptyStructuredClue_throwsParseException() {
         assertParseFailure(parser, "n/", FindCommand.MESSAGE_EMPTY_NAME_CLUE);
+        assertParseFailure(parser, "p/", FindCommand.MESSAGE_EMPTY_PHONE_CLUE);
+        assertParseFailure(parser, "e/", FindCommand.MESSAGE_EMPTY_EMAIL_CLUE);
         assertParseFailure(parser, "c/", FindCommand.MESSAGE_EMPTY_CONTEXT_CLUE);
+        assertParseFailure(parser, "a/", FindCommand.MESSAGE_EMPTY_ALIAS_CLUE);
+        assertParseFailure(parser, "i/", FindCommand.MESSAGE_EMPTY_INTRODUCER_CLUE);
+        assertParseFailure(parser, "nt/", FindCommand.MESSAGE_EMPTY_NOTE_CLUE);
         assertParseFailure(parser, "n/Tony c/", FindCommand.MESSAGE_EMPTY_CONTEXT_CLUE);
     }
 
@@ -79,6 +100,20 @@ public class FindCommandParserTest {
     public void parse_duplicateNamePrefix_throwsParseException() {
         assertParseFailure(parser, "n/Tony n/Zhang",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME));
+    }
+
+    @Test
+    public void parse_duplicateSingleValuedPrefix_throwsParseException() {
+        assertParseFailure(parser, "p/9123 p/8765",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE));
+        assertParseFailure(parser, "e/tony@example.com e/tony@u.nus.edu",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_EMAIL));
+        assertParseFailure(parser, "a/Toto a/TZ",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ALIAS));
+        assertParseFailure(parser, "i/Alice i/Bob",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_INTRODUCER));
+        assertParseFailure(parser, "nt/project nt/friend",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NOTE));
     }
 
     @Test
@@ -90,9 +125,9 @@ public class FindCommandParserTest {
     @Test
     public void parse_unsupportedOrUppercasePrefix_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, "p/91234567", expectedMessage);
         assertParseFailure(parser, "x/value", expectedMessage);
         assertParseFailure(parser, "N/Tony", expectedMessage);
+        assertParseFailure(parser, "P/91234567", expectedMessage);
     }
 
 }

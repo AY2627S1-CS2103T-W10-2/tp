@@ -17,12 +17,14 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.model.person.PersonMatchesCluesPredicate;
+import seedu.address.testutil.PersonBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) for {@code FindCommand}.
@@ -98,6 +100,32 @@ public class FindCommandTest {
 
         assertCommandSuccess(command, model, MESSAGE_NO_PERSONS_FOUND, expectedModel);
         assertEquals(List.of(), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_allSupportedClues_matchingPersonFound() {
+        Person tony = new PersonBuilder()
+                .withName("Tony Zhang")
+                .withPhone("91234567")
+                .withEmail("tony@example.com")
+                .withContexts("CS2103T", "Hack&Roll")
+                .withAlias("Toto")
+                .withIntroducer("Alice Tan")
+                .withNote("Project teammate")
+                .build();
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(tony);
+        Model modelWithTony = new ModelManager(addressBook, new UserPrefs());
+        Model expectedModelWithTony = new ModelManager(addressBook, new UserPrefs());
+        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
+                Optional.of("ton"), Optional.of("1234"), Optional.of("@example"),
+                List.of("2103", "hack"), Optional.of("tot"), Optional.of("alice"),
+                Optional.of("project"));
+        expectedModelWithTony.updateFilteredPersonList(Model.PREDICATE_SHOW_ACTIVE.and(predicate));
+
+        assertCommandSuccess(new FindCommand(predicate), modelWithTony,
+                String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModelWithTony);
+        assertEquals(List.of(tony), modelWithTony.getFilteredPersonList());
     }
 
     @Test

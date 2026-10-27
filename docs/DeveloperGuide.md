@@ -241,25 +241,25 @@ The `find` command supports two search modes while preserving the existing keywo
 
 * An unprefixed command such as `find Alex CS2103T` uses `PersonContainsKeywordsPredicate`. A person matches when
   any keyword occurs in the person's name or contexts.
-* A structured command such as `find n/Alex c/CS2103T` uses `PersonMatchesCluesPredicate`. A person matches only
-  when the optional name clue and every context clue match their corresponding fields.
+* A structured command such as `find n/Alex c/CS2103T nt/project` uses `PersonMatchesCluesPredicate`. A person
+  matches only when every supplied clue matches its corresponding field.
 
 `FindCommandParser` selects the mode by scanning the arguments for prefix-like tokens. If none are present, it creates
-the existing keyword predicate. If tokens are present, only `n/` and `c/` are accepted. The parser then uses
-`ArgumentTokenizer` to read the clues, allowing the prefixes to appear in any order. `n/` may appear at most once,
-while `c/` is repeatable.
+the existing keyword predicate. If tokens are present, only `n/`, `p/`, `e/`, `c/`, `a/`, `i/` and `nt/` are accepted.
+The parser then uses `ArgumentTokenizer` to read the clues, allowing the prefixes to appear in any order. `n/`, `p/`,
+`e/`, `a/`, `i/` and `nt/` may each appear at most once, while `c/` is repeatable.
 
 Before constructing `PersonMatchesCluesPredicate`, the parser trims each clue, collapses repeated whitespace and
 removes equivalent repeated context clues case-insensitively. Unsupported prefixes, empty clues and unprefixed text
 before a structured clue are rejected without changing the current filtered list.
 
 `FindCommand` stores a `Predicate<Person>` rather than a concrete predicate type, allowing both search modes to share
-the same command execution. In structured mode, `PersonMatchesCluesPredicate` checks the name clue against the
-person's name and uses AND matching across the context clues. Each individual context clue may match any one of the
-person's contexts.
+the same command execution. In structured mode, `PersonMatchesCluesPredicate` checks each clue only against its
+corresponding person field and combines all results using AND. Each individual context clue may match any one of the
+person's contexts. A person with a missing optional field does not match a clue for that field. Comparisons are
+case-insensitive partial matches, with repeated whitespace treated as one space.
 
-This separation keeps the legacy OR search unchanged and allows more structured clue types to be introduced later
-without changing `FindCommand` execution.
+This separation keeps the legacy name-and-context OR search unchanged without changing `FindCommand` execution.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -403,7 +403,7 @@ US1 to US22 retain the identifiers from the Project Notes.
 | US18 | `* * *` | CS student reconnecting with people from a particular activity | view contacts associated with a module, event, project, or organisation | rediscover people from that group |
 
 Context-based search (US10) directly supports UniContacts' value proposition: retrieving people through the contexts
-in which the user knows them. Multi-clue search (US17) extends this by requiring every supplied name or context clue to
+in which the user knows them. Multi-clue search (US17) extends this by requiring every supplied field-specific clue to
 match the same contact.
 
 #### Future candidates
@@ -807,6 +807,25 @@ testers are expected to do more *exploratory* testing.
        Expected: The most recent window size and location are retained.
 
 1. _{ more test cases …​ }_
+
+### Finding a person using multiple clues
+
+1. Matching clues across all supported fields
+
+   1. Prerequisites: Add a contact using `add n/Tony Zhang p/91234567 e/tony@example.com c/CS2103T`
+      `c/Hack&Roll a/Toto i/Alice Tan nt/Project teammate`.
+
+   1. Test case: `find nt/project c/Hack p/9123 n/tony i/alice e/@example a/toto c/2103`<br>
+      Expected: Tony Zhang is the only displayed contact. The order of the prefixes does not affect the result.
+
+   1. Test case: `find n/Tony c/CS2103T nt/internship`<br>
+      Expected: No contacts are displayed and the status message is `No persons found!`, because every clue must match.
+
+   1. Test case: `find p/`<br>
+      Expected: The displayed list is unchanged and the status message is `Phone search clue cannot be empty.`
+
+   1. Test case: `find a/Toto a/TZ`<br>
+      Expected: The displayed list is unchanged and the status message reports that `a/` was specified more than once.
 
 ### Deleting a person
 

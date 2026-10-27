@@ -125,11 +125,14 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_findWithStructuredClues() throws Exception {
         FindCommand expectedCommand = new FindCommand(new PersonMatchesCluesPredicate(
-                Optional.of("Tony"), List.of("CS2103T")));
+                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
+                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project")));
 
-        assertEquals(expectedCommand, parser.parseCommand("find n/Tony c/CS2103T"));
-        assertEquals(expectedCommand, parser.parseCommand("find c/CS2103T n/Tony"));
-        assertEquals(expectedCommand, parser.parseCommand("FIND n/Tony c/CS2103T"));
+        String clues = "n/Tony p/9123 e/@example.com c/CS2103T a/Toto i/Alice nt/project";
+        String reorderedClues = "nt/project i/Alice a/Toto c/CS2103T e/@example.com p/9123 n/Tony";
+        assertEquals(expectedCommand, parser.parseCommand("find " + clues));
+        assertEquals(expectedCommand, parser.parseCommand("find " + reorderedClues));
+        assertEquals(expectedCommand, parser.parseCommand("FIND " + clues));
     }
 
     @Test
