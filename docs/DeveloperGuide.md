@@ -261,6 +261,29 @@ case-insensitive partial matches, with repeated whitespace treated as one space.
 
 This separation keeps the legacy name-and-context OR search unchanged without changing `FindCommand` execution.
 
+### Edit feature
+
+#### Implementation
+
+`EditCommandParser` records the requested changes in an `EditPersonDescriptor`, and `EditCommand` applies them to a
+copy of the person, because `Person` is immutable. Besides setting a field, `edit` can remove the phone number or
+email with `-p/` or `-e/`.
+
+The activity diagram below shows how the parser handles the phone prefixes. Checks on other parts of the command,
+such as the index and the name, are left out.
+
+![Activity diagram of how edit handles phone prefixes](images/EditPhoneActivityDiagram.png)
+
+Each check rejects the command with its own error. When a command breaks more than one rule, the order of the checks
+decides which error the user sees. For example, `edit 1 p/ -p/` is rejected because it sets and removes the phone
+number, not because `p/` is empty. Removing uses its own prefix instead of an empty `p/`, because an empty `p/` is
+easy to send by accident, such as by pressing Enter before typing the number. The error for an empty `p/` points the
+user to `-p/`.
+
+The diagram uses phone as the example, but the activity is the same for every other optional field prefix and its
+removal prefix (such as `e/` and `-e/`). Only the prefix changes. `parsePhoneForEdit` and `parseEmailForEdit` mirror each other, so a change to
+one should be made to the other.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation

@@ -238,16 +238,20 @@ and also matches partial names and contexts.
 
 Edits the person at the given index in the displayed list.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [-p/] [-e/] [+c/CONTEXT]…​ [-c/CONTEXT]…​`
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [nt/NOTE]`<br>
+`[-p/] [-e/] [-a/] [-i/] [-nt/]`<br>
+`[+c/CONTEXT]…​ [-c/CONTEXT]…​`
+
+The format is split over lines to make it easier to read. Type the whole command on one line.
 
 * `INDEX` is the number shown beside the person in the displayed list, such as `1` or `2`. After a `find`, it refers to the filtered list.
 * At least one of the other parameters must be given. Anything you leave out stays as it is.
-* `n/NAME`, `p/PHONE` and `e/EMAIL` replace the current value. Their values follow the same rules as in [`add`](#adding-a-person-add).
-* `-p/` removes the phone number and `-e/` removes the email. They take no value after them. Removing a phone number or email the person does not have changes nothing.
+* `n/NAME`, `p/PHONE`, `e/EMAIL`, `a/ALIAS`, `i/INTRODUCER` and `nt/NOTE` set or replace the current value. Their values follow the same rules as in [`add`](#adding-a-person-add).
+* `-p/`, `-e/`, `-a/`, `-i/` and `-nt/` remove the phone number, email, alias, introducer and note. They take no value after them, and cannot be given with the prefix that sets the same field, such as `p/` with `-p/`. Removing a field the person does not have changes nothing.
 * `+c/CONTEXT` adds a context and `-c/CONTEXT` removes one. Repeat them to add or remove several contexts, one context each.
 * `-c/` is applied before `+c/`, so you can swap a person's only context in one command.
 * A person must keep at least one context.
-* `n/`, `p/`, `e/`, `-p/` and `-e/` can each be given only once.
+* Every prefix other than `+c/` and `-c/` can be given only once.
 * An archived person cannot be edited: AddressBook shows `This person is archived and can't be edited. Unarchive the person first.` Use [`unarchive`](#unarchiving-a-person-unarchive) first.
 
 Examples:
@@ -256,10 +260,11 @@ Examples:
 * `edit 3 +c/RC4 -c/Hall` replaces the 3rd person's only context, `Hall`, with `RC4`.
 * `edit 2 -c/hiking club +c/Hiking Club` changes how the 2nd person's `Hiking club` context is spelt.
 * `edit 4 n/David Li Wei -e/` renames the 4th person and removes their email.
+* `edit 1 a/Alex nt/Prefers Telegram -i/` gives the 1st person the alias `Alex` and a note, and removes who introduced them.
 
 How contexts are matched:
 * Contexts are compared ignoring capitalisation and repeated spaces, as in `add`. So `-c/hiking club` removes `Hiking club`.
-* `+c/` with a context the person already has changes nothing, and the existing spelling is kept. To change the spelling, remove the context and add it back, as in the 4th example.
+* `+c/` with a context the person already has is skipped, and the existing spelling is kept. The result display lists the skipped contexts in a note. To change the spelling, remove the context and add it back, as in the 4th example.
 * If any `-c/` context is not one the person has, nothing is changed.
 
 **If the command succeeds**
@@ -267,6 +272,12 @@ How contexts are matched:
 The list shows all persons again. The result display shows the person's new details. For example, with the sample data, `edit 2 +c/NUS Hackers -c/Hiking club` shows:
 
 `Edited person: Bernice Yu; Contexts: [CS2103T] [NUS Hackers]; Phone: 99272758; Email: berniceyu@example.com`
+
+If the person has an alias, introducer or note, it is shown too, as in `add`.
+
+If any `+c/` context was skipped because the person already has it, a note follows on a new line, using the person's existing spelling. For example, `edit 2 +c/cs2103t +c/NUS Hackers` on Bernice Yu, who has `CS2103T`, adds this line:
+
+`Note: Bernice Yu already has context(s): [CS2103T]. Skipped.`
 
 **Duplicate persons**
 
@@ -284,10 +295,10 @@ Index larger than the displayed list | `edit 99 n/Alex Tan` | `The person index 
 `c/` instead of `+c/` or `-c/` | `edit 1 c/CS2040S` | `Use +c/ to add a context or -c/ to remove one.`
 A `-c/` context the person does not have | `edit 1 -c/CS2040S` | `Alex Yeoh does not have context(s): [CS2040S]. Check the spelling.`
 Removing every context | `edit 1 -c/CS2103T` | `A person must have at least one context. Add a new context with +c/ before removing the last one.`
-`p/` and `-p/`, or `e/` and `-e/`, together | `edit 1 p/91234567 -p/`<br>`edit 1 e/alex@example.com -e/` | `Cannot set and remove the phone number in the same command.`<br>`Cannot set and remove the email in the same command.`
-A value after `-p/` or `-e/` | `edit 1 -p/91234567`<br>`edit 1 -e/alex@example.com` | `-p/ does not take a value. Use p/PHONE to change the phone number.`<br>`-e/ does not take a value. Use e/EMAIL to change the email.`
-Nothing after `n/`, `p/`, `e/`, `+c/` or `-c/` | `edit 1 p/` | Depending on the prefix:<br>`Name cannot be empty.`<br>`Phone number cannot be empty. Use -p/ to remove the phone number.`<br>`Email cannot be empty. Use -e/ to remove the email.`<br>`Contexts cannot be empty.`
-`n/`, `p/`, `e/`, `-p/` or `-e/` given more than once | `edit 1 p/91234567 p/98765432` | `Multiple values specified for the following single-valued field(s): p/`
+A prefix that sets a field together with the prefix that removes it, such as `p/` and `-p/` | `edit 1 p/91234567 -p/`<br>`edit 1 a/Alex -a/` | `Cannot set and remove the phone number in the same command.`<br>`Cannot set and remove the alias in the same command.`<br>The email, introducer and note give the same message with their own name.
+A value after `-p/`, `-e/`, `-a/`, `-i/` or `-nt/` | `edit 1 -p/91234567`<br>`edit 1 -nt/Met at NUS` | `-p/ does not take a value. Use p/PHONE to change the phone number.`<br>`-nt/ does not take a value. Use nt/NOTE to change the note.`<br>`-e/`, `-a/` and `-i/` give the same message for their own field.
+Nothing after `n/`, `p/`, `e/`, `a/`, `i/`, `nt/`, `+c/` or `-c/` | `edit 1 p/` | Depending on the prefix:<br>`Name cannot be empty.`<br>`Phone number cannot be empty. Use -p/ to remove the phone number.`<br>`Email cannot be empty. Use -e/ to remove the email.`<br>`Alias cannot be empty. Use -a/ to remove the alias.`<br>`Introducer cannot be empty. Use -i/ to remove the introducer.`<br>`Note cannot be empty. Use -nt/ to remove the note.`<br>`Contexts cannot be empty.`
+Any prefix other than `+c/` or `-c/` given more than once | `edit 1 p/91234567 p/98765432` | `Multiple values specified for the following single-valued field(s): p/`
 A value that breaks its rule | `edit 1 p/9123-4567` | That parameter's rule, such as `Phone numbers should contain only digits, may start with +, and have 3 to 15 digits.`
 Another person has the same phone number or email | `edit 1 p/99272758` | `This person already exists: Bernice Yu has the same phone number (99272758).`
 
@@ -508,7 +519,7 @@ Action | Format, Examples
 **Clear** | `clear`
 **Contexts** | `contexts`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [-p/] [-e/] [+c/CONTEXT]…​ [-c/CONTEXT]…​`<br> e.g., `edit 2 p/91234567 +c/NUS Hackers -c/Hiking club`
+**Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [nt/NOTE] [-p/] [-e/] [-a/] [-i/] [-nt/] [+c/CONTEXT]…​ [-c/CONTEXT]…​`<br> e.g., `edit 2 p/91234567 +c/NUS Hackers -c/Hiking club`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…` or `find [n/NAME_PART] [p/PHONE_PART] [e/EMAIL_PART] [c/CONTEXT_PART]… [a/ALIAS_PART] [i/INTRODUCER_PART] [nt/NOTE_PART]`<br> e.g., `find n/Tony Zhang c/CS2103T a/Toto`
 **List** | `list`
 **Help** | `help`
