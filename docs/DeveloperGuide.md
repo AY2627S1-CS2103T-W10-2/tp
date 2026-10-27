@@ -211,13 +211,15 @@ The new commands follow the pattern of `delete`:
 
 ![Decisions made when parsing archive and unarchive](images/ArchiveParseActivityDiagram.png)
 
-`ContextArgumentParser` rejects `c/` together with an index or with any other prefix (for example `archive c/CS2103T n/John`), and rejects a repeated `c/`. Any token of the form `word/` counts as a prefix, since a context cannot contain a `/`.
+`ContextArgumentParser` rejects `c/` together with an index or with any other prefix (for example `archive c/CS2103T n/John`), and rejects a repeated `c/`. It recognises every prefix defined in `CliSyntax` (including `+c/`, `-c/`, `-p/` and `-e/`) by tokenizing with `ArgumentTokenizer`, as `AddCommandParser` and `EditCommandParser` do, so the same rule decides where a prefix starts in every command: a prefix only counts after a space. A prefix added to `CliSyntax` must also be added to `ContextArgumentParser`; a test fails if it is not.
 
 The sequence diagram shows what happens when the user enters `archive c/CS2103T`.
 
 ![Interactions for the `archive c/CS2103T` command](images/ArchiveByContextSequenceDiagram.png)
 
 `unarchive c/CS2103T` is the same, with the flag `false`, so the command calls `copyWithArchived(false)`.
+
+**Why two command classes.** `SetArchivedByIndexCommand` and `SetArchivedByContextCommand` are separate because the two forms behave differently, not only because they read different input. The index form points at one person on screen, so it reads `Model#getFilteredPersonList()` and reports a person who is already in the target state as an error (that is useful feedback for a single person). The context form asks for a group, so it reads the whole address book, skips persons who are already in the target state, and fails only if no person changes. Both build the changed copy with `Person#copyWithArchived(boolean)`. The Javadoc of each class names the other.
 
 The command reads `Model#getAddressBook()` and **not** `Model#getFilteredPersonList()`. A context command has no index, so nothing ties it to what is on screen, and an earlier `find` must not change which persons it affects. The persons to change are copied into a list before the loop, because `Model#setPerson` changes the list that they were read from. Only persons whose state really changes are counted, and if there are none the command fails with a message that names the context. The context is matched with `Context#equals`, so it is exact and ignores capitalisation.
 

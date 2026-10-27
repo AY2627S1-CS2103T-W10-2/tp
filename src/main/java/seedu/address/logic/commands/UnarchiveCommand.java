@@ -4,6 +4,9 @@ import seedu.address.commons.core.index.Index;
 
 /**
  * Unarchives a person identified using its displayed index, so that it is in the normal person list again.
+ * This is the index form of the unarchive command. The {@code c/CONTEXT} form, which unarchives every archived
+ * person with a context, is handled by {@link SetArchivedByContextCommand}; {@link #MESSAGE_USAGE} describes both
+ * forms.
  */
 public class UnarchiveCommand extends SetArchivedByIndexCommand {
 

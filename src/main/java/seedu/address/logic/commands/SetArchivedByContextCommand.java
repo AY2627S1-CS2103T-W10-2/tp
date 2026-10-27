@@ -14,6 +14,9 @@ import seedu.address.model.person.Person;
  * Archives or unarchives every person in the address book who has a given context. Archiving and unarchiving are
  * the same change with opposite values, so one class does both. The whole address book is used, not the displayed
  * list, so the result does not depend on any earlier find, list or archives command.
+ * The index form of the same commands is handled by {@link SetArchivedByIndexCommand}. The two forms differ on
+ * purpose: here the user asks for a group, so persons already in the target state are skipped and the command fails
+ * only if no person changes, whereas that class acts on one displayed person and treats such a person as an error.
  */
 public class SetArchivedByContextCommand extends Command {
 

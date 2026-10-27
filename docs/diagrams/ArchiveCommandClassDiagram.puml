@@ -28,10 +28,11 @@ SetArchivedByIndexCommand .right.> Model : <<call>>
 ArchiveCommandParser .up.> ArchiveCommand
 ArchiveCommandParser .up.> UnarchiveCommand
 ArchiveCommandParser .up.> SetArchivedByContextCommand
-ArchiveCommandParser -right-> ContextArgumentParser
+ArchiveCommandParser .right.> ContextArgumentParser
 
 note bottom of ContextArgumentParser
-  Dotted arrows from the parser:
-  <<create>> the command
+  The parser <<create>>s the commands
+  and calls ContextArgumentParser
+  (dotted arrows are dependencies)
 end note
 @enduml

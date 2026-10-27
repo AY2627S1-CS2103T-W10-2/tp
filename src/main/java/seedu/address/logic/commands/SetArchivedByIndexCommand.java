@@ -15,6 +15,9 @@ import seedu.address.model.person.Person;
  * Archives or unarchives a person identified using its displayed index. Archiving and unarchiving are the same
  * change with opposite values, so one class does both; the subclasses {@link ArchiveCommand} and
  * {@link UnarchiveCommand} only give the command word and the usage message.
+ * The {@code c/CONTEXT} form of the same commands is handled by {@link SetArchivedByContextCommand}. The two forms
+ * differ on purpose: here the user points at one displayed person, so a person already in the target state is an
+ * error, whereas that class acts on a group and skips such persons.
  */
 public class SetArchivedByIndexCommand extends Command {
 

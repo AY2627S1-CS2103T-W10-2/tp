@@ -5,6 +5,8 @@ import seedu.address.commons.core.index.Index;
 /**
  * Archives a person identified using its displayed index. An archived person is kept in the address book but is
  * left out of the normal person list until it is unarchived.
+ * This is the index form of the archive command. The {@code c/CONTEXT} form, which archives every person with a
+ * context, is handled by {@link SetArchivedByContextCommand}; {@link #MESSAGE_USAGE} describes both forms.
  */
 public class ArchiveCommand extends SetArchivedByIndexCommand {
 

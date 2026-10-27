@@ -1,13 +1,22 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_ADD;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_REMOVE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL_REMOVE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Context;
@@ -17,8 +26,15 @@ import seedu.address.model.person.Context;
  */
 class ContextArgumentParser {
 
-    /** Matches any prefix such as n/ or c/. A context cannot contain a slash, so it is never mistaken for one. */
-    private static final Pattern PREFIX_TOKEN = Pattern.compile("(?<!\\S)([A-Za-z][A-Za-z0-9+-]*/)");
+    /**
+     * Every prefix defined in {@link CliSyntax}. Tokenizing with all of them keeps a prefix of another command, such
+     * as {@code +c/} or {@code n/}, from being read as part of a context. A prefix added to {@code CliSyntax} must
+     * be added here too.
+     */
+    private static final Prefix[] ALL_PREFIXES = {
+        PREFIX_NAME, PREFIX_PHONE, PREFIX_PHONE_REMOVE, PREFIX_EMAIL, PREFIX_EMAIL_REMOVE, PREFIX_TAG,
+        PREFIX_CONTEXT, PREFIX_CONTEXT_ADD, PREFIX_CONTEXT_REMOVE, PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE
+    };
 
     private ContextArgumentParser() {}
 
@@ -31,27 +47,19 @@ class ContextArgumentParser {
      *                        or has a context that is empty or invalid.
      */
     static Optional<Context> parse(String args, String usage) throws ParseException {
-        List<String> prefixTokens = getPrefixTokens(args);
-        if (prefixTokens.isEmpty()) {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, ALL_PREFIXES);
+        List<String> contexts = argMultimap.getAllValues(PREFIX_CONTEXT);
+        if (contexts.isEmpty()) {
             return Optional.empty();
         }
 
-        boolean onlyOneContextPrefix = prefixTokens.size() == 1
-                && prefixTokens.get(0).equals(PREFIX_CONTEXT.getPrefix());
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args, PREFIX_CONTEXT);
-        if (!onlyOneContextPrefix || !argMultimap.getPreamble().isEmpty()) {
+        boolean hasOtherPrefix = Stream.of(ALL_PREFIXES)
+                .filter(prefix -> !prefix.equals(PREFIX_CONTEXT))
+                .anyMatch(prefix -> !argMultimap.getAllValues(prefix).isEmpty());
+        if (contexts.size() > 1 || hasOtherPrefix || !argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, usage));
         }
 
-        return Optional.of(ParserUtil.parseContext(argMultimap.getValue(PREFIX_CONTEXT).orElse("")));
-    }
-
-    private static List<String> getPrefixTokens(String args) {
-        List<String> prefixTokens = new ArrayList<>();
-        Matcher matcher = PREFIX_TOKEN.matcher(args);
-        while (matcher.find()) {
-            prefixTokens.add(matcher.group(1));
-        }
-        return prefixTokens;
+        return Optional.of(ParserUtil.parseContext(contexts.get(0)));
     }
 }
