@@ -275,6 +275,8 @@ The list shows all persons again. The result display shows the person's new deta
 
 If the person has an alias, introducer or note, it is shown too, as in `add`.
 
+If the edit leaves the person exactly as they were, such as re-entering their current phone number or adding a context they already have, the result display shows `No changes made to Bernice Yu.` instead. This is not an error. A change in capitalisation counts as a change and is saved, so `edit 2 n/bernice yu` renames Bernice Yu to `bernice yu`.
+
 If any `+c/` context was skipped because the person already has it, a note follows on a new line, using the person's existing spelling. For example, `edit 2 +c/cs2103t +c/NUS Hackers` on Bernice Yu, who has `CS2103T`, adds this line:
 
 `Note: Bernice Yu already has context(s): [CS2103T]. Skipped.`
