@@ -109,16 +109,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_storageThrowsIoExceptionOnCommandThatChangesNothing_succeeds() throws Exception {
-        JsonAddressBookStorage addressBookStorage =
-                new JsonAddressBookStorage(temporaryFolder.resolve("ExceptionUserPrefs.json")) {
-                    @Override
-                    public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-                        throw DUMMY_IO_EXCEPTION;
-                    }
-                };
-        StorageManager storage = new StorageManager(addressBookStorage,
-                new JsonUserPrefsStorage(temporaryFolder.resolve("ExceptionUserPrefs.json")));
-        logic = new LogicManager(model, storage);
+        logic = new LogicManager(model, createStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION));
 
         assertEquals(new CommandResult(FindCommand.MESSAGE_NO_PERSONS_FOUND), logic.execute("find nobody"));
     }
@@ -188,21 +179,7 @@ public class LogicManagerTest {
      * @param expectedMessage the message expected inside exception thrown by the Logic component
      */
     private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
-        Path prefPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
-
-        // Inject LogicManager with a JsonAddressBookStorage that throws the IOException e when saving
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(prefPath) {
-            @Override
-            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-                throw e;
-            }
-        };
-
-        JsonUserPrefsStorage userPrefsStorage =
-                new JsonUserPrefsStorage(temporaryFolder.resolve("ExceptionUserPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
-
-        logic = new LogicManager(model, storage);
+        logic = new LogicManager(model, createStorageThatThrowsOnSave(e));
 
         // Triggers the saveAddressBook method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
@@ -212,5 +189,19 @@ public class LogicManagerTest {
         ModelManager expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+    }
+
+    /**
+     * Returns a {@code StorageManager} whose address book storage throws {@code e} whenever it is asked to save.
+     */
+    private StorageManager createStorageThatThrowsOnSave(IOException e) {
+        Path prefPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(prefPath) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw e;
+            }
+        };
+        return new StorageManager(addressBookStorage, new JsonUserPrefsStorage(prefPath));
     }
 }

@@ -420,7 +420,7 @@ Format: `exit`
 
 AddressBook automatically saves data after every command. You do not need to save manually.
 
-If a command cannot be saved, for example because the `data` folder is read-only, AddressBook shows an error message. The change stays in the current session but is not in the data file, so it is lost when you close AddressBook. Commands that change nothing, such as `list` and `find`, do not need to save.
+If a command cannot be saved, for example because the `data` folder is read-only, AddressBook shows an error message. The change stays in the current session but is not in the data file until a later command that changes something is saved successfully. If you close AddressBook before then, the change is lost. Commands that change nothing, such as `list` and `find`, do not need to save.
 
 Each save is written to a temporary file first and then moved over `data/addressbook.json`. If AddressBook is closed or crashes in the middle of a save, your previous data file is left as it was instead of being half-written.
 
@@ -461,13 +461,13 @@ Edit the data file only while AddressBook is closed, and only if you are confide
 If AddressBook cannot read the data file when it starts (for example, a person has no context or has an invalid phone number or email, two persons share a phone number or email, the file is not valid JSON, or the file was saved by an older version that used addresses and tags), it:
 
 1. renames the file to `addressbook.json.<UTC time>.bak` in the same `data` folder, for example `addressbook.json.20261015T101723Z.bak`, so that your data is not overwritten; and
-2. starts with an empty address book. A new `data/addressbook.json` is created when you run your first command.
+2. starts with an empty address book. A new `data/addressbook.json` is created by the first command that changes something, such as `add`.
 
 To recover your data:
 
 1. Exit AddressBook.
 2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `addressbook.log`, which is in the folder you started AddressBook from.
-3. If there is a new `addressbook.json` (it exists if you ran any command after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
+3. If there is a new `addressbook.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
 4. Start AddressBook again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
 If AddressBook fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name.
