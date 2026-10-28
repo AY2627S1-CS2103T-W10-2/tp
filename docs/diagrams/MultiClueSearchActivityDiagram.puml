@@ -4,21 +4,22 @@ start
 
 :User enters `find` command;
 
-if (Prefix-like token present?) then (Yes)
+if () then ([Prefix-like token is present])
     :Validate and normalise clues;
     :Use structured search\n(AND semantics);
-else (No)
+else ([Prefix-like token is absent])
     :Use keyword search\n(OR semantics);
 endif
 
 :Filter unarchived contacts;
 
-if (Any contacts matched?) then (Yes)
+if () then ([Contacts matched])
     :Display matching contacts;
     :Report number of persons listed;
-else (No)
+else ([No contacts matched])
     :Return "No persons found!";
 endif
 
 stop
+
 @enduml
