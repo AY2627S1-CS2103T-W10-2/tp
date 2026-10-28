@@ -12,6 +12,7 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -112,6 +113,14 @@ public class LogicManagerTest {
         logic = new LogicManager(model, createStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION));
 
         assertEquals(new CommandResult(FindCommand.MESSAGE_NO_PERSONS_FOUND), logic.execute("find nobody"));
+    }
+
+    @Test
+    public void execute_storageThrowsFileAlreadyExistsException_throwsCommandException() {
+        IOException notAFolder = new FileAlreadyExistsException("data");
+        assertCommandFailureForExceptionFromStorage(notAFolder, String.format(
+                LogicManager.FILE_OPS_NOT_A_FOLDER_FORMAT,
+                temporaryFolder.resolve("ExceptionUserPrefs.json"), "data"));
     }
 
     @Test

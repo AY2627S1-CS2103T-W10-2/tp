@@ -2,6 +2,8 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.NotDirectoryException;
 import java.util.logging.Logger;
 
 import javafx.beans.value.ObservableBooleanValue;
@@ -26,6 +28,9 @@ public class LogicManager implements Logic {
 
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
             "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
+
+    public static final String FILE_OPS_NOT_A_FOLDER_FORMAT =
+            "Could not save data to file %s because %s exists but is not a folder.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -61,6 +66,9 @@ public class LogicManager implements Logic {
         } catch (AccessDeniedException e) {
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT,
                     storage.getAddressBookFilePath()), e);
+        } catch (FileAlreadyExistsException | NotDirectoryException e) {
+            throw new CommandException(String.format(FILE_OPS_NOT_A_FOLDER_FORMAT,
+                    storage.getAddressBookFilePath(), e.getMessage()), e);
         } catch (IOException ioe) {
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
