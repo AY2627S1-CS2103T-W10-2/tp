@@ -265,7 +265,7 @@ Examples:
 How contexts are matched:
 * Contexts are compared ignoring capitalisation and repeated spaces, as in `add`. So `-c/hiking club` removes `Hiking club`.
 * `+c/` with a context the person already has is skipped, and the existing spelling is kept. The result display lists the skipped contexts in a note. To change the spelling, remove the context and add it back, as in the 4th example.
-* If any `-c/` context is not one the person has, nothing is changed.
+* A `-c/` context the person does not have is skipped, and the rest of the command still runs. The result display lists the skipped contexts in a note. Check the note for typos, since a misspelt context is skipped rather than rejected. Skipped contexts do not count when checking that the person keeps at least one context.
 
 **If the command succeeds**
 
@@ -277,9 +277,15 @@ If the person has an alias, introducer or note, it is shown too, as in `add`.
 
 If the edit leaves the person exactly as they were, such as re-entering their current phone number or adding a context they already have, the result display shows `No changes made to Bernice Yu.` instead. This is not an error. A change in capitalisation counts as a change and is saved, so `edit 2 n/bernice yu` renames Bernice Yu to `bernice yu`.
 
+If any `-c/` context was skipped because the person does not have it, a note follows on a new line. For example, `edit 2 -c/CS2130T p/91234567` on Bernice Yu changes the phone number and adds this line:
+
+`Note: Bernice Yu does not have context(s): [CS2130T]. Check the spelling. Skipped.`
+
 If any `+c/` context was skipped because the person already has it, a note follows on a new line, using the person's existing spelling. For example, `edit 2 +c/cs2103t +c/NUS Hackers` on Bernice Yu, who has `CS2103T`, adds this line:
 
 `Note: Bernice Yu already has context(s): [CS2103T]. Skipped.`
+
+If both kinds of context are skipped, the `-c/` note comes first.
 
 **Duplicate persons**
 
@@ -295,7 +301,6 @@ No parameter after the index | `edit 1` | `At least one field to edit must be pr
 Index missing, zero, negative or not a number | `edit 0 n/Alex Tan` | `Invalid command format!`, followed by how to use `edit`
 Index larger than the displayed list | `edit 99 n/Alex Tan` | `The person index provided is invalid.`
 `c/` instead of `+c/` or `-c/` | `edit 1 c/CS2040S` | `Use +c/ to add a context or -c/ to remove one.`
-A `-c/` context the person does not have | `edit 1 -c/CS2040S` | `Alex Yeoh does not have context(s): [CS2040S]. Check the spelling.`
 Removing every context | `edit 1 -c/CS2103T` | `A person must have at least one context. Add a new context with +c/ before removing the last one.`
 A prefix that sets a field together with the prefix that removes it, such as `p/` and `-p/` | `edit 1 p/91234567 -p/`<br>`edit 1 a/Alex -a/` | `Cannot set and remove the phone number in the same command.`<br>`Cannot set and remove the alias in the same command.`<br>The email, introducer and note give the same message with their own name.
 A value after `-p/`, `-e/`, `-a/`, `-i/` or `-nt/` | `edit 1 -p/91234567`<br>`edit 1 -nt/Met at NUS` | `-p/ does not take a value. Use p/PHONE to change the phone number.`<br>`-nt/ does not take a value. Use nt/NOTE to change the note.`<br>`-e/`, `-a/` and `-i/` give the same message for their own field.

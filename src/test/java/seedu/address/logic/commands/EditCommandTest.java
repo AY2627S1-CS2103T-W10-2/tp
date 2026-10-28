@@ -291,13 +291,75 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_unmatchedContextToRemove_failure() {
-        // "CS2130T" is a typo of Alice's "CS2103T"
+    public void execute_unmatchedContextToRemove_skippedWithNote() {
+        // "CS2130T" is a typo of Alice's "CS2103T", so it is skipped and the phone is still changed
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
+                .withContextsToRemove("CS2130T").withPhone(VALID_PHONE_BOB).build());
+        Person editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build();
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice))
+                + "\nNote: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, editedAlice);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_matchedAndUnmatchedContextsToRemove_notesOnlyUnmatchedContexts() {
+        // Benson has "Hiking club" and "CS2103T"; only the typos are noted, in the typed order
+        EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, new EditPersonDescriptorBuilder()
+                .withContextsToRemove("NUS Hackers", "hiking club", "CS2130T").build());
+        Person editedBenson = new PersonBuilder(BENSON).withContexts("CS2103T").build();
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(editedBenson))
+                + "\nNote: Benson Meier does not have context(s): [NUS Hackers] [CS2130T]. "
+                + "Check the spelling. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(BENSON, editedBenson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_onlyUnmatchedContextToRemove_noChangeWithNote() {
+        // the only change is a typo that is skipped, so nothing changes and the note still shows
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withContextsToRemove("CS2130T").build());
 
-        assertCommandFailure(editCommand, model,
-                "Alice Pauline does not have context(s): [CS2130T]. Check the spelling.");
+        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, ALICE.getName())
+                + "\nNote: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_unmatchedContextToRemoveAndExistingContextToAdd_notesRemovalFirst() {
+        // both kinds of skipped context are noted, the -c/ note before the +c/ note
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
+                .withContextsToRemove("CS2130T").withContextsToAdd("cs2103t").build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, ALICE.getName())
+                + "\nNote: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped."
+                + "\nNote: Alice Pauline already has context(s): [CS2103T]. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_removeLastContextWithUnmatchedContext_failure() {
+        // the skipped "CS2130T" does not count, so removing "CS2103T" would leave Alice with no context
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withContextsToRemove("CS2103T", "CS2130T").build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_NO_CONTEXT_LEFT);
     }
 
     @Test
