@@ -97,6 +97,17 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_editChangesOnlyCapitalisation_changeIsSaved() throws Exception {
+        logic.execute("add n/Alex Tan e/alex@example.com c/Hiking");
+        logic.execute("edit 1 e/ALEX@Example.com +c/hiking -c/Hiking");
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        Person saved = storage.readAddressBook().orElseThrow().getPersonList().get(0);
+        assertEquals("ALEX@Example.com", saved.getEmail().orElseThrow().value);
+        assertEquals("hiking", saved.getContexts().iterator().next().description);
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
