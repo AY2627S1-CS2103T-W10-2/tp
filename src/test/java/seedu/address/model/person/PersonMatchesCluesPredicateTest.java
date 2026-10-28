@@ -32,17 +32,57 @@ public class PersonMatchesCluesPredicateTest {
 
     @Test
     public void equals() {
-        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.of("Tony"), List.of("CS2103T"));
+        PersonMatchesCluesPredicate predicate = createPredicate(
+                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
+                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"));
 
+        // same object -> returns true
         assertTrue(predicate.equals(predicate));
-        assertTrue(predicate.equals(new PersonMatchesCluesPredicate(
-                Optional.of("Tony"), List.of("CS2103T"))));
-        assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
-                Optional.of("Zhang"), List.of("CS2103T"))));
-        assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
-                Optional.of("Tony"), List.of("Hack"))));
+
+        // same values -> returns true
+        assertTrue(predicate.equals(createPredicate(
+                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
+                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"))));
+
+        // differs only in name clue -> returns false
+        assertFalse(predicate.equals(createPredicate(
+                Optional.of("Zhang"), Optional.of("9123"), Optional.of("@example.com"),
+                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"))));
+
+        // differs only in phone clue -> returns false
+        assertFalse(predicate.equals(createPredicate(
+                Optional.of("Tony"), Optional.of("8765"), Optional.of("@example.com"),
+                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"))));
+
+        // differs only in email clue -> returns false
+        assertFalse(predicate.equals(createPredicate(
+                Optional.of("Tony"), Optional.of("9123"), Optional.of("@u.nus.edu"),
+                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"))));
+
+        // differs only in context clues -> returns false
+        assertFalse(predicate.equals(createPredicate(
+                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
+                List.of("Hack"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"))));
+
+        // differs only in alias clue -> returns false
+        assertFalse(predicate.equals(createPredicate(
+                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
+                List.of("CS2103T"), Optional.of("TZ"), Optional.of("Alice"), Optional.of("project"))));
+
+        // differs only in introducer clue -> returns false
+        assertFalse(predicate.equals(createPredicate(
+                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
+                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Bob"), Optional.of("project"))));
+
+        // differs only in note clue -> returns false
+        assertFalse(predicate.equals(createPredicate(
+                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
+                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("internship"))));
+
+        // different types -> returns false
         assertFalse(predicate.equals(1));
+
+        // null -> returns false
         assertFalse(predicate.equals(null));
     }
 
