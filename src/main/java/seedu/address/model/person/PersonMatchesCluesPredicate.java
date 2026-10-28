@@ -22,38 +22,18 @@ public class PersonMatchesCluesPredicate implements Predicate<Person> {
     private final Optional<String> noteClue;
 
     /**
-     * Creates a predicate with an optional name clue and zero or more context clues.
+     * Creates a predicate from the supplied field-specific search clues.
      */
-    public PersonMatchesCluesPredicate(Optional<String> nameClue, List<String> contextClues) {
-        this(nameClue, Optional.empty(), Optional.empty(), contextClues,
-                Optional.empty(), Optional.empty(), Optional.empty());
-    }
-
-    /**
-     * Creates a predicate from optional single-valued clues and zero or more context clues.
-     */
-    public PersonMatchesCluesPredicate(Optional<String> nameClue, Optional<String> phoneClue,
-            Optional<String> emailClue, List<String> contextClues, Optional<String> aliasClue,
-            Optional<String> introducerClue, Optional<String> noteClue) {
-        requireNonNull(nameClue);
-        requireNonNull(phoneClue);
-        requireNonNull(emailClue);
-        requireNonNull(contextClues);
-        requireNonNull(aliasClue);
-        requireNonNull(introducerClue);
-        requireNonNull(noteClue);
-        contextClues.forEach(clue -> requireNonNull(clue));
-        assert nameClue.isPresent() || phoneClue.isPresent() || emailClue.isPresent()
-                || !contextClues.isEmpty() || aliasClue.isPresent() || introducerClue.isPresent()
-                || noteClue.isPresent()
-                : "At least one structured search clue must be provided";
-        this.nameClue = nameClue;
-        this.phoneClue = phoneClue;
-        this.emailClue = emailClue;
-        this.contextClues = List.copyOf(contextClues);
-        this.aliasClue = aliasClue;
-        this.introducerClue = introducerClue;
-        this.noteClue = noteClue;
+    public PersonMatchesCluesPredicate(PersonSearchClues searchClues) {
+        requireNonNull(searchClues);
+        assert !searchClues.isEmpty() : "At least one structured search clue must be provided";
+        this.nameClue = searchClues.getNameClue();
+        this.phoneClue = searchClues.getPhoneClue();
+        this.emailClue = searchClues.getEmailClue();
+        this.contextClues = List.copyOf(searchClues.getContextClues());
+        this.aliasClue = searchClues.getAliasClue();
+        this.introducerClue = searchClues.getIntroducerClue();
+        this.noteClue = searchClues.getNoteClue();
     }
 
     @Override

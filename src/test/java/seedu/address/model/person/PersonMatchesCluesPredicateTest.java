@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,57 +26,46 @@ public class PersonMatchesCluesPredicateTest {
     @Test
     public void constructor_noClues_throwsAssertionError() {
         assertThrows(AssertionError.class, () ->
-                new PersonMatchesCluesPredicate(Optional.empty(), List.of()));
+                new PersonMatchesCluesPredicate(new PersonSearchClues()));
     }
 
     @Test
     public void equals() {
-        PersonMatchesCluesPredicate predicate = createPredicate(
-                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
-                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"));
+        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(createFullSearchClues());
 
         // same object -> returns true
         assertTrue(predicate.equals(predicate));
 
         // same values -> returns true
-        assertTrue(predicate.equals(createPredicate(
-                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
-                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"))));
+        assertTrue(predicate.equals(new PersonMatchesCluesPredicate(createFullSearchClues())));
 
         // differs only in name clue -> returns false
-        assertFalse(predicate.equals(createPredicate(
-                Optional.of("Zhang"), Optional.of("9123"), Optional.of("@example.com"),
-                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"))));
+        assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
+                createFullSearchClues().withNameClue("Zhang"))));
 
         // differs only in phone clue -> returns false
-        assertFalse(predicate.equals(createPredicate(
-                Optional.of("Tony"), Optional.of("8765"), Optional.of("@example.com"),
-                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"))));
+        assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
+                createFullSearchClues().withPhoneClue("8765"))));
 
         // differs only in email clue -> returns false
-        assertFalse(predicate.equals(createPredicate(
-                Optional.of("Tony"), Optional.of("9123"), Optional.of("@u.nus.edu"),
-                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"))));
+        assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
+                createFullSearchClues().withEmailClue("@u.nus.edu"))));
 
         // differs only in context clues -> returns false
-        assertFalse(predicate.equals(createPredicate(
-                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
-                List.of("Hack"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project"))));
+        assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
+                createFullSearchClues().withContextClues(List.of("Hack")))));
 
         // differs only in alias clue -> returns false
-        assertFalse(predicate.equals(createPredicate(
-                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
-                List.of("CS2103T"), Optional.of("TZ"), Optional.of("Alice"), Optional.of("project"))));
+        assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
+                createFullSearchClues().withAliasClue("TZ"))));
 
         // differs only in introducer clue -> returns false
-        assertFalse(predicate.equals(createPredicate(
-                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
-                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Bob"), Optional.of("project"))));
+        assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
+                createFullSearchClues().withIntroducerClue("Bob"))));
 
         // differs only in note clue -> returns false
-        assertFalse(predicate.equals(createPredicate(
-                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
-                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("internship"))));
+        assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
+                createFullSearchClues().withNoteClue("internship"))));
 
         // different types -> returns false
         assertFalse(predicate.equals(1));
@@ -89,7 +77,9 @@ public class PersonMatchesCluesPredicateTest {
     @Test
     public void test_nameAndAllContextsMatch_returnsTrue() {
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.of("ton"), List.of("2103", "hack"));
+                new PersonSearchClues()
+                        .withNameClue("ton")
+                        .withContextClues(List.of("2103", "hack")));
 
         assertTrue(predicate.test(TONY));
     }
@@ -97,33 +87,40 @@ public class PersonMatchesCluesPredicateTest {
     @Test
     public void test_partialAndMixedCaseCluesMatch_returnsTrue() {
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.of("zHaNg"), List.of("cS2103"));
+                new PersonSearchClues()
+                        .withNameClue("zHaNg")
+                        .withContextClues(List.of("cS2103")));
 
         assertTrue(predicate.test(TONY));
     }
 
     @Test
     public void test_allSupportedCluesMatch_returnsTrue() {
-        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.of("ton"), Optional.of("1234"), Optional.of("@EXAMPLE.COM"),
-                List.of("2103", "hack"), Optional.of("tot"), Optional.of("alice"),
-                Optional.of("project teammate"));
+        PersonSearchClues searchClues = new PersonSearchClues()
+                .withNameClue("ton")
+                .withPhoneClue("1234")
+                .withEmailClue("@EXAMPLE.COM")
+                .withContextClues(List.of("2103", "hack"))
+                .withAliasClue("tot")
+                .withIntroducerClue("alice")
+                .withNoteClue("project teammate");
+        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(searchClues);
 
         assertTrue(predicate.test(TONY));
     }
 
     @Test
     public void test_eachAdditionalFieldMatchesOwnClue_returnsTrue() {
-        assertTrue(createPredicate(Optional.empty(), Optional.of("1234"), Optional.empty(),
-                List.of(), Optional.empty(), Optional.empty(), Optional.empty()).test(TONY));
-        assertTrue(createPredicate(Optional.empty(), Optional.empty(), Optional.of("@example"),
-                List.of(), Optional.empty(), Optional.empty(), Optional.empty()).test(TONY));
-        assertTrue(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                List.of(), Optional.of("toto"), Optional.empty(), Optional.empty()).test(TONY));
-        assertTrue(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                List.of(), Optional.empty(), Optional.of("tan"), Optional.empty()).test(TONY));
-        assertTrue(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                List.of(), Optional.empty(), Optional.empty(), Optional.of("hack&roll")).test(TONY));
+        assertTrue(new PersonMatchesCluesPredicate(
+                new PersonSearchClues().withPhoneClue("1234")).test(TONY));
+        assertTrue(new PersonMatchesCluesPredicate(
+                new PersonSearchClues().withEmailClue("@example")).test(TONY));
+        assertTrue(new PersonMatchesCluesPredicate(
+                new PersonSearchClues().withAliasClue("toto")).test(TONY));
+        assertTrue(new PersonMatchesCluesPredicate(
+                new PersonSearchClues().withIntroducerClue("tan")).test(TONY));
+        assertTrue(new PersonMatchesCluesPredicate(
+                new PersonSearchClues().withNoteClue("hack&roll")).test(TONY));
     }
 
     @Test
@@ -133,27 +130,22 @@ public class PersonMatchesCluesPredicateTest {
                 .withoutEmail()
                 .build();
 
-        assertFalse(createPredicate(Optional.empty(), Optional.of("1234"), Optional.empty(),
-                List.of(), Optional.empty(), Optional.empty(), Optional.empty())
+        assertFalse(new PersonMatchesCluesPredicate(new PersonSearchClues().withPhoneClue("1234"))
                 .test(personWithMissingOptionalFields));
-        assertFalse(createPredicate(Optional.empty(), Optional.empty(), Optional.of("@example"),
-                List.of(), Optional.empty(), Optional.empty(), Optional.empty())
+        assertFalse(new PersonMatchesCluesPredicate(new PersonSearchClues().withEmailClue("@example"))
                 .test(personWithMissingOptionalFields));
-        assertFalse(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                List.of(), Optional.of("toto"), Optional.empty(), Optional.empty())
+        assertFalse(new PersonMatchesCluesPredicate(new PersonSearchClues().withAliasClue("toto"))
                 .test(personWithMissingOptionalFields));
-        assertFalse(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                List.of(), Optional.empty(), Optional.of("tan"), Optional.empty())
+        assertFalse(new PersonMatchesCluesPredicate(new PersonSearchClues().withIntroducerClue("tan"))
                 .test(personWithMissingOptionalFields));
-        assertFalse(createPredicate(Optional.empty(), Optional.empty(), Optional.empty(),
-                List.of(), Optional.empty(), Optional.empty(), Optional.of("project"))
+        assertFalse(new PersonMatchesCluesPredicate(new PersonSearchClues().withNoteClue("project"))
                 .test(personWithMissingOptionalFields));
     }
 
     @Test
     public void test_nameOnlyMatches_returnsTrue() {
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.of("Tony"), List.of());
+                new PersonSearchClues().withNameClue("Tony"));
 
         assertTrue(predicate.test(TONY));
     }
@@ -161,7 +153,7 @@ public class PersonMatchesCluesPredicateTest {
     @Test
     public void test_contextOnlyMatches_returnsTrue() {
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.empty(), List.of("Hack&Roll"));
+                new PersonSearchClues().withContextClues(List.of("Hack&Roll")));
 
         assertTrue(predicate.test(TONY));
     }
@@ -169,7 +161,9 @@ public class PersonMatchesCluesPredicateTest {
     @Test
     public void test_nameDoesNotMatch_returnsFalse() {
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.of("Alice"), List.of("CS2103T"));
+                new PersonSearchClues()
+                        .withNameClue("Alice")
+                        .withContextClues(List.of("CS2103T")));
 
         assertFalse(predicate.test(TONY));
     }
@@ -177,7 +171,9 @@ public class PersonMatchesCluesPredicateTest {
     @Test
     public void test_oneContextClueDoesNotMatch_returnsFalse() {
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.of("Tony"), List.of("CS2103T", "Internship"));
+                new PersonSearchClues()
+                        .withNameClue("Tony")
+                        .withContextClues(List.of("CS2103T", "Internship")));
 
         assertFalse(predicate.test(TONY));
     }
@@ -185,13 +181,13 @@ public class PersonMatchesCluesPredicateTest {
     @Test
     public void test_cluesDoNotSearchOtherFields_returnsFalse() {
         PersonMatchesCluesPredicate contextAsNameCluePredicate = new PersonMatchesCluesPredicate(
-                Optional.of("CS2103T"), List.of());
+                new PersonSearchClues().withNameClue("CS2103T"));
         PersonMatchesCluesPredicate nameAsContextCluePredicate = new PersonMatchesCluesPredicate(
-                Optional.empty(), List.of("Tony"));
+                new PersonSearchClues().withContextClues(List.of("Tony")));
         PersonMatchesCluesPredicate phoneAsNameCluePredicate = new PersonMatchesCluesPredicate(
-                Optional.of("91234567"), List.of());
+                new PersonSearchClues().withNameClue("91234567"));
         PersonMatchesCluesPredicate emailAsNameCluePredicate = new PersonMatchesCluesPredicate(
-                Optional.of("tony@example.com"), List.of());
+                new PersonSearchClues().withNameClue("tony@example.com"));
 
         assertFalse(contextAsNameCluePredicate.test(TONY));
         assertFalse(nameAsContextCluePredicate.test(TONY));
@@ -202,7 +198,9 @@ public class PersonMatchesCluesPredicateTest {
     @Test
     public void toStringMethod() {
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.of("Tony"), List.of("CS2103T"));
+                new PersonSearchClues()
+                        .withNameClue("Tony")
+                        .withContextClues(List.of("CS2103T")));
 
         String expected = PersonMatchesCluesPredicate.class.getCanonicalName()
                 + "{nameClue=Tony, phoneClue=null, emailClue=null, contextClues=[CS2103T], "
@@ -210,10 +208,14 @@ public class PersonMatchesCluesPredicateTest {
         assertEquals(expected, predicate.toString());
     }
 
-    private static PersonMatchesCluesPredicate createPredicate(Optional<String> nameClue,
-            Optional<String> phoneClue, Optional<String> emailClue, List<String> contextClues,
-            Optional<String> aliasClue, Optional<String> introducerClue, Optional<String> noteClue) {
-        return new PersonMatchesCluesPredicate(nameClue, phoneClue, emailClue, contextClues,
-                aliasClue, introducerClue, noteClue);
+    private static PersonSearchClues createFullSearchClues() {
+        return new PersonSearchClues()
+                .withNameClue("Tony")
+                .withPhoneClue("9123")
+                .withEmailClue("@example.com")
+                .withContextClues(List.of("CS2103T"))
+                .withAliasClue("Toto")
+                .withIntroducerClue("Alice")
+                .withNoteClue("project");
     }
 }

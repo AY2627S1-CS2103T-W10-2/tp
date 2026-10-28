@@ -13,7 +13,6 @@ import static seedu.address.testutil.TypicalPersons.FIONA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,6 +23,7 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.model.person.PersonMatchesCluesPredicate;
+import seedu.address.model.person.PersonSearchClues;
 import seedu.address.testutil.PersonBuilder;
 
 /**
@@ -83,7 +83,7 @@ public class FindCommandTest {
     public void execute_multipleClues_matchingPersonFound() {
         String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1);
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.of("Alice"), List.of("2103"));
+                new PersonSearchClues().withNameClue("Alice").withContextClues(List.of("2103")));
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
 
@@ -94,7 +94,7 @@ public class FindCommandTest {
     @Test
     public void execute_oneClueDoesNotMatch_noPersonFound() {
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.of("Alice"), List.of("Internship"));
+                new PersonSearchClues().withNameClue("Alice").withContextClues(List.of("Internship")));
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
 
@@ -117,10 +117,15 @@ public class FindCommandTest {
         addressBook.addPerson(tony);
         Model modelWithTony = new ModelManager(addressBook, new UserPrefs());
         Model expectedModelWithTony = new ModelManager(addressBook, new UserPrefs());
-        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
-                Optional.of("ton"), Optional.of("1234"), Optional.of("@example"),
-                List.of("2103", "hack"), Optional.of("tot"), Optional.of("alice"),
-                Optional.of("project"));
+        PersonSearchClues searchClues = new PersonSearchClues()
+                .withNameClue("ton")
+                .withPhoneClue("1234")
+                .withEmailClue("@example")
+                .withContextClues(List.of("2103", "hack"))
+                .withAliasClue("tot")
+                .withIntroducerClue("alice")
+                .withNoteClue("project");
+        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(searchClues);
         expectedModelWithTony.updateFilteredPersonList(Model.PREDICATE_SHOW_ACTIVE.and(predicate));
 
         assertCommandSuccess(new FindCommand(predicate), modelWithTony,

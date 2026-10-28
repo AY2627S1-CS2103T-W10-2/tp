@@ -18,6 +18,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.model.person.PersonMatchesCluesPredicate;
+import seedu.address.model.person.PersonSearchClues;
 
 /**
  * Parses input arguments and creates a new FindCommand object
@@ -86,9 +87,16 @@ public class FindCommandParser implements Parser<FindCommand> {
         Optional<String> normalisedIntroducerClue = introducerClue.map(FindCommandParser::normaliseClue);
         Optional<String> normalisedNoteClue = noteClue.map(FindCommandParser::normaliseClue);
 
-        return new FindCommand(new PersonMatchesCluesPredicate(
-                normalisedNameClue, normalisedPhoneClue, normalisedEmailClue, normalisedContextClues,
-                normalisedAliasClue, normalisedIntroducerClue, normalisedNoteClue));
+        PersonSearchClues searchClues = new PersonSearchClues()
+                .withContextClues(normalisedContextClues);
+        normalisedNameClue.ifPresent(searchClues::withNameClue);
+        normalisedPhoneClue.ifPresent(searchClues::withPhoneClue);
+        normalisedEmailClue.ifPresent(searchClues::withEmailClue);
+        normalisedAliasClue.ifPresent(searchClues::withAliasClue);
+        normalisedIntroducerClue.ifPresent(searchClues::withIntroducerClue);
+        normalisedNoteClue.ifPresent(searchClues::withNoteClue);
+
+        return new FindCommand(new PersonMatchesCluesPredicate(searchClues));
     }
 
     private static boolean hasSupportedPrefix(ArgumentMultimap argMultimap) {

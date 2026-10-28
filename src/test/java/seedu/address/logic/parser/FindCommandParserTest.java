@@ -11,7 +11,6 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +18,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.model.person.PersonMatchesCluesPredicate;
+import seedu.address.model.person.PersonSearchClues;
 
 public class FindCommandParserTest {
 
@@ -43,7 +43,9 @@ public class FindCommandParserTest {
     @Test
     public void parse_structuredArgs_returnsFindCommand() {
         FindCommand expectedFindCommand = new FindCommand(new PersonMatchesCluesPredicate(
-                Optional.of("Tony Zhang"), List.of("CS2103T", "Hack")));
+                new PersonSearchClues()
+                        .withNameClue("Tony Zhang")
+                        .withContextClues(List.of("CS2103T", "Hack"))));
 
         assertParseSuccess(parser, "n/Tony   Zhang c/CS2103T c/Hack", expectedFindCommand);
         assertParseSuccess(parser, "c/CS2103T n/Tony Zhang c/Hack", expectedFindCommand);
@@ -51,10 +53,15 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_allStructuredFieldsInAnyOrder_returnsFindCommand() {
-        FindCommand expectedFindCommand = new FindCommand(new PersonMatchesCluesPredicate(
-                Optional.of("Tony Zhang"), Optional.of("9123"), Optional.of("@u.nus.edu"),
-                List.of("CS2103T", "Hack"), Optional.of("Toto"), Optional.of("Alice Tan"),
-                Optional.of("project teammate")));
+        PersonSearchClues searchClues = new PersonSearchClues()
+                .withNameClue("Tony Zhang")
+                .withPhoneClue("9123")
+                .withEmailClue("@u.nus.edu")
+                .withContextClues(List.of("CS2103T", "Hack"))
+                .withAliasClue("Toto")
+                .withIntroducerClue("Alice Tan")
+                .withNoteClue("project teammate");
+        FindCommand expectedFindCommand = new FindCommand(new PersonMatchesCluesPredicate(searchClues));
 
         assertParseSuccess(parser, "nt/project   teammate c/CS2103T a/Toto p/9123 "
                 + "n/Tony Zhang i/Alice Tan e/@u.nus.edu c/Hack", expectedFindCommand);
@@ -63,7 +70,7 @@ public class FindCommandParserTest {
     @Test
     public void parse_nameOnly_returnsFindCommand() {
         FindCommand expectedFindCommand = new FindCommand(new PersonMatchesCluesPredicate(
-                Optional.of("Tony"), List.of()));
+                new PersonSearchClues().withNameClue("Tony")));
 
         assertParseSuccess(parser, "n/Tony", expectedFindCommand);
     }
@@ -71,7 +78,7 @@ public class FindCommandParserTest {
     @Test
     public void parse_contextOnly_returnsFindCommand() {
         FindCommand expectedFindCommand = new FindCommand(new PersonMatchesCluesPredicate(
-                Optional.empty(), List.of("CS2103T")));
+                new PersonSearchClues().withContextClues(List.of("CS2103T"))));
 
         assertParseSuccess(parser, "c/CS2103T", expectedFindCommand);
     }
@@ -79,7 +86,7 @@ public class FindCommandParserTest {
     @Test
     public void parse_equivalentContextClues_collapsesDuplicates() {
         FindCommand expectedFindCommand = new FindCommand(new PersonMatchesCluesPredicate(
-                Optional.empty(), List.of("CS2103T")));
+                new PersonSearchClues().withContextClues(List.of("CS2103T"))));
 
         assertParseSuccess(parser, "c/CS2103T c/cs2103t", expectedFindCommand);
     }
@@ -125,8 +132,7 @@ public class FindCommandParserTest {
     @Test
     public void parse_slashTextInsideNote_returnsFindCommand() {
         FindCommand expectedFindCommand = new FindCommand(new PersonMatchesCluesPredicate(
-                Optional.empty(), Optional.empty(), Optional.empty(), List.of(),
-                Optional.empty(), Optional.empty(), Optional.of("pizza and/or burgers")));
+                new PersonSearchClues().withNoteClue("pizza and/or burgers")));
 
         assertParseSuccess(parser, "nt/pizza and/or burgers", expectedFindCommand);
     }

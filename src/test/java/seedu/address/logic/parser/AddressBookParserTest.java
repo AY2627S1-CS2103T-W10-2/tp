@@ -12,7 +12,6 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -34,6 +33,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.model.person.PersonMatchesCluesPredicate;
+import seedu.address.model.person.PersonSearchClues;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
@@ -128,9 +128,15 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_findWithStructuredClues() throws Exception {
-        FindCommand expectedCommand = new FindCommand(new PersonMatchesCluesPredicate(
-                Optional.of("Tony"), Optional.of("9123"), Optional.of("@example.com"),
-                List.of("CS2103T"), Optional.of("Toto"), Optional.of("Alice"), Optional.of("project")));
+        PersonSearchClues searchClues = new PersonSearchClues()
+                .withNameClue("Tony")
+                .withPhoneClue("9123")
+                .withEmailClue("@example.com")
+                .withContextClues(List.of("CS2103T"))
+                .withAliasClue("Toto")
+                .withIntroducerClue("Alice")
+                .withNoteClue("project");
+        FindCommand expectedCommand = new FindCommand(new PersonMatchesCluesPredicate(searchClues));
 
         String clues = "n/Tony p/9123 e/@example.com c/CS2103T a/Toto i/Alice nt/project";
         String reorderedClues = "nt/project i/Alice a/Toto c/CS2103T e/@example.com p/9123 n/Tony";

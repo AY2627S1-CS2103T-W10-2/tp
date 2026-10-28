@@ -252,7 +252,9 @@ of a keyword or clue rather than being treated as an unsupported prefix.
 
 Before constructing `PersonMatchesCluesPredicate`, the parser trims each clue, collapses repeated whitespace and
 removes equivalent repeated context clues case-insensitively. Empty clues and unprefixed text before a recognised
-structured clue are rejected without changing the current filtered list.
+structured clue are rejected without changing the current filtered list. The normalised values are collected in a
+`PersonSearchClues` builder using field-named methods, avoiding ambiguous positional arguments for the similarly typed
+optional clues.
 
 `FindCommand` stores a `Predicate<Person>` rather than a concrete predicate type, allowing both search modes to share
 the same command execution. In structured mode, `PersonMatchesCluesPredicate` checks each clue only against its
