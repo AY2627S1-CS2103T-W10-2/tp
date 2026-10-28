@@ -19,6 +19,8 @@ public class Messages {
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists: %1$s has the same %2$s (%3$s).";
+    public static final String MESSAGE_DUPLICATE_PERSON_ARCHIVED =
+            " This person is archived; run archives to see them.";
 
     /**
      * Returns an error message indicating the duplicate prefixes.
@@ -35,18 +37,20 @@ public class Messages {
     /**
      * Returns an error message indicating the duplicate person {@code existing}
      * and the phone or email it shares with {@code toCheck}.
+     * If {@code existing} is archived, the message also says so.
      * {@code existing} must have the same identity as {@code toCheck}.
      */
     public static String getErrorMessageForDuplicatePerson(Person existing, Person toCheck) {
+        String archivedHint = existing.isArchived() ? MESSAGE_DUPLICATE_PERSON_ARCHIVED : "";
         boolean isSamePhone = existing.getPhone().isPresent() && existing.getPhone().equals(toCheck.getPhone());
         if (isSamePhone) {
             return String.format(MESSAGE_DUPLICATE_PERSON,
-                    existing.getName(), "phone number", existing.getPhone().get());
+                    existing.getName(), "phone number", existing.getPhone().get()) + archivedHint;
         }
 
         // not a phone clash, so the two persons must share an email
         return String.format(MESSAGE_DUPLICATE_PERSON,
-                existing.getName(), "email", existing.getEmail().get());
+                existing.getName(), "email", existing.getEmail().get()) + archivedHint;
     }
 
     /**
