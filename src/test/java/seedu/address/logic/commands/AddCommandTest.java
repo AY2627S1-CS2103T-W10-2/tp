@@ -65,6 +65,39 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_identicalArchivedPerson_noteMentionsArchived() throws Exception {
+        Person archived = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withoutPhone().withoutEmail().withArchived(true).build();
+        Person toAdd = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withoutPhone().withoutEmail().build();
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
+        modelStub.personsAdded.add(archived);
+
+        String feedback = new AddCommand(toAdd).execute(modelStub).getFeedbackToUser();
+
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(toAdd))
+                + "\nNote: Wei Jie with the same name and contexts already exists."
+                + " This person is archived; run archives to see them.", feedback);
+    }
+
+    @Test
+    public void execute_identicalActiveAndArchivedPersons_noArchivedHint() throws Exception {
+        Person archived = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withoutPhone().withoutEmail().withArchived(true).build();
+        Person active = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withoutPhone().withoutEmail().build();
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
+        modelStub.personsAdded.add(archived);
+        modelStub.personsAdded.add(active);
+        Person toAdd = new PersonBuilder(active).build();
+
+        String feedback = new AddCommand(toAdd).execute(modelStub).getFeedbackToUser();
+
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(toAdd))
+                + "\nNote: Wei Jie with the same name and contexts already exists.", feedback);
+    }
+
+    @Test
     public void execute_sameNameDifferentContextsOrWithPhone_addedWithoutNote() throws Exception {
         ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
         Person first = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")

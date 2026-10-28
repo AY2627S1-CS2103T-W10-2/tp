@@ -9,6 +9,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -44,6 +45,8 @@ public class AddCommand extends Command {
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
     public static final String MESSAGE_IDENTICAL_PERSON_NOTE =
             "\nNote: %1$s with the same name and contexts already exists.";
+    public static final String MESSAGE_IDENTICAL_PERSON_ARCHIVED_HINT =
+            " This person is archived; run archives to see them.";
 
     private final Person toAdd;
 
@@ -64,27 +67,32 @@ public class AddCommand extends Command {
             throw new CommandException(Messages.getErrorMessageForDuplicatePerson(existingPerson.get(), toAdd));
         }
 
-        boolean hasIdenticalPerson = hasIdenticalPerson(model);
+        Optional<Person> identicalPerson = findIdenticalPerson(model);
         model.addPerson(toAdd);
         String feedback = String.format(MESSAGE_SUCCESS, Messages.format(toAdd));
-        if (hasIdenticalPerson) {
+        if (identicalPerson.isPresent()) {
             feedback += String.format(MESSAGE_IDENTICAL_PERSON_NOTE, toAdd.getName());
+            if (identicalPerson.get().isArchived()) {
+                feedback += MESSAGE_IDENTICAL_PERSON_ARCHIVED_HINT;
+            }
         }
         return new CommandResult(feedback);
     }
 
     /**
-     * Returns true if the person to add has no phone and no email, and {@code model} already contains
-     * a person with no phone and no email, the same name (ignoring case and repeated spaces) and the same contexts.
+     * Returns a person in {@code model} that has no phone and no email, the same name (ignoring case and
+     * repeated spaces) and the same contexts as the person to add, if the person to add has no phone and no email.
+     * An active person is preferred over an archived one.
      */
-    private boolean hasIdenticalPerson(Model model) {
+    private Optional<Person> findIdenticalPerson(Model model) {
         if (!hasNoPhoneAndEmail(toAdd)) {
-            return false;
+            return Optional.empty();
         }
         return model.getAddressBook().getPersonList().stream()
                 .filter(AddCommand::hasNoPhoneAndEmail)
-                .anyMatch(existing -> normalise(existing.getName().fullName).equals(normalise(toAdd.getName().fullName))
-                        && existing.getContexts().equals(toAdd.getContexts()));
+                .filter(existing -> normalise(existing.getName().fullName).equals(normalise(toAdd.getName().fullName))
+                        && existing.getContexts().equals(toAdd.getContexts()))
+                .min(Comparator.comparing(Person::isArchived));
     }
 
     private static boolean hasNoPhoneAndEmail(Person person) {

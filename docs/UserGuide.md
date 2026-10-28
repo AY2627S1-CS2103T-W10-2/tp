@@ -139,7 +139,7 @@ A person is a duplicate if they have the same phone number or the same email as 
 `This person already exists: Alex Yeoh has the same phone number (87438807).`
 
 * Two persons can have the same name, as long as their phone numbers and emails are different.
-* A person with no phone number and no email is never a duplicate. If an existing person with no phone number and no email has the same name (ignoring capitalisation and repeated spaces) and the same contexts, the new person is still added, with an extra line: `Note: Wei Jie with the same name and contexts already exists.`
+* A person with no phone number and no email is never a duplicate. If an existing person with no phone number and no email has the same name (ignoring capitalisation and repeated spaces) and the same contexts, the new person is still added, with an extra line: `Note: Wei Jie with the same name and contexts already exists.` If the matching person is archived, the note ends with `This person is archived; run archives to see them.`
 * `91234567` and `+6591234567` count as different phone numbers.
 
 **If the command fails**
