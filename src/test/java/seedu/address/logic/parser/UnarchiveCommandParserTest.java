@@ -7,11 +7,13 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.commands.SetArchivedByContextCommand;
 import seedu.address.logic.commands.UnarchiveCommand;
+import seedu.address.model.person.Context;
 
 public class UnarchiveCommandParserTest {
 
-    private UnarchiveCommandParser parser = new UnarchiveCommandParser();
+    private ArchiveCommandParser parser = new ArchiveCommandParser(false);
 
     @Test
     public void parse_validArgs_returnsCommand() {
@@ -27,5 +29,17 @@ public class UnarchiveCommandParserTest {
         assertParseFailure(parser, "0", expected);
         assertParseFailure(parser, "-1", expected);
         assertParseFailure(parser, "1 2", expected);
+    }
+
+    @Test
+    public void parse_validContext_returnsByContextCommand() {
+        // the c/ rules are tested in ArchiveCommandParserTest, as both command words use the same parser
+        assertParseSuccess(parser, " c/CS2103T", new SetArchivedByContextCommand(new Context("CS2103T"), false));
+    }
+
+    @Test
+    public void parse_invalidContextArgs_showsUnarchiveUsage() {
+        String expectedFormat = String.format(MESSAGE_INVALID_COMMAND_FORMAT, UnarchiveCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " c/CS2103T n/John", expectedFormat);
     }
 }

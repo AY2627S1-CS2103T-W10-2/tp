@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_ALIAS_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTRODUCER_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
@@ -25,10 +28,12 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.SetArchivedByContextCommand;
 import seedu.address.logic.commands.UnarchiveCommand;
 import seedu.address.logic.commands.ViewArchivesCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Note;
+import seedu.address.model.person.Context;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.model.person.PersonMatchesCluesPredicate;
@@ -88,7 +93,8 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_edit() throws Exception {
-        Person person = new PersonBuilder().build();
+        Person person = new PersonBuilder().withAlias(VALID_ALIAS_AMY).withIntroducer(VALID_INTRODUCER_AMY)
+                .withNote(VALID_NOTE_AMY).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
         EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " "
                 + INDEX_FIRST_PERSON.getOneBased() + " " + PersonUtil.getEditPersonDescriptorDetails(descriptor));
@@ -188,6 +194,10 @@ public class AddressBookParserTest {
         assertTrue(parser.parseCommand("Unarchive 1") instanceof UnarchiveCommand);
         assertTrue(parser.parseCommand(ViewArchivesCommand.COMMAND_WORD) instanceof ViewArchivesCommand);
         assertTrue(parser.parseCommand("ARCHIVES") instanceof ViewArchivesCommand);
+        assertEquals(new SetArchivedByContextCommand(new Context("CS2103T"), true),
+                parser.parseCommand("archive c/CS2103T"));
+        assertEquals(new SetArchivedByContextCommand(new Context("CS2103T"), false),
+                parser.parseCommand("unarchive c/CS2103T"));
         // unlike list, archives does not ignore text after it, as it is one letter away from archive
         assertThrows(ParseException.class,
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewArchivesCommand.MESSAGE_USAGE), ()
