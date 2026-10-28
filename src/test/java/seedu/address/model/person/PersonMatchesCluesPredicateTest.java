@@ -68,6 +68,15 @@ public class PersonMatchesCluesPredicateTest {
     }
 
     @Test
+    public void test_nameSavedWithRepeatedSpaces_matchesFullNameClue() {
+        Person alex = new PersonBuilder().withName("Alex  Tan").withContexts("CS2040S  Lab").build();
+
+        assertTrue(new PersonMatchesCluesPredicate(Optional.of("Alex Tan"), List.of()).test(alex));
+        assertTrue(new PersonMatchesCluesPredicate(Optional.of("Alex  Tan"), List.of()).test(alex));
+        assertTrue(new PersonMatchesCluesPredicate(Optional.empty(), List.of("CS2040S Lab")).test(alex));
+    }
+
+    @Test
     public void test_contextOnlyMatches_returnsTrue() {
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
                 Optional.empty(), List.of("Hack&Roll"));

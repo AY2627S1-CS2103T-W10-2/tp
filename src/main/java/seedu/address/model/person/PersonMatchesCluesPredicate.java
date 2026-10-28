@@ -42,7 +42,12 @@ public class PersonMatchesCluesPredicate implements Predicate<Person> {
     }
 
     private static boolean containsIgnoreCase(String value, String clue) {
-        return value.toLowerCase(Locale.ROOT).contains(clue.toLowerCase(Locale.ROOT));
+        return collapseSpaces(value).toLowerCase(Locale.ROOT)
+                .contains(collapseSpaces(clue).toLowerCase(Locale.ROOT));
+    }
+
+    private static String collapseSpaces(String text) {
+        return text.replaceAll("\\s+", " ");
     }
 
     @Override
