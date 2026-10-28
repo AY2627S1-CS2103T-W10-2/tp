@@ -498,7 +498,7 @@ If AddressBook cannot read the data file when it starts (for example, a person h
 To recover your data:
 
 1. Exit AddressBook.
-2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `addressbook.log`, which is in the folder you started AddressBook from.
+2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `addressbook.log.0`, which is in the folder you started AddressBook from.
 3. If there is a new `addressbook.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
 4. Start AddressBook again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
