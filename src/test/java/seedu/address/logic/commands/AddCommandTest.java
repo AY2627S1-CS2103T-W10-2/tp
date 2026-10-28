@@ -46,6 +46,42 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_identicalPersonWithoutPhoneAndEmail_addedWithNote() throws Exception {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
+        Person first = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withoutPhone().withoutEmail().build();
+        Person second = new PersonBuilder().withName("wei  jie").withContexts("cs2103t")
+                .withoutPhone().withoutEmail().build();
+
+        CommandResult firstResult = new AddCommand(first).execute(modelStub);
+        CommandResult secondResult = new AddCommand(second).execute(modelStub);
+
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(first)),
+                firstResult.getFeedbackToUser());
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(second))
+                + "\nNote: wei  jie with the same name and contexts already exists.",
+                secondResult.getFeedbackToUser());
+        assertEquals(List.of(first, second), modelStub.personsAdded);
+    }
+
+    @Test
+    public void execute_sameNameDifferentContextsOrWithPhone_addedWithoutNote() throws Exception {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
+        Person first = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withoutPhone().withoutEmail().build();
+        Person otherContext = new PersonBuilder().withName("Wei Jie").withContexts("CS2101")
+                .withoutPhone().withoutEmail().build();
+        Person withPhone = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withPhone("91234567").withoutEmail().build();
+        new AddCommand(first).execute(modelStub);
+
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(otherContext)),
+                new AddCommand(otherContext).execute(modelStub).getFeedbackToUser());
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(withPhone)),
+                new AddCommand(withPhone).execute(modelStub).getFeedbackToUser());
+    }
+
+    @Test
     public void execute_duplicatePerson_throwsCommandException() {
         Person validPerson = new PersonBuilder().build();
         AddCommand addCommand = new AddCommand(validPerson);
@@ -199,7 +235,9 @@ public class AddCommandTest {
 
         @Override
         public ReadOnlyAddressBook getAddressBook() {
-            return new AddressBook();
+            AddressBook addressBook = new AddressBook();
+            addressBook.setPersons(personsAdded);
+            return addressBook;
         }
     }
 

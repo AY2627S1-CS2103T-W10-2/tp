@@ -9,6 +9,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
+import java.util.Locale;
 import java.util.Optional;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -41,6 +42,8 @@ public class AddCommand extends Command {
             + PREFIX_EMAIL + "johnd@example.com";
 
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
+    public static final String MESSAGE_IDENTICAL_PERSON_NOTE =
+            "\nNote: %1$s with the same name and contexts already exists.";
 
     private final Person toAdd;
 
@@ -61,8 +64,35 @@ public class AddCommand extends Command {
             throw new CommandException(Messages.getErrorMessageForDuplicatePerson(existingPerson.get(), toAdd));
         }
 
+        boolean hasIdenticalPerson = hasIdenticalPerson(model);
         model.addPerson(toAdd);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(toAdd)));
+        String feedback = String.format(MESSAGE_SUCCESS, Messages.format(toAdd));
+        if (hasIdenticalPerson) {
+            feedback += String.format(MESSAGE_IDENTICAL_PERSON_NOTE, toAdd.getName());
+        }
+        return new CommandResult(feedback);
+    }
+
+    /**
+     * Returns true if the person to add has no phone and no email, and {@code model} already contains
+     * a person with no phone and no email, the same name (ignoring case and repeated spaces) and the same contexts.
+     */
+    private boolean hasIdenticalPerson(Model model) {
+        if (!hasNoPhoneAndEmail(toAdd)) {
+            return false;
+        }
+        return model.getAddressBook().getPersonList().stream()
+                .filter(AddCommand::hasNoPhoneAndEmail)
+                .anyMatch(existing -> normalise(existing.getName().fullName).equals(normalise(toAdd.getName().fullName))
+                        && existing.getContexts().equals(toAdd.getContexts()));
+    }
+
+    private static boolean hasNoPhoneAndEmail(Person person) {
+        return person.getPhone().isEmpty() && person.getEmail().isEmpty();
+    }
+
+    private static String normalise(String name) {
+        return name.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
     @Override
