@@ -3,6 +3,7 @@ package seedu.address.commons.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,6 +48,21 @@ public class FileUtilTest {
         try (Stream<Path> files = Files.list(testFolder)) {
             assertEquals(1, files.count());
         }
+    }
+
+    @Test
+    public void writeToFile_symbolicLink_writesTargetAndKeepsLink() throws IOException {
+        Path target = testFolder.resolve("real.json");
+        Path link = testFolder.resolve("link.json");
+        FileUtil.writeToFile(target, "one");
+        try {
+            Files.createSymbolicLink(link, target.getFileName());
+        } catch (UnsupportedOperationException | IOException e) {
+            assumeTrue(false, "symbolic links are not available");
+        }
+        FileUtil.writeToFile(link, "two");
+        assertTrue(Files.isSymbolicLink(link));
+        assertEquals("two", FileUtil.readFromFile(target));
     }
 
     @Test
