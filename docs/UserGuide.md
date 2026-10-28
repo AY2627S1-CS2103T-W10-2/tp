@@ -89,6 +89,7 @@ Format: `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL] [a/ALIAS] [i
 * `n/NAME` and at least one `c/CONTEXT` are compulsory. All other fields are optional.
 * To give more than one context, repeat `c/`, one context each. Every other prefix can be given only once.
 * Spaces before and after each value are ignored.
+* `nt/NOTE` must be the last parameter. Everything after `nt/` is the note, so text such as `c/o`, `n/a` or `p/t` inside a note is saved as part of the note.
 
 Examples:
 * `add n/Alex Tan c/CS2103T` adds `Alex Tan` with just a name and one context.
@@ -107,7 +108,7 @@ Parameter | Rules | Valid | Invalid
 `e/EMAIL` | Of the form `local-part@domain`, at most 254 characters. See the email rules below. | `e0123456@u.nus.edu`, `alex.tan+work@gmail.com` | `alex@`, `.alex@gmail.com`, `alex..tan@gmail.com`
 `a/ALIAS` | Alternative name; follows the same character and 100-character rules as `n/NAME`. | `Alex`, `Jean-Luc` | `Alex123`, empty `a/`
 `i/INTRODUCER` | Plain name of the person who introduced this contact; follows the same rules as `n/NAME`. It does not need to be another saved contact. | `Ben Lee` | `Ben123`, empty `i/`
-`nt/NOTE` | Short, single-line note of at most 300 characters. No line breaks or control characters. | `Met at Hack&Roll` | Empty `nt/`, a note over 300 characters
+`nt/NOTE` | Short, single-line note of at most 300 characters. No line breaks or control characters. Must be the last parameter; the rest of the line is the note, so it can contain text such as `c/o` or `n/a`. | `Met at Hack&Roll`, `Lives c/o his aunt` | Empty `nt/`, a note over 300 characters
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 `/` is not allowed in names, so enter a name such as `Raj s/o Kumar` as `Raj s o Kumar` or `Raj son of Kumar`.
@@ -252,6 +253,7 @@ The format is split over lines to make it easier to read. Type the whole command
 * `-c/` is applied before `+c/`, so you can swap a person's only context in one command.
 * A person must keep at least one context.
 * Every prefix other than `+c/` and `-c/` can be given only once.
+* `nt/NOTE` must be the last parameter. Everything after `nt/` is the note, even text that looks like a prefix, such as `n/a`.
 * An archived person cannot be edited: AddressBook shows `This person is archived and can't be edited. Unarchive the person first.` Use [`unarchive`](#unarchiving-a-person-unarchive) first.
 
 Examples:
@@ -260,7 +262,7 @@ Examples:
 * `edit 3 +c/RC4 -c/Hall` replaces the 3rd person's only context, `Hall`, with `RC4`.
 * `edit 2 -c/hiking club +c/Hiking Club` changes how the 2nd person's `Hiking club` context is spelt.
 * `edit 4 n/David Li Wei -e/` renames the 4th person and removes their email.
-* `edit 1 a/Alex nt/Prefers Telegram -i/` gives the 1st person the alias `Alex` and a note, and removes who introduced them.
+* `edit 1 a/Alex -i/ nt/Prefers Telegram` gives the 1st person the alias `Alex` and a note, and removes who introduced them.
 
 How contexts are matched:
 * Contexts are compared ignoring capitalisation and repeated spaces, as in `add`. So `-c/hiking club` removes `Hiking club`.

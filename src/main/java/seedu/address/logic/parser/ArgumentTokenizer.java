@@ -29,6 +29,30 @@ public class ArgumentTokenizer {
     }
 
     /**
+     * Tokenizes an arguments string like {@link #tokenize(String, Prefix...)}, except that
+     * {@code lastPrefix} takes the rest of the line. Everything after the first occurrence of
+     * {@code lastPrefix} (with a whitespace before it) is its value, even if it contains other prefixes.
+     * Only the text before it is tokenized with {@code prefixes}.
+     *
+     * @param argsString Arguments string of the form: {@code preamble <prefix>value ... <lastPrefix>value}
+     * @param lastPrefix Prefix whose value runs to the end of the arguments string
+     * @param prefixes   Other prefixes to tokenize the text before {@code lastPrefix} with
+     * @return           ArgumentMultimap object that maps prefixes to their arguments
+     */
+    public static ArgumentMultimap tokenizeWithLastPrefix(String argsString, Prefix lastPrefix,
+            Prefix... prefixes) {
+        int lastPrefixPosition = findPrefixPosition(argsString, lastPrefix.getPrefix(), 0);
+        if (lastPrefixPosition == -1) {
+            return tokenize(argsString, prefixes);
+        }
+
+        ArgumentMultimap argMultimap = tokenize(argsString.substring(0, lastPrefixPosition), prefixes);
+        String lastValue = argsString.substring(lastPrefixPosition + lastPrefix.getPrefix().length());
+        argMultimap.put(lastPrefix, lastValue.trim());
+        return argMultimap;
+    }
+
+    /**
      * Finds all zero-based prefix positions in the given arguments string.
      *
      * @param argsString Arguments string of the form: {@code preamble <prefix>value <prefix>value ...}

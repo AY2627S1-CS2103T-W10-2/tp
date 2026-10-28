@@ -66,6 +66,7 @@ public class EditCommand extends Command {
             + "Use " + PREFIX_PHONE_REMOVE + ", " + PREFIX_EMAIL_REMOVE + ", " + PREFIX_ALIAS_REMOVE + ", "
             + PREFIX_INTRODUCER_REMOVE + " or " + PREFIX_NOTE_REMOVE
             + " to remove the phone, email, alias, introducer or note.\n"
+            + PREFIX_NOTE + "NOTE must come last: it takes the rest of the line.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
             + PREFIX_CONTEXT_ADD + "NUS Hackers "
