@@ -139,7 +139,11 @@ A person is a duplicate if they have the same phone number or the same email as 
 `This person already exists: Alex Yeoh has the same phone number (87438807).`
 
 * Two persons can have the same name, as long as their phone numbers and emails are different.
-* A person with no phone number and no email is never a duplicate. If an existing person with no phone number and no email has the same name (ignoring capitalisation and repeated spaces) and the same contexts, the new person is still added, with an extra line: `Note: Wei Jie with the same name and contexts already exists.` If the matching person is archived, the note ends with `This person is archived; run archives to see them.`
+* A person with no phone number and no email is never a duplicate. If you add such a person and an existing person (whatever their phone number or email) has the same name and at least one context in common, the new person is still added, with an extra line. Names are compared ignoring capitalisation and repeated spaces. For example, if Wei Jie with context CS2103T is already at index 7, `add n/Wei Jie c/CS2103T` shows:
+
+  `Note: Wei Jie [CS2103T] already exists at index 7. If this is the same person, delete the new entry and use edit 7 instead.`
+
+  If the existing person is archived, the note is `Note: Wei Jie [CS2103T] already exists. This person is archived; run archives to see them.` If both an active and an archived person match, the active person is shown.
 * `91234567` and `+6591234567` count as different phone numbers.
 
 **If the command fails**

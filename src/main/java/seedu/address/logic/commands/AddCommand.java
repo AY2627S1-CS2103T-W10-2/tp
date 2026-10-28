@@ -9,9 +9,11 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -43,9 +45,12 @@ public class AddCommand extends Command {
             + PREFIX_EMAIL + "johnd@example.com";
 
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
-    public static final String MESSAGE_IDENTICAL_PERSON_NOTE =
-            "\nNote: %1$s with the same name and contexts already exists.";
-    public static final String MESSAGE_IDENTICAL_PERSON_ARCHIVED_HINT =
+    public static final String MESSAGE_SIMILAR_PERSON_ACTIVE_NOTE =
+            "\nNote: %1$s %2$s already exists at index %3$d. "
+            + "If this is the same person, delete the new entry and use edit %3$d instead.";
+    public static final String MESSAGE_SIMILAR_PERSON_ARCHIVED_NOTE =
+            "\nNote: %1$s %2$s already exists.";
+    public static final String MESSAGE_SIMILAR_PERSON_ARCHIVED_HINT =
             " This person is archived; run archives to see them.";
 
     private final Person toAdd;
@@ -67,31 +72,48 @@ public class AddCommand extends Command {
             throw new CommandException(Messages.getErrorMessageForDuplicatePerson(existingPerson.get(), toAdd));
         }
 
-        Optional<Person> identicalPerson = findIdenticalPerson(model);
+        Optional<Person> similarPerson = findSimilarPerson(model);
         model.addPerson(toAdd);
         String feedback = String.format(MESSAGE_SUCCESS, Messages.format(toAdd));
-        if (identicalPerson.isPresent()) {
-            feedback += String.format(MESSAGE_IDENTICAL_PERSON_NOTE, toAdd.getName());
-            if (identicalPerson.get().isArchived()) {
-                feedback += MESSAGE_IDENTICAL_PERSON_ARCHIVED_HINT;
-            }
+        if (similarPerson.isPresent()) {
+            feedback += formatSimilarPersonNote(model, similarPerson.get());
         }
         return new CommandResult(feedback);
     }
 
     /**
-     * Returns a person in {@code model} that has no phone and no email, the same name (ignoring case and
-     * repeated spaces) and the same contexts as the person to add, if the person to add has no phone and no email.
-     * An active person is preferred over an archived one.
+     * Returns the note telling the user that {@code similar} already exists. {@code model} must already
+     * contain the person to add, so that the index shown matches the list shown after the command.
      */
-    private Optional<Person> findIdenticalPerson(Model model) {
+    private String formatSimilarPersonNote(Model model, Person similar) {
+        String name = similar.getName().toString();
+        String sharedContexts = similar.getContexts().stream()
+                .filter(toAdd.getContexts()::contains)
+                .map(Object::toString)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .map(context -> "[" + context + "]")
+                .collect(Collectors.joining(" "));
+        if (similar.isArchived()) {
+            return String.format(MESSAGE_SIMILAR_PERSON_ARCHIVED_NOTE, name, sharedContexts)
+                    + MESSAGE_SIMILAR_PERSON_ARCHIVED_HINT;
+        }
+        int index = model.getFilteredPersonList().indexOf(similar) + 1;
+        return String.format(MESSAGE_SIMILAR_PERSON_ACTIVE_NOTE, name, sharedContexts, index);
+    }
+
+    /**
+     * Returns an existing person in {@code model} with the same name (ignoring case and repeated spaces) and
+     * at least one context in common with the person to add, if the person to add has no phone and no email.
+     * An active person is preferred over an archived one, then the first in address book order.
+     */
+    private Optional<Person> findSimilarPerson(Model model) {
         if (!hasNoPhoneAndEmail(toAdd)) {
             return Optional.empty();
         }
+        String normalisedName = normalise(toAdd.getName().fullName);
         return model.getAddressBook().getPersonList().stream()
-                .filter(AddCommand::hasNoPhoneAndEmail)
-                .filter(existing -> normalise(existing.getName().fullName).equals(normalise(toAdd.getName().fullName))
-                        && existing.getContexts().equals(toAdd.getContexts()))
+                .filter(existing -> normalise(existing.getName().fullName).equals(normalisedName)
+                        && !Collections.disjoint(existing.getContexts(), toAdd.getContexts()))
                 .min(Comparator.comparing(Person::isArchived));
     }
 

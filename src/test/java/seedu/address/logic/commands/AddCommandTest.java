@@ -21,6 +21,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.person.Person;
@@ -46,72 +47,107 @@ public class AddCommandTest {
     }
 
     @Test
-    public void execute_identicalPersonWithoutPhoneAndEmail_addedWithNote() throws Exception {
-        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
-        Person first = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
-                .withoutPhone().withoutEmail().build();
-        Person second = new PersonBuilder().withName("wei  jie").withContexts("cs2103t")
-                .withoutPhone().withoutEmail().build();
+    public void execute_noExistingSimilarPerson_noNote() throws Exception {
+        Model model = new ModelManager();
+        Person toAdd = person("Wei Jie", false, "CS2103T");
 
-        CommandResult firstResult = new AddCommand(first).execute(modelStub);
-        CommandResult secondResult = new AddCommand(second).execute(modelStub);
-
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(first)),
-                firstResult.getFeedbackToUser());
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(second))
-                + "\nNote: wei  jie with the same name and contexts already exists.",
-                secondResult.getFeedbackToUser());
-        assertEquals(List.of(first, second), modelStub.personsAdded);
+        assertEquals(successMessage(toAdd), new AddCommand(toAdd).execute(model).getFeedbackToUser());
     }
 
     @Test
-    public void execute_identicalArchivedPerson_noteMentionsArchived() throws Exception {
-        Person archived = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
-                .withoutPhone().withoutEmail().withArchived(true).build();
-        Person toAdd = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
-                .withoutPhone().withoutEmail().build();
-        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
-        modelStub.personsAdded.add(archived);
+    public void execute_sharedContext_addedWithActiveNote() throws Exception {
+        String note = "\nNote: Wei Jie [CS2103T] already exists at index 1. "
+                + "If this is the same person, delete the new entry and use edit 1 instead.";
 
-        String feedback = new AddCommand(toAdd).execute(modelStub).getFeedbackToUser();
-
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(toAdd))
-                + "\nNote: Wei Jie with the same name and contexts already exists."
-                + " This person is archived; run archives to see them.", feedback);
+        // exact same contexts
+        assertNoteAfterAdding(person("Wei Jie", false, "CS2103T"), person("Wei Jie", false, "CS2103T"), note);
+        // new person has a subset of the existing contexts
+        assertNoteAfterAdding(person("Wei Jie", false, "CS2103T", "Hiking club"),
+                person("Wei Jie", false, "CS2103T"), note);
+        // new person has a superset of the existing contexts
+        assertNoteAfterAdding(person("Wei Jie", false, "CS2103T"),
+                person("Wei Jie", false, "CS2103T", "Hiking club"), note);
+        // partial overlap, only the shared context is listed
+        assertNoteAfterAdding(person("Wei Jie", false, "CS2103T", "Chess"),
+                person("Wei Jie", false, "CS2103T", "Hiking club"), note);
+        // name differs by case and spaces, context by case
+        assertNoteAfterAdding(person("wei  jie", false, "cs2103t"), person("Wei Jie", false, "CS2103T"),
+                "\nNote: wei  jie [cs2103t] already exists at index 1. "
+                        + "If this is the same person, delete the new entry and use edit 1 instead.");
     }
 
     @Test
-    public void execute_identicalActiveAndArchivedPersons_noArchivedHint() throws Exception {
-        Person archived = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
-                .withoutPhone().withoutEmail().withArchived(true).build();
-        Person active = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
-                .withoutPhone().withoutEmail().build();
-        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
-        modelStub.personsAdded.add(archived);
-        modelStub.personsAdded.add(active);
-        Person toAdd = new PersonBuilder(active).build();
+    public void execute_existingPersonHasPhone_addedWithNote() throws Exception {
+        Person existing = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withPhone("91234567").withoutEmail().build();
 
-        String feedback = new AddCommand(toAdd).execute(modelStub).getFeedbackToUser();
-
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(toAdd))
-                + "\nNote: Wei Jie with the same name and contexts already exists.", feedback);
+        assertNoteAfterAdding(existing, person("Wei Jie", false, "CS2103T"),
+                "\nNote: Wei Jie [CS2103T] already exists at index 1. "
+                        + "If this is the same person, delete the new entry and use edit 1 instead.");
     }
 
     @Test
-    public void execute_sameNameDifferentContextsOrWithPhone_addedWithoutNote() throws Exception {
-        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
-        Person first = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
-                .withoutPhone().withoutEmail().build();
-        Person otherContext = new PersonBuilder().withName("Wei Jie").withContexts("CS2101")
-                .withoutPhone().withoutEmail().build();
+    public void execute_noSharedContextOrDifferentName_noNote() throws Exception {
+        Person existing = person("Wei Jie", false, "CS2103T");
+
+        assertNoteAfterAdding(existing, person("Wei Jie", false, "CS2101"), "");
+        assertNoteAfterAdding(existing, person("Wei Jian", false, "CS2103T"), "");
+    }
+
+    @Test
+    public void execute_newPersonHasPhoneOrEmail_noNote() throws Exception {
+        Person existing = person("Wei Jie", false, "CS2103T");
         Person withPhone = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
                 .withPhone("91234567").withoutEmail().build();
-        new AddCommand(first).execute(modelStub);
+        Person withEmail = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withEmail("weijie@example.com").withoutPhone().build();
 
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(otherContext)),
-                new AddCommand(otherContext).execute(modelStub).getFeedbackToUser());
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(withPhone)),
-                new AddCommand(withPhone).execute(modelStub).getFeedbackToUser());
+        assertNoteAfterAdding(existing, withPhone, "");
+        assertNoteAfterAdding(existing, withEmail, "");
+    }
+
+    @Test
+    public void execute_archivedSimilarPerson_addedWithArchivedNote() throws Exception {
+        assertNoteAfterAdding(person("Wei Jie", true, "CS2103T"), person("Wei Jie", false, "CS2103T"),
+                "\nNote: Wei Jie [CS2103T] already exists."
+                        + " This person is archived; run archives to see them.");
+    }
+
+    @Test
+    public void execute_activeAndArchivedSimilarPersons_activeNoteWithIndex() throws Exception {
+        Model model = new ModelManager();
+        model.addPerson(person("Wei Jie", true, "CS2103T"));
+        model.addPerson(person("Alex", false, "CS2103T"));
+        model.addPerson(person("Wei Jie", false, "CS2103T", "Hiking club"));
+        Person toAdd = person("Wei Jie", false, "CS2103T", "Hiking club");
+
+        CommandResult result = new AddCommand(toAdd).execute(model);
+
+        // the archived person is hidden, so the active match is at index 2
+        assertEquals(successMessage(toAdd) + "\nNote: Wei Jie [CS2103T] [Hiking club] already exists at "
+                + "index 2. If this is the same person, delete the new entry and use edit 2 instead.",
+                result.getFeedbackToUser());
+    }
+
+    private static Person person(String name, boolean isArchived, String... contexts) {
+        return new PersonBuilder().withName(name).withContexts(contexts).withoutPhone().withoutEmail()
+                .withArchived(isArchived).build();
+    }
+
+    private static String successMessage(Person person) {
+        return String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(person));
+    }
+
+    /**
+     * Adds {@code existing} then executes an add of {@code toAdd}, and checks the feedback is the success
+     * message followed by {@code expectedNote} (empty if no note is expected).
+     */
+    private static void assertNoteAfterAdding(Person existing, Person toAdd, String expectedNote)
+            throws Exception {
+        Model model = new ModelManager();
+        model.addPerson(existing);
+        CommandResult result = new AddCommand(toAdd).execute(model);
+        assertEquals(successMessage(toAdd) + expectedNote, result.getFeedbackToUser());
     }
 
     @Test
