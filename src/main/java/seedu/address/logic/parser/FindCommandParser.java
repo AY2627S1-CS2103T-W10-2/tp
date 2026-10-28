@@ -12,9 +12,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -25,11 +23,6 @@ import seedu.address.model.person.PersonMatchesCluesPredicate;
  * Parses input arguments and creates a new FindCommand object
  */
 public class FindCommandParser implements Parser<FindCommand> {
-
-    private static final Pattern PREFIX_TOKEN = Pattern.compile("(?<!\\S)([A-Za-z][A-Za-z0-9+-]*/)");
-    private static final Set<String> SUPPORTED_PREFIX_TOKENS = Set.of(
-            PREFIX_NAME.getPrefix(), PREFIX_PHONE.getPrefix(), PREFIX_EMAIL.getPrefix(), PREFIX_CONTEXT.getPrefix(),
-            PREFIX_ALIAS.getPrefix(), PREFIX_INTRODUCER.getPrefix(), PREFIX_NOTE.getPrefix());
 
     /**
      * Parses the given {@code String} of arguments in the context of the FindCommand
@@ -42,16 +35,14 @@ public class FindCommandParser implements Parser<FindCommand> {
             throw invalidFormat();
         }
 
-        List<String> prefixTokens = getPrefixTokens(trimmedArgs);
-        if (prefixTokens.isEmpty()) {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + trimmedArgs,
+                PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_CONTEXT,
+                PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE);
+        if (!hasSupportedPrefix(argMultimap)) {
             return parseKeywordSearch(trimmedArgs);
         }
 
-        if (hasUnsupportedPrefix(prefixTokens)) {
-            throw invalidFormat();
-        }
-
-        return parseStructuredSearch(trimmedArgs);
+        return parseStructuredSearch(argMultimap);
     }
 
     private FindCommand parseKeywordSearch(String args) {
@@ -59,10 +50,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         return new FindCommand(new PersonContainsKeywordsPredicate(List.of(keywords)));
     }
 
-    private FindCommand parseStructuredSearch(String args) throws ParseException {
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args,
-                PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_CONTEXT,
-                PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE);
+    private FindCommand parseStructuredSearch(ArgumentMultimap argMultimap) throws ParseException {
         if (!argMultimap.getPreamble().isEmpty()) {
             throw invalidFormat();
         }
@@ -103,17 +91,10 @@ public class FindCommandParser implements Parser<FindCommand> {
                 normalisedAliasClue, normalisedIntroducerClue, normalisedNoteClue));
     }
 
-    private static List<String> getPrefixTokens(String args) {
-        List<String> prefixTokens = new ArrayList<>();
-        Matcher matcher = PREFIX_TOKEN.matcher(args);
-        while (matcher.find()) {
-            prefixTokens.add(matcher.group(1));
-        }
-        return prefixTokens;
-    }
-
-    private static boolean hasUnsupportedPrefix(List<String> prefixTokens) {
-        return prefixTokens.stream().anyMatch(prefix -> !SUPPORTED_PREFIX_TOKENS.contains(prefix));
+    private static boolean hasSupportedPrefix(ArgumentMultimap argMultimap) {
+        return Stream.of(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_CONTEXT,
+                        PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE)
+                .anyMatch(prefix -> argMultimap.getValue(prefix).isPresent());
     }
 
     private static void requireNonBlank(Optional<String> clue, String message) throws ParseException {

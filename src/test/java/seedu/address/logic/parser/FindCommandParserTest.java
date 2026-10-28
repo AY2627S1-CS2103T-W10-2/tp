@@ -123,11 +123,22 @@ public class FindCommandParserTest {
     }
 
     @Test
-    public void parse_unsupportedOrUppercasePrefix_throwsParseException() {
-        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, "x/value", expectedMessage);
-        assertParseFailure(parser, "N/Tony", expectedMessage);
-        assertParseFailure(parser, "P/91234567", expectedMessage);
+    public void parse_slashTextInsideNote_returnsFindCommand() {
+        FindCommand expectedFindCommand = new FindCommand(new PersonMatchesCluesPredicate(
+                Optional.empty(), Optional.empty(), Optional.empty(), List.of(),
+                Optional.empty(), Optional.empty(), Optional.of("pizza and/or burgers")));
+
+        assertParseSuccess(parser, "nt/pizza and/or burgers", expectedFindCommand);
+    }
+
+    @Test
+    public void parse_unsupportedOrUppercasePrefix_returnsKeywordSearch() {
+        assertParseSuccess(parser, "x/value",
+                new FindCommand(new PersonContainsKeywordsPredicate(List.of("x/value"))));
+        assertParseSuccess(parser, "N/Tony",
+                new FindCommand(new PersonContainsKeywordsPredicate(List.of("N/Tony"))));
+        assertParseSuccess(parser, "P/91234567",
+                new FindCommand(new PersonContainsKeywordsPredicate(List.of("P/91234567"))));
     }
 
 }

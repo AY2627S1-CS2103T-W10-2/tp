@@ -244,14 +244,15 @@ The `find` command supports two search modes while preserving the existing keywo
 * A structured command such as `find n/Alex c/CS2103T nt/project` uses `PersonMatchesCluesPredicate`. A person
   matches only when every supplied clue matches its corresponding field.
 
-`FindCommandParser` selects the mode by scanning the arguments for prefix-like tokens. If none are present, it creates
-the existing keyword predicate. If tokens are present, only `n/`, `p/`, `e/`, `c/`, `a/`, `i/` and `nt/` are accepted.
-The parser then uses `ArgumentTokenizer` to read the clues, allowing the prefixes to appear in any order. `n/`, `p/`,
-`e/`, `a/`, `i/` and `nt/` may each appear at most once, while `c/` is repeatable.
+`FindCommandParser` uses `ArgumentTokenizer` with `n/`, `p/`, `e/`, `c/`, `a/`, `i/` and `nt/` to select the search
+mode and read the clues. If none of these prefixes is recognised, it creates the existing keyword predicate. If at
+least one is recognised, it creates the structured predicate. The prefixes may appear in any order. `n/`, `p/`, `e/`,
+`a/`, `i/` and `nt/` may each appear at most once, while `c/` is repeatable. Other slash-containing text remains part
+of a keyword or clue rather than being treated as an unsupported prefix.
 
 Before constructing `PersonMatchesCluesPredicate`, the parser trims each clue, collapses repeated whitespace and
-removes equivalent repeated context clues case-insensitively. Unsupported prefixes, empty clues and unprefixed text
-before a structured clue are rejected without changing the current filtered list.
+removes equivalent repeated context clues case-insensitively. Empty clues and unprefixed text before a recognised
+structured clue are rejected without changing the current filtered list.
 
 `FindCommand` stores a `Predicate<Person>` rather than a concrete predicate type, allowing both search modes to share
 the same command execution. In structured mode, `PersonMatchesCluesPredicate` checks each clue only against its
