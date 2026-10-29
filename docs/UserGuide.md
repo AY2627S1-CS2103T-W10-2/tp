@@ -19,7 +19,7 @@ UniContacts is a **desktop contact manager for CS students, optimized for use th
 
 1. Copy the file to the folder you want to use as the _home folder_ for UniContacts.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar unicontacts.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
@@ -263,7 +263,7 @@ The format is split over lines to make it easier to read. Type the whole command
 * A person must keep at least one context.
 * Every prefix other than `+c/` and `-c/` can be given only once.
 * `nt/NOTE` must be the last parameter. Everything after `nt/` is the note, even text that looks like a prefix, such as `n/a`.
-* An archived person cannot be edited: AddressBook shows `This person is archived and can't be edited. Unarchive the person first.` Use [`unarchive`](#unarchiving-a-person-unarchive) first.
+* An archived person cannot be edited: UniContacts shows `This person is archived and can't be edited. Unarchive the person first.` Use [`unarchive`](#unarchiving-a-person-unarchive) first.
 
 Examples:
 * `edit 1 p/91234567 e/alex.yeoh@u.nus.edu` changes the 1st person's phone number and email.
@@ -387,7 +387,7 @@ Format: `archive INDEX` or `archive c/CONTEXT`
 
 * Archives the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list.
 * The index **must be a positive integer** 1, 2, 3, …​
-* An archived person is not shown by `list` and is not found by `find`. They stay saved, with all their details, and they still count when AddressBook checks for a duplicate phone number or email.
+* An archived person is not shown by `list` and is not found by `find`. They stay saved, with all their details, and they still count when UniContacts checks for a duplicate phone number or email.
 * A person who is already archived cannot be archived again.
 * `archive c/CONTEXT` archives every person who has that context and is not archived yet. It works on all persons in the address book, not only the ones currently displayed, so an earlier `find` makes no difference.
 * The context must match exactly, ignoring capitalisation: `c/cs2103t` matches `CS2103T`, but `c/CS` does not.
@@ -432,7 +432,7 @@ Format: `unarchive INDEX` or `unarchive c/CONTEXT`
 
 * Unarchives the person at the specified `INDEX`. The index refers to the index number shown in the displayed list, so show the archived persons with [`archives`](#viewing-archived-persons-archives) first.
 * The index **must be a positive integer** 1, 2, 3, …​
-* If the person at that index is not archived, for example because you are looking at your normal list, nothing is changed and AddressBook tells you to run `archives` first.
+* If the person at that index is not archived, for example because you are looking at your normal list, nothing is changed and UniContacts tells you to run `archives` first.
 * `unarchive c/CONTEXT` unarchives every archived person who has that context. Like `archive c/CONTEXT`, it works on all persons in the address book, not only the ones currently displayed, and the context must match exactly, ignoring capitalisation.
 * After a successful `unarchive`, you stay in the archived list, so you can unarchive several persons in a row. The person is back in your normal list, which you reach with `list`.
 
@@ -470,15 +470,15 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+UniContacts automatically saves data after every command. You do not need to save manually.
 
-If a command cannot be saved, for example because the `data` folder is read-only, AddressBook shows an error message. The change stays in the current session but is not in the data file until a later command that changes something is saved successfully. If you close AddressBook before then, the change is lost. Commands that change nothing, such as `list` and `find`, do not need to save.
+If a command cannot be saved, for example because the `data` folder is read-only, UniContacts shows an error message. The change stays in the current session but is not in the data file until a later command that changes something is saved successfully. If you close UniContacts before then, the change is lost. Commands that change nothing, such as `list` and `find`, do not need to save.
 
-Each save is written to a temporary file first and then moved over `data/addressbook.json`. If AddressBook is closed or crashes in the middle of a save, your previous data file is left as it was instead of being half-written.
+Each save is written to a temporary file first and then moved over `data/addressbook.json`. If UniContacts is closed or crashes in the middle of a save, your previous data file is left as it was instead of being half-written.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+UniContacts data is saved automatically as a JSON file `data/addressbook.json`, in the folder you start UniContacts from (normally the folder that contains the JAR file). Advanced users are welcome to update data directly by editing that data file.
 
 Each person is stored like this:
 
@@ -505,36 +505,36 @@ Each person is stored like this:
 * Two persons cannot have the same phone number or the same email, whether they are archived or not.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-Edit the data file only while AddressBook is closed, and only if you are confident that you can update it correctly. Certain edits can cause AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range).
+Edit the data file only while UniContacts is closed, and only if you are confident that you can update it correctly. Certain edits can cause UniContacts to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range).
 </div>
 
 #### If the data file cannot be read
 
-If AddressBook cannot read the data file when it starts (for example, a person has no context or has an invalid phone number or email, two persons share a phone number or email, the file is not valid JSON, or the file was saved by an older version that used addresses and tags), it:
+If UniContacts cannot read the data file when it starts (for example, a person has no context or has an invalid phone number or email, two persons share a phone number or email, the file is not valid JSON, or the file was saved by an older version that used addresses and tags), it:
 
 1. renames the file to `addressbook.json.<UTC time>.bak` in the same `data` folder, for example `addressbook.json.20261015T101723Z.bak`, so that your data is not overwritten; and
 2. starts with an empty address book. A new `data/addressbook.json` is created by the first command that changes something, such as `add`.
 
 To recover your data:
 
-1. Exit AddressBook.
-2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `addressbook.log.0`, which is in the folder you started AddressBook from.
+1. Exit UniContacts.
+2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `unicontacts.log.0`, which is in the folder you started UniContacts from.
 3. If there is a new `addressbook.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
-4. Start AddressBook again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
+4. Start UniContacts again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
-If AddressBook cannot rename the file, for example because the `data` folder is read-only, it still starts with an empty address book and leaves the file where it is. It renames the file to a `.bak` file just before its next save, so a save can never overwrite the unreadable file. The same applies when the `data` folder cannot be opened at all: AddressBook starts empty instead of with the sample data.
+If UniContacts cannot rename the file, for example because the `data` folder is read-only, it still starts with an empty address book and leaves the file where it is. It renames the file to a `.bak` file just before its next save, so a save can never overwrite the unreadable file. The same applies when the `data` folder cannot be opened at all: UniContacts starts empty instead of with the sample data.
 
-If AddressBook fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name.
+If UniContacts fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name. If two failures happen in the same second, the later `.bak` file gets `-1` (then `-2`, and so on) before `.bak`, for example `addressbook.json.20261015T101723Z-1.bak`.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous UniContacts home folder.
 
-**Q**: AddressBook started with an empty list, but I had saved contacts. What happened?<br>
-**A**: AddressBook could not read your data file, so it kept the file as `data/addressbook.json.<UTC time>.bak` and started empty. Your data is in that `.bak` file. See [If the data file cannot be read](#if-the-data-file-cannot-be-read) to recover it.
+**Q**: UniContacts started with an empty list, but I had saved contacts. What happened?<br>
+**A**: UniContacts could not read your data file, so it kept the file as `data/addressbook.json.<UTC time>.bak` and started empty. Your data is in that `.bak` file. See [If the data file cannot be read](#if-the-data-file-cannot-be-read) to recover it.
 
 --------------------------------------------------------------------------------------------------------------------
 

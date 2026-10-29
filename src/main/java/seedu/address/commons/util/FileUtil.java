@@ -3,6 +3,7 @@ package seedu.address.commons.util;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -18,6 +19,7 @@ import java.util.Optional;
 public class FileUtil {
 
     private static final String CHARSET = "UTF-8";
+    private static final int MAX_SYMBOLIC_LINK_HOPS = 40;
     private static final DateTimeFormatter BACKUP_TIMESTAMP_FORMAT =
             DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneOffset.UTC);
 
@@ -26,7 +28,8 @@ public class FileUtil {
      * @throws IOException if the file or directory cannot be created.
      */
     public static void createIfMissing(Path file) throws IOException {
-        if (Files.exists(file)) {
+        // a link to a missing file already exists as a link: writeToFile creates the file it points to
+        if (Files.exists(file) || Files.isSymbolicLink(file)) {
             return;
         }
 
@@ -85,17 +88,24 @@ public class FileUtil {
 
     /**
      * Returns the file that {@code file} points to if it is a symbolic link, otherwise {@code file} itself.
+     * The file at the end of a chain of links may not exist yet. A loop of links is reported by the file system;
+     * a chain of more than {@code MAX_SYMBOLIC_LINK_HOPS} links to a missing file is refused here.
      */
     private static Path followSymbolicLink(Path file) throws IOException {
-        if (!Files.isSymbolicLink(file)) {
-            return file;
+        Path current = file;
+        for (int hops = 0; Files.isSymbolicLink(current); hops++) {
+            if (hops >= MAX_SYMBOLIC_LINK_HOPS) {
+                throw new FileSystemException(file.toString(), null, "Too many levels of symbolic links");
+            }
+            try {
+                return current.toRealPath();
+            } catch (NoSuchFileException e) {
+                // the link points to a file that does not exist yet, which may itself be a link: follow it one
+                // step at a time so that the file is created at the end of the chain and no link is replaced
+                current = current.resolveSibling(Files.readSymbolicLink(current)).normalize();
+            }
         }
-        try {
-            return file.toRealPath();
-        } catch (NoSuchFileException e) {
-            // the link points to a file that does not exist yet: create it there
-            return file.resolveSibling(Files.readSymbolicLink(file)).normalize();
-        }
+        return current;
     }
 
     /**
@@ -116,8 +126,9 @@ public class FileUtil {
     /**
      * Backs up {@code file} by renaming it to a sibling file named {@code <name>.<UTC time>.bak}, for example
      * {@code addressbook.json.20261015T101723Z.bak}. {@code file} no longer exists afterwards, so a later write to
-     * it cannot overwrite the backup. A backup made earlier keeps its own name; only a backup with the exact same
-     * name (made in the same second) is replaced.
+     * it cannot overwrite the backup. A backup made earlier is never replaced: if a backup
+     * with the same name exists (made in the same second), {@code -1}, {@code -2} and so on is added before
+     * {@code .bak}.
      *
      * @return the backup file, or {@code Optional.empty()} if {@code file} does not exist.
      * @throws IOException if the file cannot be renamed.

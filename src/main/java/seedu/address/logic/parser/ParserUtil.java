@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
@@ -168,5 +169,24 @@ public class ParserUtil {
             throw new ParseException(Note.MESSAGE_CONSTRAINTS);
         }
         return new Note(note);
+    }
+
+    /**
+     * Parses the value of {@code prefix} in {@code argMultimap} with {@code parser}.
+     * Returns an empty {@code Optional} if {@code prefix} is absent.
+     * The field parsers throw a checked exception, so {@code Optional#map} cannot be used instead.
+     *
+     * @throws ParseException if {@code parser} rejects the value.
+     */
+    public static <T> Optional<T> parseIfPresent(ArgumentMultimap argMultimap, Prefix prefix,
+            FieldParser<T> parser) throws ParseException {
+        requireNonNull(argMultimap);
+        requireNonNull(prefix);
+        requireNonNull(parser);
+        Optional<String> value = argMultimap.getValue(prefix);
+        if (value.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(parser.parse(value.get()));
     }
 }

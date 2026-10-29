@@ -60,14 +60,69 @@ public class FileUtilTest {
         Path target = testFolder.resolve("real.json");
         Path link = testFolder.resolve("link.json");
         FileUtil.writeToFile(target, "one");
-        try {
-            Files.createSymbolicLink(link, target.getFileName());
-        } catch (UnsupportedOperationException | IOException e) {
-            assumeTrue(false, "symbolic links are not available");
-        }
+        createSymbolicLinkOrSkip(link, target.getFileName());
         FileUtil.writeToFile(link, "two");
         assertTrue(Files.isSymbolicLink(link));
         assertEquals("two", FileUtil.readFromFile(target));
+    }
+
+    @Test
+    public void writeToFile_danglingSymbolicLink_createsTargetAndKeepsLink() throws IOException {
+        Path target = testFolder.resolve("real.json");
+        Path link = testFolder.resolve("link.json");
+        createSymbolicLinkOrSkip(link, target.getFileName());
+
+        FileUtil.createIfMissing(link);
+        FileUtil.writeToFile(link, "one");
+
+        assertTrue(Files.isSymbolicLink(link));
+        assertEquals("one", FileUtil.readFromFile(target));
+    }
+
+    @Test
+    public void writeToFile_chainOfDanglingSymbolicLinks_keepsEveryLink() throws IOException {
+        Path target = testFolder.resolve("real.json");
+        Path middle = testFolder.resolve("middle.json");
+        Path link = testFolder.resolve("link.json");
+        createSymbolicLinkOrSkip(middle, target.getFileName());
+        createSymbolicLinkOrSkip(link, middle.getFileName());
+
+        FileUtil.writeToFile(link, "one");
+
+        assertTrue(Files.isSymbolicLink(link));
+        assertTrue(Files.isSymbolicLink(middle));
+        assertEquals("one", FileUtil.readFromFile(target));
+    }
+
+    @Test
+    public void writeToFile_symbolicLinkLoop_throwsIoException() throws IOException {
+        Path first = testFolder.resolve("first.json");
+        Path second = testFolder.resolve("second.json");
+        createSymbolicLinkOrSkip(first, second.getFileName());
+        createSymbolicLinkOrSkip(second, first.getFileName());
+
+        assertThrows(IOException.class, () -> FileUtil.writeToFile(first, "one"));
+    }
+
+    @Test
+    public void writeToFile_tooLongChainOfDanglingSymbolicLinks_throwsIoExceptionAndCreatesNothing()
+            throws IOException {
+        int links = 50;
+        for (int i = 0; i < links; i++) {
+            createSymbolicLinkOrSkip(testFolder.resolve("link" + i + ".json"),
+                    testFolder.resolve("link" + (i + 1) + ".json").getFileName());
+        }
+
+        assertThrows(IOException.class, () -> FileUtil.writeToFile(testFolder.resolve("link0.json"), "one"));
+        assertFalse(Files.exists(testFolder.resolve("link" + links + ".json")));
+    }
+
+    private static void createSymbolicLinkOrSkip(Path link, Path target) throws IOException {
+        try {
+            Files.createSymbolicLink(link, target);
+        } catch (UnsupportedOperationException | IOException e) {
+            assumeTrue(false, "symbolic links are not available");
+        }
     }
 
     @Test

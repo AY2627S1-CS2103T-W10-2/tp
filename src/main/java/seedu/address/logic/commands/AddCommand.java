@@ -14,7 +14,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -87,12 +86,9 @@ public class AddCommand extends Command {
      */
     private String formatSimilarPersonNote(Model model, Person similar) {
         String name = similar.getName().toString();
-        String sharedContexts = similar.getContexts().stream()
+        String sharedContexts = Messages.formatContextsSorted(similar.getContexts().stream()
                 .filter(toAdd.getContexts()::contains)
-                .map(Object::toString)
-                .sorted(String.CASE_INSENSITIVE_ORDER)
-                .map(context -> "[" + context + "]")
-                .collect(Collectors.joining(" "));
+                .toList());
         if (similar.isArchived()) {
             return String.format(MESSAGE_SIMILAR_PERSON_ARCHIVED_NOTE, name, sharedContexts)
                     + " " + Messages.MESSAGE_ARCHIVED_PERSON_HINT;

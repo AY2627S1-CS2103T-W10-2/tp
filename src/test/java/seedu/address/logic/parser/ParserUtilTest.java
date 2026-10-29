@@ -2,6 +2,8 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_EMPTY_ALIAS;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_EMPTY_CONTEXT;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_EMPTY_EMAIL;
@@ -14,6 +16,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -313,5 +316,62 @@ public class ParserUtilTest {
         Set<Context> contexts = ParserUtil.parseContexts(List.of("NUS   Hackers", "nus hackers"));
         assertEquals(1, contexts.size());
         assertEquals("NUS Hackers", contexts.iterator().next().description);
+    }
+
+    @Test
+    public void parseIfPresent_nullArgMultimap_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () ->
+                ParserUtil.parseIfPresent(null, PREFIX_PHONE, ParserUtil::parsePhone));
+    }
+
+    @Test
+    public void parseIfPresent_nullPrefix_throwsNullPointerException() {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" p/" + VALID_PHONE, PREFIX_PHONE);
+        assertThrows(NullPointerException.class, () ->
+                ParserUtil.parseIfPresent(argMultimap, null, ParserUtil::parsePhone));
+    }
+
+    @Test
+    public void parseIfPresent_nullParser_throwsNullPointerException() {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" p/" + VALID_PHONE, PREFIX_PHONE);
+        assertThrows(NullPointerException.class, () ->
+                ParserUtil.parseIfPresent(argMultimap, PREFIX_PHONE, null));
+    }
+
+    @Test
+    public void parseIfPresent_prefixAbsent_returnsEmpty() throws Exception {
+        ArgumentMultimap argMultimap =
+                ArgumentTokenizer.tokenize(" e/" + VALID_EMAIL, PREFIX_PHONE, PREFIX_EMAIL);
+        assertEquals(Optional.empty(),
+                ParserUtil.parseIfPresent(argMultimap, PREFIX_PHONE, ParserUtil::parsePhone));
+    }
+
+    @Test
+    public void parseIfPresent_validValue_returnsParsedValue() throws Exception {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" p/" + VALID_PHONE, PREFIX_PHONE);
+        assertEquals(Optional.of(new Phone(VALID_PHONE)),
+                ParserUtil.parseIfPresent(argMultimap, PREFIX_PHONE, ParserUtil::parsePhone));
+    }
+
+    @Test
+    public void parseIfPresent_invalidValue_throwsParseException() {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" p/" + INVALID_PHONE, PREFIX_PHONE);
+        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseIfPresent(argMultimap, PREFIX_PHONE, ParserUtil::parsePhone));
+    }
+
+    @Test
+    public void parseIfPresent_blankValue_throwsParseException() {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" p/", PREFIX_PHONE);
+        assertThrows(ParseException.class, MESSAGE_EMPTY_PHONE, () ->
+                ParserUtil.parseIfPresent(argMultimap, PREFIX_PHONE, ParserUtil::parsePhone));
+    }
+
+    @Test
+    public void parseIfPresent_prefixGivenTwice_parsesLastValue() throws Exception {
+        ArgumentMultimap argMultimap =
+                ArgumentTokenizer.tokenize(" p/" + VALID_PHONE + " p/91234567", PREFIX_PHONE);
+        assertEquals(Optional.of(new Phone("91234567")),
+                ParserUtil.parseIfPresent(argMultimap, PREFIX_PHONE, ParserUtil::parsePhone));
     }
 }

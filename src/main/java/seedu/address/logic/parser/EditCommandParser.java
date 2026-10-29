@@ -18,11 +18,11 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.logic.commands.FieldEdit;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Alias;
 import seedu.address.model.person.Email;
@@ -69,17 +69,11 @@ public class EditCommandParser implements Parser<EditCommand> {
                 PREFIX_ALIAS, PREFIX_ALIAS_REMOVE, PREFIX_INTRODUCER, PREFIX_INTRODUCER_REMOVE,
                 PREFIX_NOTE_REMOVE, PREFIX_CONTEXT, PREFIX_CONTEXT_ADD, PREFIX_CONTEXT_REMOVE);
 
-        Index index;
-
         if (argMultimap.getValue(PREFIX_CONTEXT).isPresent()) {
             throw new ParseException(MESSAGE_INVALID_CONTEXT_PREFIX);
         }
 
-        try {
-            index = ParserUtil.parseIndex(argMultimap.getPreamble());
-        } catch (ParseException pe) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
-        }
+        Index index = parseIndex(argMultimap);
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_PHONE_REMOVE,
                 PREFIX_EMAIL, PREFIX_EMAIL_REMOVE, PREFIX_ALIAS, PREFIX_ALIAS_REMOVE,
@@ -87,27 +81,14 @@ public class EditCommandParser implements Parser<EditCommand> {
 
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
-        if (argMultimap.getValue(PREFIX_NAME).isPresent()) {
-            editPersonDescriptor.setName(ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get()));
-        }
-        parseOptionalField(argMultimap, PHONE_FIELD,
-                editPersonDescriptor::setPhone, editPersonDescriptor::setPhoneRemoved);
-        parseOptionalField(argMultimap, EMAIL_FIELD,
-                editPersonDescriptor::setEmail, editPersonDescriptor::setEmailRemoved);
-        parseOptionalField(argMultimap, ALIAS_FIELD,
-                editPersonDescriptor::setAlias, editPersonDescriptor::setAliasRemoved);
-        parseOptionalField(argMultimap, INTRODUCER_FIELD,
-                editPersonDescriptor::setIntroducer, editPersonDescriptor::setIntroducerRemoved);
-        parseOptionalField(argMultimap, NOTE_FIELD,
-                editPersonDescriptor::setNote, editPersonDescriptor::setNoteRemoved);
-        if (!argMultimap.getAllValues(PREFIX_CONTEXT_ADD).isEmpty()) {
-            editPersonDescriptor.setContextsToAdd(
-                    ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT_ADD)));
-        }
-        if (!argMultimap.getAllValues(PREFIX_CONTEXT_REMOVE).isEmpty()) {
-            editPersonDescriptor.setContextsToRemove(
-                    ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT_REMOVE)));
-        }
+        ParserUtil.parseIfPresent(argMultimap, PREFIX_NAME, ParserUtil::parseName)
+                .ifPresent(editPersonDescriptor::setName);
+        editPersonDescriptor.setPhone(parseOptionalField(argMultimap, PHONE_FIELD));
+        editPersonDescriptor.setEmail(parseOptionalField(argMultimap, EMAIL_FIELD));
+        editPersonDescriptor.setAlias(parseOptionalField(argMultimap, ALIAS_FIELD));
+        editPersonDescriptor.setIntroducer(parseOptionalField(argMultimap, INTRODUCER_FIELD));
+        editPersonDescriptor.setNote(parseOptionalField(argMultimap, NOTE_FIELD));
+        parseContextChanges(argMultimap, editPersonDescriptor);
 
         if (!editPersonDescriptor.isAnyFieldEdited()) {
             throw new ParseException(EditCommand.MESSAGE_NOT_EDITED + "\n" + EditCommand.MESSAGE_USAGE);
@@ -117,14 +98,46 @@ public class EditCommandParser implements Parser<EditCommand> {
     }
 
     /**
-     * Records the value of {@code field} to set with {@code setValue}, and whether {@code field} should be
-     * removed with {@code setRemoved}. Every field that edit can remove follows these rules.
+     * Returns the index of the person to edit, which is the preamble of {@code argMultimap}.
+     *
+     * @throws ParseException if the preamble is not a valid index.
+     */
+    private static Index parseIndex(ArgumentMultimap argMultimap) throws ParseException {
+        try {
+            return ParserUtil.parseIndex(argMultimap.getPreamble());
+        } catch (ParseException pe) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
+        }
+    }
+
+    /**
+     * Sets the contexts to add and the contexts to remove in {@code editPersonDescriptor}
+     * if the add prefix and the remove prefix are given in {@code argMultimap}.
+     *
+     * @throws ParseException if any context is invalid.
+     */
+    private static void parseContextChanges(ArgumentMultimap argMultimap,
+            EditPersonDescriptor editPersonDescriptor) throws ParseException {
+        if (!argMultimap.getAllValues(PREFIX_CONTEXT_ADD).isEmpty()) {
+            editPersonDescriptor.setContextsToAdd(
+                    ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT_ADD)));
+        }
+        if (!argMultimap.getAllValues(PREFIX_CONTEXT_REMOVE).isEmpty()) {
+            editPersonDescriptor.setContextsToRemove(
+                    ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT_REMOVE)));
+        }
+    }
+
+    /**
+     * Returns the edit to {@code field} given in {@code argMultimap}: removed if the remove prefix is given,
+     * set to the parsed value if the set prefix is given, otherwise unchanged.
+     * Every field that edit can remove follows these rules.
      *
      * @throws ParseException if the remove prefix has a value, is given with the set prefix,
      *     or the set prefix is empty or has an invalid value.
      */
-    private static <T> void parseOptionalField(ArgumentMultimap argMultimap, OptionalField<T> field,
-            Consumer<T> setValue, RemovalSetter setRemoved) throws ParseException {
+    private static <T> FieldEdit<T> parseOptionalField(ArgumentMultimap argMultimap, OptionalField<T> field)
+            throws ParseException {
         // Each is empty if its prefix was not typed, e.g. value holds "91234567" for p/91234567
         Optional<String> value = argMultimap.getValue(field.setPrefix());
         Optional<String> valueToRemove = argMultimap.getValue(field.removePrefix());
@@ -145,11 +158,12 @@ public class EditCommandParser implements Parser<EditCommand> {
                     field.emptyMessage(), field.removePrefix(), field.description()));
         }
 
-        // Record the parsed new value and the remove flag in the descriptor
-        if (value.isPresent()) {
-            setValue.accept(field.parser().parse(value.get()));
+        if (valueToRemove.isPresent()) {
+            return FieldEdit.removed();
         }
-        setRemoved.set(valueToRemove.isPresent());
+        return ParserUtil.parseIfPresent(argMultimap, field.setPrefix(), field.parser())
+                .map(FieldEdit::set)
+                .orElseGet(FieldEdit::unchanged);
     }
 
     /**
@@ -159,22 +173,5 @@ public class EditCommandParser implements Parser<EditCommand> {
      */
     private record OptionalField<T>(Prefix setPrefix, Prefix removePrefix, String description,
             String placeholder, String emptyMessage, FieldParser<T> parser) {}
-
-    /**
-     * Represents a function that parses the value of a field, such as {@link ParserUtil#parsePhone}.
-     */
-    @FunctionalInterface
-    private interface FieldParser<T> {
-        T parse(String value) throws ParseException;
-    }
-
-    /**
-     * Represents a function that records whether a field should be removed, such as
-     * {@link EditCommand.EditPersonDescriptor#setPhoneRemoved}.
-     */
-    @FunctionalInterface
-    private interface RemovalSetter {
-        void set(boolean isRemoved);
-    }
 
 }
