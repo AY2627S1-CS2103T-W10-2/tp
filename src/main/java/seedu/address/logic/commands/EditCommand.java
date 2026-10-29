@@ -103,18 +103,7 @@ public class EditCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getFilteredPersonList();
-
-        if (index.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        }
-
-        Person personToEdit = lastShownList.get(index.getZeroBased());
-
-        if (personToEdit.isArchived()) {
-            throw new CommandException(MESSAGE_ARCHIVED_NOT_EDITABLE);
-        }
-
+        Person personToEdit = getPersonToEdit(model);
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
         Optional<Person> existingPerson = model.findDuplicate(editedPerson, personToEdit);
@@ -128,6 +117,34 @@ public class EditCommand extends Command {
         }
         model.updateFilteredPersonList(PREDICATE_SHOW_ACTIVE);
 
+        return new CommandResult(buildFeedback(personToEdit, editedPerson, isChanged));
+    }
+
+    /**
+     * Returns the person at {@code index} in the filtered person list of {@code model}.
+     *
+     * @throws CommandException if the index is out of range or the person is archived.
+     */
+    private Person getPersonToEdit(Model model) throws CommandException {
+        List<Person> lastShownList = model.getFilteredPersonList();
+
+        if (index.getZeroBased() >= lastShownList.size()) {
+            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        }
+
+        Person personToEdit = lastShownList.get(index.getZeroBased());
+
+        if (personToEdit.isArchived()) {
+            throw new CommandException(MESSAGE_ARCHIVED_NOT_EDITABLE);
+        }
+        return personToEdit;
+    }
+
+    /**
+     * Returns the message to show after the edit: the success or no-change message,
+     * then a note for each of the unmatched and skipped contexts, if any.
+     */
+    private String buildFeedback(Person personToEdit, Person editedPerson, boolean isChanged) {
         String feedback = isChanged
                 ? String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
                 : String.format(MESSAGE_NO_CHANGES, personToEdit.getName());
@@ -141,7 +158,7 @@ public class EditCommand extends Command {
             feedback += "\n" + String.format(MESSAGE_CONTEXTS_SKIPPED,
                     editedPerson.getName(), Messages.formatContexts(skippedContexts));
         }
-        return new CommandResult(feedback);
+        return feedback;
     }
 
     /**
