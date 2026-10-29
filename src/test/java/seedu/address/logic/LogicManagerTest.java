@@ -1,6 +1,8 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.CONTEXT_DESC_FRIEND;
@@ -87,13 +89,51 @@ public class LogicManagerTest {
                 + String.format(ContextsCommand.MESSAGE_CONTEXT_SINGULAR, "NUS Hackers", 1) + "\n\n"
                 + String.format(ContextsCommand.MESSAGE_SUCCESS_PLURAL, 2);
 
-        assertEquals(new CommandResult(expectedMessage), logic.execute("CoNtExTs ignored"));
+        assertEquals(new CommandResult(expectedMessage), logic.execute("CoNtExTs"));
         assertEquals(displayedPersons, model.getFilteredPersonList());
 
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
         Model reloadedModel = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
         assertEquals(model.getAddressBook(), reloadedModel.getAddressBook());
         assertEquals(new CommandResult(expectedMessage), new ContextsCommand().execute(reloadedModel));
+    }
+
+    @Test
+    public void execute_contextsAfterArchive_preservesViewAndCountsSurviveReload() throws Exception {
+        logic.execute("add n/Alex Tan c/cs2103t c/Old Project");
+        logic.execute("add n/Priya Nair c/CS2103T");
+        logic.execute("archive 1");
+        logic.execute("archives");
+        List<Person> displayedPersons = List.copyOf(model.getFilteredPersonList());
+        String expectedMessage = String.format(ContextsCommand.MESSAGE_CONTEXT_SINGULAR, "CS2103T", 1) + "\n\n"
+                + String.format(ContextsCommand.MESSAGE_SUCCESS_SINGULAR, 1);
+
+        assertEquals(new CommandResult(expectedMessage), logic.execute("contexts"));
+        assertEquals(displayedPersons, model.getFilteredPersonList());
+        assertTrue(model.showingArchivesProperty().get());
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        Model reloadedModel = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        assertEquals(model.getAddressBook(), reloadedModel.getAddressBook());
+        assertEquals(new CommandResult(expectedMessage), new ContextsCommand().execute(reloadedModel));
+
+        logic.execute("unarchive 1");
+        String restoredMessage = String.format(ContextsCommand.MESSAGE_CONTEXT_PLURAL, "cs2103t", 2) + "\n"
+                + String.format(ContextsCommand.MESSAGE_CONTEXT_SINGULAR, "Old Project", 1) + "\n\n"
+                + String.format(ContextsCommand.MESSAGE_SUCCESS_PLURAL, 2);
+        assertEquals(new CommandResult(restoredMessage), logic.execute("contexts"));
+    }
+
+    @Test
+    public void execute_contextsWithArguments_rejectsInputAndPreservesSearch() throws Exception {
+        logic.execute("add n/Alex Tan c/CS2103T");
+        logic.execute("find Nobody");
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ContextsCommand.MESSAGE_USAGE);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.updateFilteredPersonList(person -> false);
+
+        assertCommandFailure("contexts c/CS2103T", ParseException.class, expectedMessage, expectedModel);
+        assertEquals(List.of(), model.getFilteredPersonList());
     }
 
     @Test

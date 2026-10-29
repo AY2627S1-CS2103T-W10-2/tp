@@ -152,25 +152,13 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Context overview
 
-The `contexts` command lists distinct contexts with contact counts in the existing scrollable result display.
-`AddressBookParser` creates a `ContextsCommand`; as with `list`, command words are case-insensitive and trailing
-arguments are ignored.
+The `contexts` command lists active persons' distinct contexts with person counts in the existing scrollable result display. `AddressBookParser` delegates to `ContextsCommandParser`, which rejects non-whitespace arguments with the usage message and a pointer to `find c/CONTEXT`. Command words remain case-insensitive. The command stays separate from `list`, as `archives` does; `list` continues to show active persons and ignore trailing arguments.
 
-`ContextsCommand#execute()` reads `Model#getAddressBook().getPersonList()` rather than the filtered person list.
-It visits contacts in their stored order and aggregates their context descriptions in a `TreeMap` using
-`String.CASE_INSENSITIVE_ORDER`. This groups equivalent names and sorts the output while retaining the first
-encountered spelling. `Context` already normalises surrounding and repeated spaces, and each person's contexts
-form a set, so a person contributes at most one to each context's count. Separate contacts with the same name
-are counted separately.
+`ContextsCommand#execute()` reads `Model#getAddressBook().getPersonList()` rather than the filtered person list. It visits persons in their stored order, skips those that do not match `Model.PREDICATE_SHOW_ACTIVE`, and aggregates the remaining context descriptions in a `TreeMap` using `String.CASE_INSENSITIVE_ORDER`. This groups equivalent names and sorts the output while retaining the spelling from the first active person. Archived persons cannot contribute counts, context names or spelling. `Context` already normalizes surrounding and repeated spaces, and each person's contexts form a set, so a person contributes at most one to each context's count. Separate contacts with the same name are counted separately.
 
-The command returns one line per context followed by a distinct-context summary, or a message explaining that
-there are no contexts when the address book is empty. It does not update the model or its filter, so the displayed
-contact list and indices remain unchanged. Counts are recomputed on each execution, and no storage format change
-is required. Existing `LogicManager` save handling applies as it does for other commands.
+The command returns one line per context followed by a distinct-context summary. An empty address book gets the add-person hint; an address book containing only archived persons gets a separate no-active-contexts message with instructions to view and unarchive persons. It does not update the model or its filter, so the displayed person list, search predicate, Archives header and indices remain unchanged. Even in the archive view, the overview counts all active persons, rather than the displayed archived persons. Counts are recomputed on each execution, and no storage format change is required. Existing `LogicManager` save handling applies as it does for other commands.
 
-`ContextsCommandTest` covers normalisation, counts, alphabetical order, first-encountered spelling, empty data,
-filtered lists and changes between executions. Parser tests cover command casing and ignored arguments, and
-`LogicManagerTest` verifies the result after filtering and reloading saved contacts.
+`ContextsCommandTest` covers normalization, counts, alphabetical order, spelling from the first active person, empty and archived-only data, filtered lists, archive views and changes between executions. Parser tests cover command casing, whitespace and rejected arguments. `LogicManagerTest` verifies filtering, archive/unarchive transitions, preservation of the archive view, rejected input and counts after reloading saved contacts.
 
 ### Archive feature
 
@@ -438,6 +426,7 @@ US1 to US22 retain the identifiers from the Project Notes.
 | US16 | `* * *` | CS student who knows people with similar names | see contextual information alongside search results | distinguish between the matching contacts |
 | US17 | `* *` | CS student who remembers several partial details about someone | narrow search results to contacts matching all the clues I provide | identify the person from the combination of details I remember |
 | US18 | `* * *` | CS student reconnecting with people from a particular activity | view contacts associated with a module, event, project, or organisation | rediscover people from that group |
+| US23 | `* *` | CS student with contacts from many activities | view my active contexts and the number of contacts linked to each | choose a relevant group before searching my network |
 
 Context-based search (US10) directly supports UniContacts' value proposition: retrieving people through the contexts
 in which the user knows them. Multi-clue search (US17) extends this by requiring every supplied field-specific clue to
@@ -658,17 +647,24 @@ The following story is retained to document the scope decision. UniContacts mana
 
 * No contact data is changed, and the displayed contact list is unchanged.
 * Each context appears once, regardless of capitalisation or extra spaces.
-* Counts include every contact in the address book, regardless of the current search filter.
+* Counts include every active contact in the address book, regardless of the current search filter or archive view.
+* Archived contacts contribute neither counts nor context names. Spelling comes from the first active contact.
 * Each contact contributes at most one to each context's count. Different contacts with the same name count separately.
 
 **MSS**
 
 1.  User requests to view all contexts
-2.  System shows each context in alphabetical order, with the number of contacts linked to it
+1.  System shows each context in alphabetical order, with the number of active contacts linked to it
 
     Use case ends.
 
 **Extensions**
+
+* 1a. The request contains unsupported parameters.
+
+    * 1a1. System shows an error with usage guidance and a pointer to context search.
+
+      Use case resumes at step 1.
 
 * 2a. No contacts have been saved.
 
@@ -676,9 +672,14 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case ends.
 
+* 2b. All saved contacts are archived.
+
+    * 2b1. System reports that there are no active contexts and explains how to view and unarchive contacts.
+
+      Use case ends.
 
 
-**Use case: UC06 - Archive a contact**
+**Use case: UC07 - Archive a contact**
 
 **Guarantees**
 
@@ -736,7 +737,7 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case ends.
 
-**Use case: UC07 - View archived contacts**
+**Use case: UC08 - View archived contacts**
 
 **Guarantees**
 
@@ -764,7 +765,7 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case ends.
 
-**Use case: UC08 - Unarchive a contact**
+**Use case: UC09 - Unarchive a contact**
 
 **Guarantees**
 
@@ -774,7 +775,7 @@ The following story is retained to document the scope decision. UniContacts mana
 
 **MSS**
 
-1.  User views the archived contacts (UC07)
+1.  User views the archived contacts (UC08)
 2.  User requests to unarchive a specific contact in the list
 3.  System unarchives the contact and shows the details of the unarchived contact
 
@@ -910,26 +911,54 @@ testers are expected to do more *exploratory* testing.
 
 1. Listing counts and preserving a search filter
 
-   1. Prerequisites: Use a disposable test address book containing only Alex Tan with `CS2103` and `NUS Hackers`,
-      Priya Nair with `cs2103` and `CS2103T`, and Marcus Lim with `CS2103T`.
+   1. Prerequisites: Use a disposable test address book containing only Alex Tan with `CS2103` and `NUS Hackers`, Priya Nair with `cs2103` and `CS2103T`, and Marcus Lim with `CS2103T`. All three must be active.
 
    1. Test case: `contexts`<br>
-      Expected: The result display shows `CS2103: 2 people`, `CS2103T: 2 people`, `NUS Hackers: 1 person`,
-      a blank line, and `3 contexts listed.` The contact list is unchanged.
+      Expected: The result display shows `CS2103: 2 people`, `CS2103T: 2 people`, `NUS Hackers: 1 person`, a blank line, and `3 contexts listed.` The contact list is unchanged.
 
    1. Test case: `find Priya`, followed by `contexts`<br>
-      Expected: The same full-address-book counts are shown, and only Priya remains in the displayed list.
+      Expected: The same counts across all active contacts are shown, and only Priya remains in the displayed list.
 
-   1. Test case: `find Nobody`, followed by `CONTEXTS ignored`<br>
+   1. Test case: `find Nobody`, followed by `CONTEXTS`<br>
       Expected: The same counts are shown, and the displayed contact list remains empty.
 
    1. Test case: `list`, `delete 1`, then `contexts`<br>
-      Expected: `NUS Hackers` disappears, and the counts reflect the remaining contacts. The overview uses
-      Priya's spelling `cs2103` for that context.
+      Expected: `NUS Hackers` disappears, and the counts reflect the remaining contacts. The overview uses Priya's spelling `cs2103` for that context.
+
+1. Rejecting unexpected arguments
+
+   1. Test cases: `contexts CS2103T`, `CONTEXTS c/CS2103T`, `contexts archived` and `contexts 1`<br>
+      Expected: Each command fails with `Invalid command format!` and usage guidance pointing to `find c/CONTEXT`. The saved contacts and displayed list are unchanged.
+
+1. Excluding archived contacts and preserving the archive view
+
+   1. Prerequisites: Reset the disposable address book to the three active contacts in the first test group.
+
+   1. Test case: `list`, `archive 1`, then `contexts`<br>
+      Expected: `cs2103: 1 person`, `CS2103T: 2 people`, a blank line, and `2 contexts listed.` `NUS Hackers` is omitted, and Priya's spelling is used. Only Priya and Marcus remain in the displayed list.
+
+   1. Test case: `archives`, then `contexts`<br>
+      Expected: The same active-only overview is shown. Alex remains the only displayed contact, under the Archives header, at index 1.
+
+   1. Close and reopen the app, then run `contexts`.<br>
+      Expected: The same active-only counts and spelling are shown after reload.
+
+   1. Test case: `archives`, `unarchive 1`, then `contexts`<br>
+      Expected: The original three-context overview is restored, including Alex's spelling `CS2103`.
+
+1. Listing contexts when all contacts are archived
+
+   1. Prerequisites: In a disposable address book containing only the three active contacts above, run `list`, then `archive 1` three times.
+
+   1. Test case: `contexts`<br>
+      Expected: `No active contexts found. Run archives to view archived persons, then use unarchive INDEX to include them.` The displayed list remains empty.
+
+   1. Test case: `archives`, then `contexts`<br>
+      Expected: The same message, with all three archived contacts still displayed under the Archives header.
 
 1. Listing contexts in an empty address book
 
-   1. Prerequisites: In the disposable test address book, run `clear`.
+   1. Prerequisites: Use an empty disposable address book with no active or archived contacts. `clear` alone does not remove archived contacts; use `archives` and delete those contacts individually if any remain.
 
    1. Test case: `contexts`<br>
       Expected: `No contexts found. Add a person with c/CONTEXT to get started.` The contact list remains empty.
@@ -937,7 +966,7 @@ testers are expected to do more *exploratory* testing.
 1. Checking persistence and long output
 
    1. Close and reopen the app after saving contacts, then run `contexts`.<br>
-      Expected: The counts and spelling match the stored contacts.
+      Expected: The counts and spelling match the stored active contacts.
 
    1. With enough distinct contexts to exceed the result display's height, run `contexts` and scroll the result.<br>
       Expected: All context rows and the final summary can be read without changing the displayed contact list.

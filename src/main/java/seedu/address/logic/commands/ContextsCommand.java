@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.model.Model.PREDICATE_SHOW_ACTIVE;
 
 import java.util.List;
 import java.util.Map;
@@ -12,14 +13,23 @@ import seedu.address.model.person.Context;
 import seedu.address.model.person.Person;
 
 /**
- * Lists all contexts with contact counts without changing the displayed person list.
+ * Lists active persons' contexts with person counts without changing the displayed person list.
  */
 public class ContextsCommand extends Command {
 
     public static final String COMMAND_WORD = "contexts";
 
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Lists all contexts of persons who are not archived, with person counts. "
+            + "Does not change the displayed person list.\n"
+            + "Parameters: none\n"
+            + "Example: " + COMMAND_WORD + "\n"
+            + "To search by context, use: " + FindCommand.COMMAND_WORD + " c/CONTEXT";
+
     public static final String MESSAGE_NO_CONTEXTS =
             "No contexts found. Add a person with c/CONTEXT to get started.";
+    public static final String MESSAGE_NO_ACTIVE_CONTEXTS = "No active contexts found. "
+            + "Run archives to view archived persons, then use unarchive INDEX to include them.";
     public static final String MESSAGE_CONTEXT_SINGULAR = "%1$s: %2$d person";
     public static final String MESSAGE_CONTEXT_PLURAL = "%1$s: %2$d people";
     public static final String MESSAGE_SUCCESS_SINGULAR = "%1$d context listed.";
@@ -29,21 +39,25 @@ public class ContextsCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
 
-        Map<String, Integer> contactCounts = countContexts(model.getAddressBook().getPersonList());
+        List<Person> persons = model.getAddressBook().getPersonList();
+        Map<String, Integer> contactCounts = countContexts(persons);
         if (contactCounts.isEmpty()) {
-            return new CommandResult(MESSAGE_NO_CONTEXTS);
+            return new CommandResult(persons.isEmpty() ? MESSAGE_NO_CONTEXTS : MESSAGE_NO_ACTIVE_CONTEXTS);
         }
         return new CommandResult(formatOverview(contactCounts));
     }
 
     /**
-     * Counts each person's contexts, grouping equivalent descriptions and retaining the first spelling.
+     * Counts active persons' contexts, grouping equivalent descriptions and retaining the first active spelling.
      */
     private Map<String, Integer> countContexts(List<Person> persons) {
-        // Context descriptions are already normalised, and each person's contexts form a set.
+        // Context descriptions are already normalized, and each person's contexts form a set.
         // TreeMap groups and sorts ignoring case, retaining the first encountered spelling.
         Map<String, Integer> contactCounts = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (Person person : persons) {
+            if (!PREDICATE_SHOW_ACTIVE.test(person)) {
+                continue;
+            }
             for (Context context : person.getContexts()) {
                 contactCounts.merge(context.description, 1, Integer::sum);
             }

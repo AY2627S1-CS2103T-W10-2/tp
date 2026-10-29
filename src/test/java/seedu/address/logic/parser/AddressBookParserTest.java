@@ -67,9 +67,17 @@ public class AddressBookParserTest {
     }
 
     @Test
-    public void parseCommand_contexts_ignoresExtraTextAndCommandCase() throws Exception {
-        for (String input : List.of("contexts", "contexts CS2103T", "CONTEXTS", "CoNtExTs ignored", "  contexts  ")) {
+    public void parseCommand_contexts_acceptsWhitespaceAndCommandCase() throws Exception {
+        for (String input : List.of("contexts", "CONTEXTS", "CoNtExTs", "  contexts  ", "\tcontexts\t")) {
             assertTrue(parser.parseCommand(input) instanceof ContextsCommand);
+        }
+    }
+
+    @Test
+    public void parseCommand_contextsWithArguments_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ContextsCommand.MESSAGE_USAGE);
+        for (String input : List.of("contexts CS2103T", "CONTEXTS c/CS2103T", "CoNtExTs ignored", "contexts 1")) {
+            assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand(input));
         }
     }
 

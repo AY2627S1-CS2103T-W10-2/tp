@@ -28,7 +28,7 @@ UniContacts is a **desktop contact manager for CS students, optimized for use th
 
    * `list` : Lists all persons.
 
-   * `contexts` : Lists all contexts with the number of contacts linked to each.
+   * `contexts` : Lists all active contacts' contexts with the number of contacts linked to each.
 
    * `add n/John Doe c/CS2103T p/98765432 e/johnd@example.com` : Adds a person named `John Doe` to the address book.
 
@@ -64,8 +64,8 @@ UniContacts is a **desktop contact manager for CS students, optimized for use th
 * Command words are case-insensitive, but prefixes must be in lowercase.<br>
   For example, `add`, `ADD` and `Add` all work, but `N/John Doe` is not read as `n/John Doe`.
 
-* Commands that take no parameters, such as `help`, `list`, `contexts`, `exit` and `clear`, ignore anything typed after them.<br>
-  For example, `help 123` is interpreted as `help`. The exception is `archives`, which rejects anything typed after it (see [`archives`](#viewing-archived-persons-archives)).
+* Commands that take no parameters, such as `help`, `list`, `exit` and `clear`, ignore anything typed after them.<br>
+  For example, `help 123` is interpreted as `help`. The exceptions are [`contexts`](#viewing-all-contexts-contexts) and [`archives`](#viewing-archived-persons-archives), which reject anything typed after them.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -204,20 +204,20 @@ Examples:
 
 ### Viewing all contexts: `contexts`
 
-Shows every distinct context and the number of contacts linked to it in the result display.
+Shows every distinct context of active contacts (contacts who are not archived) and the number of active contacts linked to it in the result display.
 
 Format: `contexts`
 
-* Counts cover the full address book, even if `find` currently shows only some contacts or no contacts.
+* Counts cover all active contacts in the address book, even if `find` currently shows only some contacts or no contacts.
+* Archived contacts never contribute to counts or displayed context names. Contexts belonging only to archived contacts are omitted. This rule also applies when you run `contexts` while viewing `archives`.
 * Each contact is counted once per context. Different contacts with the same name are counted separately.
 * Contexts that differ only in capitalisation, surrounding spaces or repeated spaces are grouped together.
-* Contexts are sorted alphabetically, ignoring capitalisation. The spelling from the first contact with that context
-  in the full contact list is shown. No stored spelling is changed.
-* The displayed contact list, active search filter, order and index numbers are unchanged.
-* Counts are recalculated each time you run `contexts`, so they reflect subsequent additions, edits and deletions.
-* The command word is case-insensitive. Extra text is ignored: `CONTEXTS CS2103T` still lists all contexts.
+* Contexts are sorted alphabetically, ignoring capitalisation. The spelling from the first active contact with that context in the stored contact list is shown. No stored spelling is changed.
+* The displayed contact list, search filter, archive view, order and index numbers are unchanged.
+* Counts are recalculated each time you run `contexts`, so they reflect additions, edits, deletions, archiving and unarchiving.
+* The command word is case-insensitive: `CONTEXTS` works. Extra text such as `contexts CS2103T`, `contexts c/CS2103T` or `contexts archived` is rejected with `Invalid command format!` and usage guidance.
 
-For example, suppose the address book contains only:
+For example, suppose the address book contains only these active contacts:
 
 Person | Contexts
 -------|---------
@@ -237,10 +237,12 @@ NUS Hackers: 1 person
 
 The summary says `1 context listed.` when there is exactly one distinct context.
 If the full address book is empty, the result is `No contexts found. Add a person with c/CONTEXT to get started.`
+If all contacts are archived, the result is `No active contexts found. Run archives to view archived persons, then use unarchive INDEX to include them.`
 Scroll within the result display if the overview is too long to view at once.
 
-You can then use `find CS2103T` to search for contacts by context. Unlike `contexts`, `find` changes the displayed list
-and also matches partial names and contexts.
+In the example above, archiving Alex makes `NUS Hackers` disappear and reduces `CS2103` to one person, displayed as `cs2103` using Priya's spelling. Unarchiving Alex restores the original counts and spelling.
+
+You can then use `find c/CS2103T` to search active contacts by context. `find` changes the displayed list and supports partial context matches; `contexts` only shows the overview.
 
 ### Editing a person: `edit`
 
