@@ -133,12 +133,12 @@ public class EditCommand extends Command {
         List<Context> unmatchedContexts = findUnmatchedContexts(personToEdit, editPersonDescriptor);
         if (!unmatchedContexts.isEmpty()) {
             feedback += "\n" + String.format(MESSAGE_CONTEXTS_NOT_FOUND_SKIPPED,
-                    editedPerson.getName(), formatContexts(unmatchedContexts));
+                    editedPerson.getName(), Messages.formatContexts(unmatchedContexts));
         }
         List<Context> skippedContexts = findSkippedContexts(personToEdit, editPersonDescriptor);
         if (!skippedContexts.isEmpty()) {
             feedback += "\n" + String.format(MESSAGE_CONTEXTS_SKIPPED,
-                    editedPerson.getName(), formatContexts(skippedContexts));
+                    editedPerson.getName(), Messages.formatContexts(skippedContexts));
         }
         return new CommandResult(feedback);
     }
@@ -268,15 +268,6 @@ public class EditCommand extends Command {
             throw new CommandException(MESSAGE_NO_CONTEXT_LEFT);
         }
         return updatedContexts;
-    }
-
-    /**
-     * Formats {@code contexts} as {@code [A] [B]}, as in the person details shown to the user.
-     */
-    private static String formatContexts(List<Context> contexts) {
-        return contexts.stream()
-                .map(context -> "[" + context + "]")
-                .collect(Collectors.joining(" "));
     }
 
     @Override

@@ -2,12 +2,31 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.person.Context;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
 public class MessagesTest {
+
+    @Test
+    public void formatContexts_multipleContexts_keepsGivenOrderInBrackets() {
+        assertEquals("[b] [A]", Messages.formatContexts(List.of(new Context("b"), new Context("A"))));
+    }
+
+    @Test
+    public void formatContexts_singleContext_showsContextInBrackets() {
+        assertEquals("[A]", Messages.formatContexts(List.of(new Context("A"))));
+    }
+
+    @Test
+    public void formatContextsSorted_multipleContexts_sortedCaseInsensitivelyInBrackets() {
+        assertEquals("[A] [b] [c]",
+                Messages.formatContextsSorted(List.of(new Context("b"), new Context("A"), new Context("c"))));
+    }
 
     @Test
     public void format_allFields_showsAllFields() {
