@@ -48,4 +48,27 @@ public class MessagesTest {
         assertEquals("Amy Bee; Contexts: [CS2103T]; Phone: 85355255; Email: amy@gmail.com; "
                 + "Alias: May; Introduced by: Alex Tan; Note: Met at Hack&Roll", Messages.format(person));
     }
+
+    @Test
+    public void getErrorMessageForDuplicatePerson_activePerson_hasNoArchivedHint() {
+        Person person = new PersonBuilder().build();
+        assertEquals("This person already exists: Amy Bee has the same phone number (85355255).",
+                Messages.getErrorMessageForDuplicatePerson(person, person));
+    }
+
+    @Test
+    public void getErrorMessageForDuplicatePerson_archivedPhoneClash_addsArchivedHint() {
+        Person archived = new PersonBuilder().withArchived(true).build();
+        assertEquals("This person already exists: Amy Bee has the same phone number (85355255)."
+                + " This person is archived; run archives to see them.",
+                Messages.getErrorMessageForDuplicatePerson(archived, archived));
+    }
+
+    @Test
+    public void getErrorMessageForDuplicatePerson_archivedEmailClash_addsArchivedHint() {
+        Person archived = new PersonBuilder().withoutPhone().withArchived(true).build();
+        assertEquals("This person already exists: Amy Bee has the same email (amy@gmail.com)."
+                + " This person is archived; run archives to see them.",
+                Messages.getErrorMessageForDuplicatePerson(archived, archived));
+    }
 }
