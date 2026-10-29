@@ -62,6 +62,17 @@ public class AddCommandIntegrationTest {
     }
 
     @Test
+    public void execute_duplicateOfArchivedPerson_throwsCommandException() {
+        // archived persons still count as duplicates, and the message says they are archived
+        Person alice = model.getAddressBook().getPersonList().get(0);
+        model.setPerson(alice, alice.copyWithArchived(true));
+        Person samePhone = new PersonBuilder().withPhone("94351253").build();
+        assertCommandFailure(new AddCommand(samePhone), model,
+                "This person already exists: Alice Pauline has the same phone number (94351253)."
+                        + " This person is archived; run archives to see them.");
+    }
+
+    @Test
     public void execute_clashesWithSeveralPersons_reportsFirstInList() {
         // phone matches Benson, email matches Alice; Alice comes first in the list
         Person clashesWithBoth = new PersonBuilder().withPhone("98765432").withEmail("alice@example.com").build();
