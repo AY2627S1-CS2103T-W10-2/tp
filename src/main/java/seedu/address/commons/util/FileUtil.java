@@ -94,7 +94,11 @@ public class FileUtil {
         }
         String timestamp = BACKUP_TIMESTAMP_FORMAT.format(clock.instant());
         Path backup = file.resolveSibling(file.getFileName() + "." + timestamp + ".bak");
-        Files.move(file, backup, StandardCopyOption.REPLACE_EXISTING);
+        // two failures in the same second must not overwrite each other's backup
+        for (int copy = 1; Files.exists(backup); copy++) {
+            backup = file.resolveSibling(file.getFileName() + "." + timestamp + "-" + copy + ".bak");
+        }
+        Files.move(file, backup);
         return Optional.of(backup);
     }
 

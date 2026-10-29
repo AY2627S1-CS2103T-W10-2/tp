@@ -230,4 +230,34 @@ public class UniquePersonListTest {
     public void toStringMethod() {
         assertEquals(uniquePersonList.asUnmodifiableObservableList().toString(), uniquePersonList.toString());
     }
+
+    @Test
+    public void setPerson_equalPersonsWithoutPhoneOrEmail_replacesTheChosenOne() {
+        Person firstTwin = new PersonBuilder().withName("Twin").withoutPhone().withoutEmail().build();
+        Person middle = new PersonBuilder().withName("Middle").withoutPhone().withoutEmail().build();
+        Person secondTwin = new PersonBuilder().withName("Twin").withoutPhone().withoutEmail().build();
+        uniquePersonList.add(firstTwin);
+        uniquePersonList.add(middle);
+        uniquePersonList.add(secondTwin);
+
+        Person archivedTwin = secondTwin.copyWithArchived(true);
+        uniquePersonList.setPerson(secondTwin, archivedTwin);
+
+        assertEquals(List.of(firstTwin, middle, archivedTwin), uniquePersonList.asUnmodifiableObservableList());
+    }
+
+    @Test
+    public void remove_equalPersonsWithoutPhoneOrEmail_removesTheChosenOne() {
+        Person firstTwin = new PersonBuilder().withName("Twin").withoutPhone().withoutEmail().build();
+        Person middle = new PersonBuilder().withName("Middle").withoutPhone().withoutEmail().build();
+        Person secondTwin = new PersonBuilder().withName("Twin").withoutPhone().withoutEmail().build();
+        uniquePersonList.add(firstTwin);
+        uniquePersonList.add(middle);
+        uniquePersonList.add(secondTwin);
+
+        uniquePersonList.remove(secondTwin);
+
+        assertEquals(2, uniquePersonList.asUnmodifiableObservableList().size());
+        assertTrue(uniquePersonList.asUnmodifiableObservableList().get(0) == firstTwin);
+    }
 }
