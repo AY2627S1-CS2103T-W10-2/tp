@@ -46,10 +46,10 @@ public class AddCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
     public static final String MESSAGE_SIMILAR_PERSON_ACTIVE_NOTE =
-            "\nNote: %1$s %2$s already exists at index %3$d. "
+            "Note: %1$s %2$s already exists at index %3$d. "
             + "If this is the same person, delete the new entry and use edit %3$d instead.";
     public static final String MESSAGE_SIMILAR_PERSON_ARCHIVED_NOTE =
-            "\nNote: %1$s %2$s already exists.";
+            "Note: %1$s %2$s already exists.";
     public static final String MESSAGE_SIMILAR_PERSON_ARCHIVED_HINT =
             " This person is archived; run archives to see them.";
 
@@ -76,7 +76,7 @@ public class AddCommand extends Command {
         model.addPerson(toAdd);
         String feedback = String.format(MESSAGE_SUCCESS, Messages.format(toAdd));
         if (similarPerson.isPresent()) {
-            feedback += formatSimilarPersonNote(model, similarPerson.get());
+            feedback += "\n" + formatSimilarPersonNote(model, similarPerson.get());
         }
         return new CommandResult(feedback);
     }
