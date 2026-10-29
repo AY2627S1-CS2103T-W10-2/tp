@@ -11,6 +11,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -47,7 +48,7 @@ public class AddCommand extends Command {
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
     public static final String MESSAGE_SIMILAR_PERSON_ACTIVE_NOTE =
             "Note: %1$s %2$s already exists at index %3$d. "
-            + "If this is the same person, delete the new entry and use edit %3$d instead.";
+            + "If this is the same person, run delete %4$d to remove the new entry and use edit %3$d instead.";
     public static final String MESSAGE_SIMILAR_PERSON_ARCHIVED_NOTE =
             "Note: %1$s %2$s already exists.";
     public static final String MESSAGE_SIMILAR_PERSON_ARCHIVED_HINT =
@@ -83,7 +84,7 @@ public class AddCommand extends Command {
 
     /**
      * Returns the note telling the user that {@code similar} already exists. {@code model} must already
-     * contain the person to add, so that the index shown matches the list shown after the command.
+     * contain the person to add, so that the indexes shown match the list shown after the command.
      */
     private String formatSimilarPersonNote(Model model, Person similar) {
         String name = similar.getName().toString();
@@ -97,8 +98,22 @@ public class AddCommand extends Command {
             return String.format(MESSAGE_SIMILAR_PERSON_ARCHIVED_NOTE, name, sharedContexts)
                     + MESSAGE_SIMILAR_PERSON_ARCHIVED_HINT;
         }
-        int index = model.getFilteredPersonList().indexOf(similar) + 1;
-        return String.format(MESSAGE_SIMILAR_PERSON_ACTIVE_NOTE, name, sharedContexts, index);
+        return String.format(MESSAGE_SIMILAR_PERSON_ACTIVE_NOTE, name, sharedContexts,
+                getDisplayedIndex(model, similar), getDisplayedIndex(model, toAdd));
+    }
+
+    /**
+     * Returns the one-based index of {@code person} in the list shown to the user. The very same object is
+     * looked for, because two persons without a phone number or email can be equal.
+     */
+    private static int getDisplayedIndex(Model model, Person person) {
+        List<Person> shownList = model.getFilteredPersonList();
+        for (int i = 0; i < shownList.size(); i++) {
+            if (shownList.get(i) == person) {
+                return i + 1;
+            }
+        }
+        throw new AssertionError("The person should be in the shown list");
     }
 
     /**

@@ -57,9 +57,9 @@ public class AddCommandTest {
     @Test
     public void execute_sharedContext_addedWithActiveNote() throws Exception {
         String note = "\nNote: Wei Jie [CS2103T] already exists at index 1. "
-                + "If this is the same person, delete the new entry and use edit 1 instead.";
+                + "If this is the same person, run delete 2 to remove the new entry and use edit 1 instead.";
 
-        // exact same contexts
+        // exact same contexts, so the new person equals the existing one but is still shown at index 2
         assertNoteAfterAdding(person("Wei Jie", false, "CS2103T"), person("Wei Jie", false, "CS2103T"), note);
         // new person has a subset of the existing contexts
         assertNoteAfterAdding(person("Wei Jie", false, "CS2103T", "Hiking club"),
@@ -73,7 +73,7 @@ public class AddCommandTest {
         // name differs by case and spaces, context by case
         assertNoteAfterAdding(person("wei  jie", false, "cs2103t"), person("Wei Jie", false, "CS2103T"),
                 "\nNote: wei  jie [cs2103t] already exists at index 1. "
-                        + "If this is the same person, delete the new entry and use edit 1 instead.");
+                        + "If this is the same person, run delete 2 to remove the new entry and use edit 1 instead.");
     }
 
     @Test
@@ -83,7 +83,7 @@ public class AddCommandTest {
 
         assertNoteAfterAdding(existing, person("Wei Jie", false, "CS2103T"),
                 "\nNote: Wei Jie [CS2103T] already exists at index 1. "
-                        + "If this is the same person, delete the new entry and use edit 1 instead.");
+                        + "If this is the same person, run delete 2 to remove the new entry and use edit 1 instead.");
     }
 
     @Test
@@ -123,9 +123,9 @@ public class AddCommandTest {
 
         CommandResult result = new AddCommand(toAdd).execute(model);
 
-        // the archived person is hidden, so the active match is at index 2
+        // the archived person is hidden, so the active match is at index 2 and the new person at index 3
         assertEquals(successMessage(toAdd) + "\nNote: Wei Jie [CS2103T] [Hiking club] already exists at "
-                + "index 2. If this is the same person, delete the new entry and use edit 2 instead.",
+                + "index 2. If this is the same person, run delete 3 to remove the new entry and use edit 2 instead.",
                 result.getFeedbackToUser());
     }
 
