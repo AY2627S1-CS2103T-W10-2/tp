@@ -69,17 +69,11 @@ public class EditCommandParser implements Parser<EditCommand> {
                 PREFIX_ALIAS, PREFIX_ALIAS_REMOVE, PREFIX_INTRODUCER, PREFIX_INTRODUCER_REMOVE,
                 PREFIX_NOTE_REMOVE, PREFIX_CONTEXT, PREFIX_CONTEXT_ADD, PREFIX_CONTEXT_REMOVE);
 
-        Index index;
-
         if (argMultimap.getValue(PREFIX_CONTEXT).isPresent()) {
             throw new ParseException(MESSAGE_INVALID_CONTEXT_PREFIX);
         }
 
-        try {
-            index = ParserUtil.parseIndex(argMultimap.getPreamble());
-        } catch (ParseException pe) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
-        }
+        Index index = parseIndex(argMultimap);
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_PHONE_REMOVE,
                 PREFIX_EMAIL, PREFIX_EMAIL_REMOVE, PREFIX_ALIAS, PREFIX_ALIAS_REMOVE,
@@ -94,6 +88,36 @@ public class EditCommandParser implements Parser<EditCommand> {
         editPersonDescriptor.setAlias(parseOptionalField(argMultimap, ALIAS_FIELD));
         editPersonDescriptor.setIntroducer(parseOptionalField(argMultimap, INTRODUCER_FIELD));
         editPersonDescriptor.setNote(parseOptionalField(argMultimap, NOTE_FIELD));
+        parseContextChanges(argMultimap, editPersonDescriptor);
+
+        if (!editPersonDescriptor.isAnyFieldEdited()) {
+            throw new ParseException(EditCommand.MESSAGE_NOT_EDITED + "\n" + EditCommand.MESSAGE_USAGE);
+        }
+
+        return new EditCommand(index, editPersonDescriptor);
+    }
+
+    /**
+     * Returns the index of the person to edit, which is the preamble of {@code argMultimap}.
+     *
+     * @throws ParseException if the preamble is not a valid index.
+     */
+    private static Index parseIndex(ArgumentMultimap argMultimap) throws ParseException {
+        try {
+            return ParserUtil.parseIndex(argMultimap.getPreamble());
+        } catch (ParseException pe) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
+        }
+    }
+
+    /**
+     * Sets the contexts to add and the contexts to remove in {@code editPersonDescriptor}
+     * if the add prefix and the remove prefix are given in {@code argMultimap}.
+     *
+     * @throws ParseException if any context is invalid.
+     */
+    private static void parseContextChanges(ArgumentMultimap argMultimap, EditPersonDescriptor editPersonDescriptor)
+            throws ParseException {
         if (!argMultimap.getAllValues(PREFIX_CONTEXT_ADD).isEmpty()) {
             editPersonDescriptor.setContextsToAdd(
                     ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT_ADD)));
@@ -102,12 +126,6 @@ public class EditCommandParser implements Parser<EditCommand> {
             editPersonDescriptor.setContextsToRemove(
                     ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT_REMOVE)));
         }
-
-        if (!editPersonDescriptor.isAnyFieldEdited()) {
-            throw new ParseException(EditCommand.MESSAGE_NOT_EDITED + "\n" + EditCommand.MESSAGE_USAGE);
-        }
-
-        return new EditCommand(index, editPersonDescriptor);
     }
 
     /**
