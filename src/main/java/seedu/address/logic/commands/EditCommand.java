@@ -72,11 +72,13 @@ public class EditCommand extends Command {
             + PREFIX_CONTEXT_REMOVE + "CS2040S";
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
+    public static final String MESSAGE_NO_CHANGES = "No changes made to %1$s.";
     public static final String MESSAGE_ARCHIVED_NOT_EDITABLE =
             "This person is archived and can't be edited. Unarchive the person first.";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
 
-    public static final String MESSAGE_CONTEXTS_NOT_FOUND = "%1$s does not have context(s): %2$s. Check the spelling.";
+    public static final String MESSAGE_CONTEXTS_NOT_FOUND_SKIPPED = "Note: %1$s does not have context(s): %2$s. "
+            + "Check the spelling. Skipped.";
     public static final String MESSAGE_NO_CONTEXT_LEFT = "A person must have at least one context. "
             + "Add a new context with +c/ before removing the last one.";
     public static final String MESSAGE_CONTEXTS_SKIPPED = "Note: %1$s already has context(s): %2$s. Skipped.";
@@ -111,12 +113,6 @@ public class EditCommand extends Command {
             throw new CommandException(MESSAGE_ARCHIVED_NOT_EDITABLE);
         }
 
-        List<Context> unmatchedContexts = findUnmatchedContexts(personToEdit, editPersonDescriptor);
-        if (!unmatchedContexts.isEmpty()) {
-            throw new CommandException(String.format(MESSAGE_CONTEXTS_NOT_FOUND,
-                    personToEdit.getName(), formatContexts(unmatchedContexts)));
-        }
-
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
         Optional<Person> existingPerson = model.findDuplicate(editedPerson, personToEdit);
@@ -124,16 +120,52 @@ public class EditCommand extends Command {
             throw new CommandException(Messages.getErrorMessageForDuplicatePerson(existingPerson.get(), editedPerson));
         }
 
-        model.setPerson(personToEdit, editedPerson);
+        boolean isChanged = !hasSameDetails(personToEdit, editedPerson);
+        if (isChanged) {
+            model.setPerson(personToEdit, editedPerson);
+        }
         model.updateFilteredPersonList(PREDICATE_SHOW_ACTIVE);
 
-        String feedback = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String feedback = isChanged
+                ? String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                : String.format(MESSAGE_NO_CHANGES, personToEdit.getName());
+        List<Context> unmatchedContexts = findUnmatchedContexts(personToEdit, editPersonDescriptor);
+        if (!unmatchedContexts.isEmpty()) {
+            feedback += "\n" + String.format(MESSAGE_CONTEXTS_NOT_FOUND_SKIPPED,
+                    editedPerson.getName(), formatContexts(unmatchedContexts));
+        }
         List<Context> skippedContexts = findSkippedContexts(personToEdit, editPersonDescriptor);
         if (!skippedContexts.isEmpty()) {
             feedback += "\n" + String.format(MESSAGE_CONTEXTS_SKIPPED,
                     editedPerson.getName(), formatContexts(skippedContexts));
         }
         return new CommandResult(feedback);
+    }
+
+    /**
+     * Returns true if {@code editedPerson} has the same details as {@code personToEdit}, spelt the same way.
+     * Builds on {@code Person#equals} so a field added to {@code Person} later is compared too.
+     */
+    private static boolean hasSameDetails(Person personToEdit, Person editedPerson) {
+        assert personToEdit != null && editedPerson != null;
+
+        // Person#equals compares every field, but ignores case in emails and contexts,
+        // e.g. alice@example.com equals Alice@Example.com
+        // The two checks after it compare emails and contexts with their exact spelling,
+        // so a capitalisation fix counts as a change
+        return personToEdit.equals(editedPerson)
+                && getEmailValue(personToEdit).equals(getEmailValue(editedPerson))
+                && getContextDescriptions(personToEdit).equals(getContextDescriptions(editedPerson));
+    }
+
+    private static Optional<String> getEmailValue(Person person) {
+        return person.getEmail().map(email -> email.value);
+    }
+
+    private static Set<String> getContextDescriptions(Person person) {
+        return person.getContexts().stream()
+                .map(context -> context.description)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -219,7 +251,8 @@ public class EditCommand extends Command {
 
     /**
      * Returns the contexts of {@code personToEdit} after removing and then adding the contexts in
-     * {@code editPersonDescriptor}. A context the person already has is not added again.
+     * {@code editPersonDescriptor}. A context the person does not have is not removed, and a context
+     * the person already has is not added again.
      *
      * @throws CommandException if no context would remain.
      */

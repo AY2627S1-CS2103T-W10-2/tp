@@ -36,7 +36,7 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-W10-2/tp/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-W10-2/tp/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -68,13 +68,13 @@ The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-W10-2/tp/tree/master/src/main/java/seedu/address/ui/Ui.java)
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-W10-2/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-W10-2/tp/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 The `UI` component,
 
@@ -85,7 +85,7 @@ The `UI` component,
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-W10-2/tp/tree/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -115,7 +115,7 @@ How the parsing works:
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-W10-2/tp/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="450" />
 
@@ -128,16 +128,9 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
-
-<img src="images/BetterModelClassDiagram.png" width="450" />
-
-</div>
-
-
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-W10-2/tp/tree/master/src/main/java/seedu/address/storage/Storage.java)
 
 <img src="images/StorageClassDiagram.png" width="550" />
 
@@ -199,6 +192,29 @@ The new commands follow the pattern of `delete`:
 
 * `ArchiveCommand` and `UnarchiveCommand` take an `Index` that refers to `Model#getFilteredPersonList()`, that is, to the list on screen. The command finds the person, checks the flag (`archive` refuses a person who is already archived and `unarchive` refuses a person who is not), and replaces the person with `Person#copyWithArchived(boolean)`, which returns a copy with only the flag changed (`Person` is immutable). `LogicManager` then saves the whole address book as after every command.
 * `ViewArchivesCommand` only sets `PREDICATE_SHOW_ARCHIVED`. Unlike the other commands without parameters, `ViewArchivesCommandParser` rejects text after the command word, because `archives` is one letter away from `archive` and `archives 1` is most likely a mistyped `archive 1`.
+
+#### Archiving by context
+
+`archive c/CONTEXT` and `unarchive c/CONTEXT` change every person who has the context, in one command. The classes involved are shown below.
+
+![Classes used by the archive and unarchive commands](images/ArchiveCommandClassDiagram.png)
+
+* Archiving and unarchiving are the same change with opposite values, so each way of choosing persons has one command class with an `archived` flag: `SetArchivedByIndexCommand` (the index form) and `SetArchivedByContextCommand` (the `c/` form). `ArchiveCommand` and `UnarchiveCommand` are thin subclasses of `SetArchivedByIndexCommand`. They only give the command word, the usage message and the flag, so the code and tests that refer to them did not change.
+* One `ArchiveCommandParser` serves both command words. `AddressBookParser` creates it with `true` for `archive` and with `false` for `unarchive`. It first asks `ContextArgumentParser` whether the arguments are in the `c/` form. If there is no `c/`, it continues with the index as before. This is why the parser returns `Command` and not `ArchiveCommand`.
+
+![Decisions made when parsing archive and unarchive](images/ArchiveParseActivityDiagram.png)
+
+`ContextArgumentParser` rejects `c/` together with an index or with any other prefix (for example `archive c/CS2103T n/John`), and rejects a repeated `c/`. It recognises every prefix defined in `CliSyntax` (including `+c/`, `-c/`, `-p/` and `-e/`) by tokenizing with `ArgumentTokenizer`, as `AddCommandParser` and `EditCommandParser` do, so the same rule decides where a prefix starts in every command: a prefix only counts after a space. A prefix added to `CliSyntax` must also be added to `ContextArgumentParser`; a test fails if it is not.
+
+The sequence diagram shows what happens when the user enters `archive c/CS2103T`.
+
+![Interactions for the `archive c/CS2103T` command](images/ArchiveByContextSequenceDiagram.png)
+
+`unarchive c/CS2103T` is the same, with the flag `false`, so the command calls `copyWithArchived(false)`.
+
+**Why two command classes.** `SetArchivedByIndexCommand` and `SetArchivedByContextCommand` are separate because the two forms behave differently, not only because they read different input. The index form points at one person on screen, so it reads `Model#getFilteredPersonList()` and reports a person who is already in the target state as an error (that is useful feedback for a single person). The context form asks for a group, so it reads the whole address book, skips persons who are already in the target state, and fails only if no person changes. Both build the changed copy with `Person#copyWithArchived(boolean)`. The Javadoc of each class names the other.
+
+The command reads `Model#getAddressBook()` and **not** `Model#getFilteredPersonList()`. A context command has no index, so nothing ties it to what is on screen, and an earlier `find` must not change which persons it affects. The persons to change are copied into a list before the loop, because `Model#setPerson` changes the list that they were read from. Only persons whose state really changes are counted, and if there are none the command fails with a message that names the context. The context is matched with `Context#equals`, so it is exact and ignores capitalisation.
 
 Because `unarchive` checks the flag of the person it finds, `unarchive 1` while the normal list is shown cannot change the wrong person: that person is not archived, so the command is refused with a message that says to run `archives` first.
 
@@ -706,6 +722,18 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case resumes at step 2.
 
+* 3c. User requests to archive all contacts with a context instead of one contact.
+
+    * 3c1. System archives every contact with that context who is not archived yet, whatever contacts the list shows, and shows how many were archived.
+
+      Use case ends.
+
+    * 3c2. No contact with that context can be archived, or the context is not valid.
+
+        * 3c2a. System shows an error message.
+
+          Use case resumes at step 2.
+
 * 4a. System is unable to save the change.
 
     * 4a1. System archives the contact for the current session and warns the user that the change may be lost when the app is closed.
@@ -769,6 +797,18 @@ The following story is retained to document the scope decision. UniContacts mana
     * 2b1. System shows an error message that tells the user to view the archived contacts first.
 
       Use case resumes at step 1.
+
+* 2c. User requests to unarchive all contacts with a context instead of one contact.
+
+    * 2c1. System unarchives every archived contact with that context, whatever contacts the list shows, and shows how many were unarchived.
+
+      Use case ends.
+
+    * 2c2. No archived contact has that context, or the context is not valid.
+
+        * 2c2a. System shows an error message.
+
+          Use case resumes at step 1.
 
 * 3a. System is unable to save the change.
 
@@ -924,6 +964,28 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `unarchive 1` (while the archives are shown)<br>
       Expected: The person leaves the archived list. The result display shows `Unarchived person:` and the details. Run `list` to confirm that the person is back in the normal list.
 
+1. Archiving and unarchiving by context
+
+   1. Prerequisites: Start with the sample data. Run `list` and note which persons have the context `CS2103T`.
+
+   1. Test case: `archive c/CS2103T`<br>
+      Expected: Every person with the context `CS2103T` disappears from the list, whatever else the list showed before. The result display shows `Archived N person(s) with context CS2103T.`, where `N` is the number of those persons.
+
+   1. Test case: `find n/Alex` followed by `archive c/CS2103T`<br>
+      Expected: The persons with the context `CS2103T` are archived, not only the ones that `find` showed.
+
+   1. Test case: `archive c/cs2103t` after the test case above<br>
+      Expected: Nothing changes. The result display shows `No persons to archive with context cs2103t.` The context is matched ignoring capitalisation, so it was the same context, and everyone with it is archived already.
+
+   1. Test case: `archives`, then `unarchive c/CS2103T`<br>
+      Expected: The result display shows `Unarchived N person(s) with context CS2103T.` Run `list` to confirm that the persons are back.
+
+   1. Test case: `unarchive c/CS2103T` again<br>
+      Expected: `No archived persons with context CS2103T.`
+
+   1. Other incorrect commands to try: `archive c/`, `archive c/(orbital)`, `archive c/CS2103T n/John`, `archive 1 c/CS2103T`, `archive c/CS2103T c/Hiking club`, and the same with `unarchive`<br>
+      Expected: No person changes. The result display shows an error message.
+
 1. Archived persons stay out of the normal list
 
    1. Prerequisites: Archive one person, for example `archive 1`, and remember their name.
@@ -963,8 +1025,32 @@ testers are expected to do more *exploratory* testing.
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+1. Dealing with a missing data file
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+   1. Prerequisites: Close the app and delete the `data` folder.
 
-1. _{ more test cases …​ }_
+   1. Test case: Start the app<br>
+      Expected: The app starts with the sample contacts. `data/addressbook.json` is not created until a command that changes something, such as `add`, is run.
+
+1. Dealing with corrupted data files
+
+   1. Prerequisites: Close the app. Make a copy of `data/addressbook.json` so you can restore it afterwards.
+
+   1. Test case: Replace the content of `data/addressbook.json` with `{ "persons" : [` (not valid JSON), and start the app<br>
+      Expected: The app starts with an empty list. The data file is renamed to `addressbook.json.<UTC time>.bak` in the `data` folder, and the log file `addressbook.log.0` explains why the file could not be read.
+
+   1. Test case: Delete the `contexts` of one person in `data/addressbook.json` (or give two persons the same phone number), and start the app<br>
+      Expected: Same as above. The whole file is treated as unreadable, even though only one person is invalid.
+
+   1. Test case: After either test above, run `add n/Test c/CS2103T`<br>
+      Expected: A new `data/addressbook.json` is created with only the new person. The `.bak` file is not changed.
+
+1. Dealing with a data file that cannot be written
+
+   1. Prerequisites: Close the app and make the `data` folder read-only (for example, `chmod 555 data` on macOS or Linux). Start the app.
+
+   1. Test case: `add n/Test c/CS2103T`<br>
+      Expected: The result display shows an error saying the data could not be saved because of insufficient permissions. The new person still appears in the list for this session, but is not in `data/addressbook.json`.
+
+   1. Test case: `list`<br>
+      Expected: The command succeeds, because commands that change nothing do not save.

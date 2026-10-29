@@ -77,7 +77,7 @@ public class UniquePersonList implements Iterable<Person> {
     public void setPerson(Person target, Person editedPerson) {
         requireAllNonNull(target, editedPerson);
 
-        int index = internalList.indexOf(target);
+        int index = indexOfTarget(target);
         if (index == -1) {
             throw new PersonNotFoundException();
         }
@@ -95,9 +95,11 @@ public class UniquePersonList implements Iterable<Person> {
      */
     public void remove(Person toRemove) {
         requireNonNull(toRemove);
-        if (!internalList.remove(toRemove)) {
+        int index = indexOfTarget(toRemove);
+        if (index == -1) {
             throw new PersonNotFoundException();
         }
+        internalList.remove(index);
     }
 
     public void setPersons(UniquePersonList replacement) {
@@ -152,6 +154,20 @@ public class UniquePersonList implements Iterable<Person> {
     @Override
     public String toString() {
         return internalList.toString();
+    }
+
+    /**
+     * Returns the index of {@code target} in the list, or -1 if it is not there. The very same object is looked
+     * for first, because two persons without a phone number or email can be equal (and so be shown as twins), and
+     * the one the user chose must be the one that changes.
+     */
+    private int indexOfTarget(Person target) {
+        for (int i = 0; i < internalList.size(); i++) {
+            if (internalList.get(i) == target) {
+                return i;
+            }
+        }
+        return internalList.indexOf(target);
     }
 
     /**

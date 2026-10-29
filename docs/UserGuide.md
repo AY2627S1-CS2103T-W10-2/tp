@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+UniContacts is a **desktop contact manager for CS students, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). Every contact is saved with one or more *contexts* describing how you know them (such as a module, a hackathon or an internship), so you can find people by where you met them. If you type quickly, UniContacts can help you manage contacts faster than traditional GUI applications.
 
 * Table of Contents
 {:toc}
@@ -15,9 +15,9 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Download the latest `.jar` file from [here](https://github.com/AY2627S1-CS2103T-W10-2/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+1. Copy the file to the folder you want to use as the _home folder_ for UniContacts.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
@@ -265,7 +265,7 @@ Examples:
 How contexts are matched:
 * Contexts are compared ignoring capitalisation and repeated spaces, as in `add`. So `-c/hiking club` removes `Hiking club`.
 * `+c/` with a context the person already has is skipped, and the existing spelling is kept. The result display lists the skipped contexts in a note. To change the spelling, remove the context and add it back, as in the 4th example.
-* If any `-c/` context is not one the person has, nothing is changed.
+* A `-c/` context the person does not have is skipped, and the rest of the command still runs. The result display lists the skipped contexts in a note. Check the note for typos, since a misspelt context is skipped rather than rejected. Skipped contexts do not count when checking that the person keeps at least one context.
 
 **If the command succeeds**
 
@@ -275,9 +275,17 @@ The list shows all persons again. The result display shows the person's new deta
 
 If the person has an alias, introducer or note, it is shown too, as in `add`.
 
+If the edit leaves the person exactly as they were, such as re-entering their current phone number or adding a context they already have, the result display shows `No changes made to Bernice Yu.` instead. This is not an error. A change in capitalisation counts as a change and is saved, so `edit 2 n/bernice yu` renames Bernice Yu to `bernice yu`.
+
+If any `-c/` context was skipped because the person does not have it, a note follows on a new line. For example, `edit 2 -c/CS2130T p/91234567` on Bernice Yu changes the phone number and adds this line:
+
+`Note: Bernice Yu does not have context(s): [CS2130T]. Check the spelling. Skipped.`
+
 If any `+c/` context was skipped because the person already has it, a note follows on a new line, using the person's existing spelling. For example, `edit 2 +c/cs2103t +c/NUS Hackers` on Bernice Yu, who has `CS2103T`, adds this line:
 
 `Note: Bernice Yu already has context(s): [CS2103T]. Skipped.`
+
+If both kinds of context are skipped, the `-c/` note comes first.
 
 **Duplicate persons**
 
@@ -293,7 +301,6 @@ No parameter after the index | `edit 1` | `At least one field to edit must be pr
 Index missing, zero, negative or not a number | `edit 0 n/Alex Tan` | `Invalid command format!`, followed by how to use `edit`
 Index larger than the displayed list | `edit 99 n/Alex Tan` | `The person index provided is invalid.`
 `c/` instead of `+c/` or `-c/` | `edit 1 c/CS2040S` | `Use +c/ to add a context or -c/ to remove one.`
-A `-c/` context the person does not have | `edit 1 -c/CS2040S` | `Alex Yeoh does not have context(s): [CS2040S]. Check the spelling.`
 Removing every context | `edit 1 -c/CS2103T` | `A person must have at least one context. Add a new context with +c/ before removing the last one.`
 A prefix that sets a field together with the prefix that removes it, such as `p/` and `-p/` | `edit 1 p/91234567 -p/`<br>`edit 1 a/Alex -a/` | `Cannot set and remove the phone number in the same command.`<br>`Cannot set and remove the alias in the same command.`<br>The email, introducer and note give the same message with their own name.
 A value after `-p/`, `-e/`, `-a/`, `-i/` or `-nt/` | `edit 1 -p/91234567`<br>`edit 1 -nt/Met at NUS` | `-p/ does not take a value. Use p/PHONE to change the phone number.`<br>`-nt/ does not take a value. Use nt/NOTE to change the note.`<br>`-e/`, `-a/` and `-i/` give the same message for their own field.
@@ -365,16 +372,20 @@ Examples:
 
 Moves a person out of your normal list without deleting them. Use this for people you no longer need every day, such as a project team that has finished, while keeping them for later.
 
-Format: `archive INDEX`
+Format: `archive INDEX` or `archive c/CONTEXT`
 
 * Archives the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list.
 * The index **must be a positive integer** 1, 2, 3, …​
 * An archived person is not shown by `list` and is not found by `find`. They stay saved, with all their details, and they still count when AddressBook checks for a duplicate phone number or email.
 * A person who is already archived cannot be archived again.
+* `archive c/CONTEXT` archives every person who has that context and is not archived yet. It works on all persons in the address book, not only the ones currently displayed, so an earlier `find` makes no difference.
+* The context must match exactly, ignoring capitalisation: `c/cs2103t` matches `CS2103T`, but `c/CS` does not.
+* `c/CONTEXT` cannot be combined with an index or any other prefix, and only one `c/` is allowed.
 
 Examples:
 * `list` followed by `archive 2` archives the 2nd person in the list.
 * `find CS2103T` followed by `archive 1` archives the 1st person in the results of the `find` command.
+* `archive c/CS2103T` archives everyone who has the context `CS2103T`.
 
 Outputs:
 
@@ -384,6 +395,10 @@ Success | `Archived person:` followed by the person's details
 The index is larger than the displayed list | `The person index provided is invalid.`
 The person is already archived | `That person is already archived.`
 `INDEX` is missing or is not a positive whole number | `Invalid command format!` followed by the usage of `archive`
+Success with `c/CONTEXT` | `Archived N person(s) with context CONTEXT.`
+No person to archive has that context | `No persons to archive with context CONTEXT.`
+`c/CONTEXT` is combined with an index or another prefix, or `c/` is repeated | `Invalid command format!` followed by the usage of `archive`
+`CONTEXT` is empty or not a valid context | The message about what a valid context is
 
 ### Viewing archived persons: `archives`
 
@@ -402,15 +417,17 @@ Format: `archives`
 
 Moves an archived person back to your normal list.
 
-Format: `unarchive INDEX`
+Format: `unarchive INDEX` or `unarchive c/CONTEXT`
 
 * Unarchives the person at the specified `INDEX`. The index refers to the index number shown in the displayed list, so show the archived persons with [`archives`](#viewing-archived-persons-archives) first.
 * The index **must be a positive integer** 1, 2, 3, …​
 * If the person at that index is not archived, for example because you are looking at your normal list, nothing is changed and AddressBook tells you to run `archives` first.
+* `unarchive c/CONTEXT` unarchives every archived person who has that context. Like `archive c/CONTEXT`, it works on all persons in the address book, not only the ones currently displayed, and the context must match exactly, ignoring capitalisation.
 * After a successful `unarchive`, you stay in the archived list, so you can unarchive several persons in a row. The person is back in your normal list, which you reach with `list`.
 
 Examples:
 * `archives` followed by `unarchive 1` brings the 1st archived person back.
+* `unarchive c/CS2103T` brings back everyone archived with the context `CS2103T`.
 
 Outputs:
 
@@ -420,6 +437,10 @@ Success | `Unarchived person:` followed by the person's details
 The index is larger than the displayed list | `The person index provided is invalid.`
 The person is not archived | `That person is not archived. Run archives to see archived persons, then use unarchive INDEX.`
 `INDEX` is missing or is not a positive whole number | `Invalid command format!` followed by the usage of `unarchive`
+Success with `c/CONTEXT` | `Unarchived N person(s) with context CONTEXT.`
+No archived person has that context | `No archived persons with context CONTEXT.`
+`c/CONTEXT` is combined with an index or another prefix, or `c/` is repeated | `Invalid command format!` followed by the usage of `unarchive`
+`CONTEXT` is empty or not a valid context | The message about what a valid context is
 
 ### Clearing all non-archived persons: `clear`
 
@@ -439,6 +460,8 @@ Format: `exit`
 ### Saving the data
 
 AddressBook automatically saves data after every command. You do not need to save manually.
+
+If a command cannot be saved, for example because the `data` folder is read-only, AddressBook shows an error message. The change stays in the current session but is not in the data file until a later command that changes something is saved successfully. If you close AddressBook before then, the change is lost. Commands that change nothing, such as `list` and `find`, do not need to save.
 
 Each save is written to a temporary file first and then moved over `data/addressbook.json`. If AddressBook is closed or crashes in the middle of a save, your previous data file is left as it was instead of being half-written.
 
@@ -479,13 +502,13 @@ Edit the data file only while AddressBook is closed, and only if you are confide
 If AddressBook cannot read the data file when it starts (for example, a person has no context or has an invalid phone number or email, two persons share a phone number or email, the file is not valid JSON, or the file was saved by an older version that used addresses and tags), it:
 
 1. renames the file to `addressbook.json.<UTC time>.bak` in the same `data` folder, for example `addressbook.json.20261015T101723Z.bak`, so that your data is not overwritten; and
-2. starts with an empty address book. A new `data/addressbook.json` is created when you run your first command.
+2. starts with an empty address book. A new `data/addressbook.json` is created by the first command that changes something, such as `add`.
 
 To recover your data:
 
 1. Exit AddressBook.
 2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `addressbook.log`, which is in the folder you started AddressBook from.
-3. If there is a new `addressbook.json` (it exists if you ran any command after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
+3. If there is a new `addressbook.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
 4. Start AddressBook again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
 If AddressBook fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name.
@@ -514,7 +537,7 @@ If AddressBook fails to read the data file more than once, each failure keeps it
 Action | Format, Examples
 --------|------------------
 **Add** | `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [nt/NOTE]` <br> e.g., `add n/James Ho c/CS2103T a/Jim nt/Met at Hack&Roll`
-**Archive** | `archive INDEX`<br> e.g., `archive 2`
+**Archive** | `archive INDEX` or `archive c/CONTEXT`<br> e.g., `archive 2`, `archive c/CS2103T`
 **Archives** | `archives`
 **Clear** | `clear`
 **Contexts** | `contexts`
@@ -523,4 +546,4 @@ Action | Format, Examples
 **Find** | `find KEYWORD [MORE_KEYWORDS]…` or `find [n/NAME_PART] [p/PHONE_PART] [e/EMAIL_PART] [c/CONTEXT_PART]… [a/ALIAS_PART] [i/INTRODUCER_PART] [nt/NOTE_PART]`<br> e.g., `find n/Tony Zhang c/CS2103T a/Toto`
 **List** | `list`
 **Help** | `help`
-**Unarchive** | `unarchive INDEX`<br> e.g., `unarchive 1`
+**Unarchive** | `unarchive INDEX` or `unarchive c/CONTEXT`<br> e.g., `unarchive 1`, `unarchive c/CS2103T`

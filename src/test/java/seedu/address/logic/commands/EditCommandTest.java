@@ -98,15 +98,8 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_noFieldSpecifiedUnfilteredList_success() {
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
-        Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    public void execute_noFieldSpecifiedUnfilteredList_noChange() {
+        assertNoChange(INDEX_FIRST_PERSON, new EditPersonDescriptor());
     }
 
     @Test
@@ -189,9 +182,7 @@ public class EditCommandTest {
     @Test
     public void execute_removeMissingAlias_noChange() {
         // removing an alias the person does not have is accepted and changes nothing
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAliasRemoved().build();
-
-        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, ALICE);
+        assertNoChange(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder().withAliasRemoved().build());
     }
 
     @Test
@@ -225,17 +216,45 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_addExistingContext_keepsExistingSpellingAndShowsNote() {
-        // Alice already has "CS2103T", so "cs2103t" is skipped and both messages show "CS2103T"
+    public void execute_addExistingContext_noChangeWithNote() {
+        // Alice already has "CS2103T", so "cs2103t" is skipped, nothing changes and the note shows "CS2103T"
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withContextsToAdd("cs2103t").build());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(ALICE))
+        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, ALICE.getName())
                 + "\nNote: Alice Pauline already has context(s): [CS2103T]. Skipped.";
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_removeAndAddSameContext_noChange() {
+        // the context is removed and added back with the same spelling
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withContextsToRemove("CS2103T").withContextsToAdd("CS2103T").build();
+
+        assertNoChange(INDEX_FIRST_PERSON, descriptor);
+    }
+
+    @Test
+    public void execute_fixNameCapitalisation_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName("alice pauline").build();
+        Person editedAlice = new PersonBuilder(ALICE).withName("alice pauline").build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedAlice);
+    }
+
+    @Test
+    public void execute_fixEmailCapitalisation_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withEmail("Alice@Example.com").build();
+        Person editedAlice = new PersonBuilder(ALICE).withEmail("Alice@Example.com").build();
+
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedAlice);
+        // emails match ignoring case, so check the saved spelling directly
+        assertEquals("Alice@Example.com",
+                model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getEmail().get().value);
     }
 
     @Test
@@ -272,13 +291,75 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_unmatchedContextToRemove_failure() {
-        // "CS2130T" is a typo of Alice's "CS2103T"
+    public void execute_unmatchedContextToRemove_skippedWithNote() {
+        // "CS2130T" is a typo of Alice's "CS2103T", so it is skipped and the phone is still changed
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
+                .withContextsToRemove("CS2130T").withPhone(VALID_PHONE_BOB).build());
+        Person editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build();
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice))
+                + "\nNote: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, editedAlice);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_matchedAndUnmatchedContextsToRemove_notesOnlyUnmatchedContexts() {
+        // Benson has "Hiking club" and "CS2103T"; only the typos are noted, in the typed order
+        EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, new EditPersonDescriptorBuilder()
+                .withContextsToRemove("NUS Hackers", "hiking club", "CS2130T").build());
+        Person editedBenson = new PersonBuilder(BENSON).withContexts("CS2103T").build();
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(editedBenson))
+                + "\nNote: Benson Meier does not have context(s): [NUS Hackers] [CS2130T]. "
+                + "Check the spelling. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(BENSON, editedBenson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_onlyUnmatchedContextToRemove_noChangeWithNote() {
+        // the only change is a typo that is skipped, so nothing changes and the note still shows
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withContextsToRemove("CS2130T").build());
 
-        assertCommandFailure(editCommand, model,
-                "Alice Pauline does not have context(s): [CS2130T]. Check the spelling.");
+        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, ALICE.getName())
+                + "\nNote: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_unmatchedContextToRemoveAndExistingContextToAdd_notesRemovalFirst() {
+        // both kinds of skipped context are noted, the -c/ note before the +c/ note
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
+                .withContextsToRemove("CS2130T").withContextsToAdd("cs2103t").build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, ALICE.getName())
+                + "\nNote: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped."
+                + "\nNote: Alice Pauline already has context(s): [CS2103T]. Skipped.";
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_removeLastContextWithUnmatchedContext_failure() {
+        // the skipped "CS2130T" does not count, so removing "CS2103T" would leave Alice with no context
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withContextsToRemove("CS2103T", "CS2130T").build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_NO_CONTEXT_LEFT);
     }
 
     @Test
@@ -323,17 +404,9 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_samePhoneAsBefore_success() {
+    public void execute_samePhoneAsBefore_noChange() {
         // the person being edited is not counted as a duplicate of itself
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withPhone("94351253").build());
-
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(firstPerson));
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertNoChange(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder().withPhone("94351253").build());
     }
 
     @Test
@@ -389,15 +462,16 @@ public class EditCommandTest {
         // removing a phone the person does not have is accepted and changes nothing
         Person aliceWithoutPhone = new PersonBuilder(ALICE).withoutPhone().build();
         model.setPerson(ALICE, aliceWithoutPhone);
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withPhoneRemoved().build());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
-                Messages.format(aliceWithoutPhone));
+        assertNoChange(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder().withPhoneRemoved().build());
+    }
 
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+    @Test
+    public void execute_removeMissingEmail_noChange() {
+        Person aliceWithoutEmail = new PersonBuilder(ALICE).withoutEmail().build();
+        model.setPerson(ALICE, aliceWithoutEmail);
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertNoChange(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder().withEmailRemoved().build());
     }
 
     @Test
@@ -472,6 +546,21 @@ public class EditCommandTest {
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personToEdit, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    /**
+     * Executes an edit of the person at {@code index} with {@code descriptor} and checks that
+     * nothing changes and the result says so.
+     */
+    private void assertNoChange(Index index, EditPersonDescriptor descriptor) {
+        Person personToEdit = model.getFilteredPersonList().get(index.getZeroBased());
+        EditCommand editCommand = new EditCommand(index, descriptor);
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, personToEdit.getName());
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }

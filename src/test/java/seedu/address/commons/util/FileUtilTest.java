@@ -3,6 +3,7 @@ package seedu.address.commons.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,6 +51,21 @@ public class FileUtilTest {
     }
 
     @Test
+    public void writeToFile_symbolicLink_writesTargetAndKeepsLink() throws IOException {
+        Path target = testFolder.resolve("real.json");
+        Path link = testFolder.resolve("link.json");
+        FileUtil.writeToFile(target, "one");
+        try {
+            Files.createSymbolicLink(link, target.getFileName());
+        } catch (UnsupportedOperationException | IOException e) {
+            assumeTrue(false, "symbolic links are not available");
+        }
+        FileUtil.writeToFile(link, "two");
+        assertTrue(Files.isSymbolicLink(link));
+        assertEquals("two", FileUtil.readFromFile(target));
+    }
+
+    @Test
     public void backUp_missingFile_returnsEmpty() throws IOException {
         assertEquals(Optional.empty(), FileUtil.backUp(testFolder.resolve("missing.json")));
     }
@@ -91,14 +107,16 @@ public class FileUtilTest {
     }
 
     @Test
-    public void backUp_sameSecond_replacesBackupWithSameName() throws IOException {
+    public void backUp_sameSecond_keepsBothBackups() throws IOException {
         Path file = testFolder.resolve("data.json");
         FileUtil.writeToFile(file, "first");
-        FileUtil.backUp(file, FIXED_CLOCK);
+        Path first = FileUtil.backUp(file, FIXED_CLOCK).get();
         FileUtil.writeToFile(file, "second");
 
-        Path backup = FileUtil.backUp(file, FIXED_CLOCK).get();
+        Path second = FileUtil.backUp(file, FIXED_CLOCK).get();
 
-        assertEquals("second", FileUtil.readFromFile(backup));
+        assertEquals(testFolder.resolve("data.json.20261015T101723Z-1.bak"), second);
+        assertEquals("first", FileUtil.readFromFile(first));
+        assertEquals("second", FileUtil.readFromFile(second));
     }
 }

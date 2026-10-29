@@ -3,6 +3,7 @@ package seedu.address.commons.util;
 import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Clock;
@@ -56,8 +57,10 @@ public class FileUtil {
      * Will create the file if it does not exist yet.
      * The content is first written to a temporary file in the same folder and then moved over {@code file},
      * so an interrupted write leaves the previous content of {@code file} intact instead of a half-written file.
+     * If {@code file} is a symbolic link, the file it points to is written and the link is kept.
      */
-    public static void writeToFile(Path file, String content) throws IOException {
+    public static void writeToFile(Path linkOrFile, String content) throws IOException {
+        Path file = followSymbolicLink(linkOrFile);
         Path folder = file.toAbsolutePath().getParent();
         Path tempFile = Files.createTempFile(folder, file.getFileName().toString(), ".tmp");
         try {
@@ -69,6 +72,21 @@ public class FileUtil {
             }
         } finally {
             Files.deleteIfExists(tempFile);
+        }
+    }
+
+    /**
+     * Returns the file that {@code file} points to if it is a symbolic link, otherwise {@code file} itself.
+     */
+    private static Path followSymbolicLink(Path file) throws IOException {
+        if (!Files.isSymbolicLink(file)) {
+            return file;
+        }
+        try {
+            return file.toRealPath();
+        } catch (NoSuchFileException e) {
+            // the link points to a file that does not exist yet: create it there
+            return file.resolveSibling(Files.readSymbolicLink(file)).normalize();
         }
     }
 
@@ -94,7 +112,11 @@ public class FileUtil {
         }
         String timestamp = BACKUP_TIMESTAMP_FORMAT.format(clock.instant());
         Path backup = file.resolveSibling(file.getFileName() + "." + timestamp + ".bak");
-        Files.move(file, backup, StandardCopyOption.REPLACE_EXISTING);
+        // two failures in the same second must not overwrite each other's backup
+        for (int copy = 1; Files.exists(backup); copy++) {
+            backup = file.resolveSibling(file.getFileName() + "." + timestamp + "-" + copy + ".bak");
+        }
+        Files.move(file, backup);
         return Optional.of(backup);
     }
 
