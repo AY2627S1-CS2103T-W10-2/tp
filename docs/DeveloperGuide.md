@@ -1003,8 +1003,32 @@ testers are expected to do more *exploratory* testing.
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+1. Dealing with a missing data file
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+   1. Prerequisites: Close the app and delete the `data` folder.
 
-1. _{ more test cases …​ }_
+   1. Test case: Start the app<br>
+      Expected: The app starts with the sample contacts. `data/addressbook.json` is not created until a command that changes something, such as `add`, is run.
+
+1. Dealing with corrupted data files
+
+   1. Prerequisites: Close the app. Make a copy of `data/addressbook.json` so you can restore it afterwards.
+
+   1. Test case: Replace the content of `data/addressbook.json` with `{ "persons" : [` (not valid JSON), and start the app<br>
+      Expected: The app starts with an empty list. The data file is renamed to `addressbook.json.<UTC time>.bak` in the `data` folder, and the log file `addressbook.log.0` explains why the file could not be read.
+
+   1. Test case: Delete the `contexts` of one person in `data/addressbook.json` (or give two persons the same phone number), and start the app<br>
+      Expected: Same as above. The whole file is treated as unreadable, even though only one person is invalid.
+
+   1. Test case: After either test above, run `add n/Test c/CS2103T`<br>
+      Expected: A new `data/addressbook.json` is created with only the new person. The `.bak` file is not changed.
+
+1. Dealing with a data file that cannot be written
+
+   1. Prerequisites: Close the app and make the `data` folder read-only (for example, `chmod 555 data` on macOS or Linux). Start the app.
+
+   1. Test case: `add n/Test c/CS2103T`<br>
+      Expected: The result display shows an error saying the data could not be saved because of insufficient permissions. The new person still appears in the list for this session, but is not in `data/addressbook.json`.
+
+   1. Test case: `list`<br>
+      Expected: The command succeeds, because commands that change nothing do not save.
