@@ -87,9 +87,8 @@ public class EditCommandParser implements Parser<EditCommand> {
 
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
-        if (argMultimap.getValue(PREFIX_NAME).isPresent()) {
-            editPersonDescriptor.setName(ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get()));
-        }
+        ParserUtil.parseIfPresent(argMultimap, PREFIX_NAME, ParserUtil::parseName)
+                .ifPresent(editPersonDescriptor::setName);
         editPersonDescriptor.setPhone(parseOptionalField(argMultimap, PHONE_FIELD));
         editPersonDescriptor.setEmail(parseOptionalField(argMultimap, EMAIL_FIELD));
         editPersonDescriptor.setAlias(parseOptionalField(argMultimap, ALIAS_FIELD));
@@ -144,10 +143,9 @@ public class EditCommandParser implements Parser<EditCommand> {
         if (valueToRemove.isPresent()) {
             return FieldEdit.removed();
         }
-        if (value.isPresent()) {
-            return FieldEdit.set(field.parser().parse(value.get()));
-        }
-        return FieldEdit.unchanged();
+        return ParserUtil.parseIfPresent(argMultimap, field.setPrefix(), field.parser())
+                .map(FieldEdit::set)
+                .orElseGet(FieldEdit::unchanged);
     }
 
     /**
@@ -157,13 +155,5 @@ public class EditCommandParser implements Parser<EditCommand> {
      */
     private record OptionalField<T>(Prefix setPrefix, Prefix removePrefix, String description,
             String placeholder, String emptyMessage, FieldParser<T> parser) {}
-
-    /**
-     * Represents a function that parses the value of a field, such as {@link ParserUtil#parsePhone}.
-     */
-    @FunctionalInterface
-    private interface FieldParser<T> {
-        T parse(String value) throws ParseException;
-    }
 
 }
