@@ -10,9 +10,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -25,6 +25,11 @@ import seedu.address.model.person.PersonSearchClues;
  */
 public class FindCommandParser implements Parser<FindCommand> {
 
+    private static final Prefix[] SEARCH_PREFIXES = {
+        PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_CONTEXT,
+        PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE
+    };
+
     /**
      * Parses the given {@code String} of arguments in the context of the FindCommand
      * and returns a FindCommand object for execution.
@@ -36,9 +41,7 @@ public class FindCommandParser implements Parser<FindCommand> {
             throw invalidFormat();
         }
 
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + trimmedArgs,
-                PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_CONTEXT,
-                PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE);
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + trimmedArgs, SEARCH_PREFIXES);
         if (!hasSupportedPrefix(argMultimap)) {
             return parseKeywordSearch(trimmedArgs);
         }
@@ -59,50 +62,44 @@ public class FindCommandParser implements Parser<FindCommand> {
         argMultimap.verifyNoDuplicatePrefixesFor(
                 PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE);
 
-        Optional<String> nameClue = argMultimap.getValue(PREFIX_NAME);
-        Optional<String> phoneClue = argMultimap.getValue(PREFIX_PHONE);
-        Optional<String> emailClue = argMultimap.getValue(PREFIX_EMAIL);
-        List<String> contextClues = argMultimap.getAllValues(PREFIX_CONTEXT);
-        Optional<String> aliasClue = argMultimap.getValue(PREFIX_ALIAS);
-        Optional<String> introducerClue = argMultimap.getValue(PREFIX_INTRODUCER);
-        Optional<String> noteClue = argMultimap.getValue(PREFIX_NOTE);
-
-        requireNonBlank(nameClue, FindCommand.MESSAGE_EMPTY_NAME_CLUE);
-        requireNonBlank(phoneClue, FindCommand.MESSAGE_EMPTY_PHONE_CLUE);
-        requireNonBlank(emailClue, FindCommand.MESSAGE_EMPTY_EMAIL_CLUE);
-        if (contextClues.stream().anyMatch(String::isBlank)) {
-            throw new ParseException(FindCommand.MESSAGE_EMPTY_CONTEXT_CLUE);
-        }
-        requireNonBlank(aliasClue, FindCommand.MESSAGE_EMPTY_ALIAS_CLUE);
-        requireNonBlank(introducerClue, FindCommand.MESSAGE_EMPTY_INTRODUCER_CLUE);
-        requireNonBlank(noteClue, FindCommand.MESSAGE_EMPTY_NOTE_CLUE);
-
-        Optional<String> normalisedNameClue = nameClue.map(FindCommandParser::normaliseClue);
-        Optional<String> normalisedPhoneClue = phoneClue.map(FindCommandParser::normaliseClue);
-        Optional<String> normalisedEmailClue = emailClue.map(FindCommandParser::normaliseClue);
-        List<String> normalisedContextClues = removeEquivalentClues(contextClues.stream()
-                .map(FindCommandParser::normaliseClue)
-                .toList());
-        Optional<String> normalisedAliasClue = aliasClue.map(FindCommandParser::normaliseClue);
-        Optional<String> normalisedIntroducerClue = introducerClue.map(FindCommandParser::normaliseClue);
-        Optional<String> normalisedNoteClue = noteClue.map(FindCommandParser::normaliseClue);
-
-        PersonSearchClues searchClues = new PersonSearchClues()
-                .withContextClues(normalisedContextClues);
-        normalisedNameClue.ifPresent(searchClues::withNameClue);
-        normalisedPhoneClue.ifPresent(searchClues::withPhoneClue);
-        normalisedEmailClue.ifPresent(searchClues::withEmailClue);
-        normalisedAliasClue.ifPresent(searchClues::withAliasClue);
-        normalisedIntroducerClue.ifPresent(searchClues::withIntroducerClue);
-        normalisedNoteClue.ifPresent(searchClues::withNoteClue);
+        PersonSearchClues searchClues = new PersonSearchClues();
+        parseClue(argMultimap, PREFIX_NAME, FindCommand.MESSAGE_EMPTY_NAME_CLUE)
+                .ifPresent(searchClues::withNameClue);
+        parseClue(argMultimap, PREFIX_PHONE, FindCommand.MESSAGE_EMPTY_PHONE_CLUE)
+                .ifPresent(searchClues::withPhoneClue);
+        parseClue(argMultimap, PREFIX_EMAIL, FindCommand.MESSAGE_EMPTY_EMAIL_CLUE)
+                .ifPresent(searchClues::withEmailClue);
+        searchClues.withContextClues(parseContextClues(argMultimap));
+        parseClue(argMultimap, PREFIX_ALIAS, FindCommand.MESSAGE_EMPTY_ALIAS_CLUE)
+                .ifPresent(searchClues::withAliasClue);
+        parseClue(argMultimap, PREFIX_INTRODUCER, FindCommand.MESSAGE_EMPTY_INTRODUCER_CLUE)
+                .ifPresent(searchClues::withIntroducerClue);
+        parseClue(argMultimap, PREFIX_NOTE, FindCommand.MESSAGE_EMPTY_NOTE_CLUE)
+                .ifPresent(searchClues::withNoteClue);
 
         return new FindCommand(new PersonMatchesCluesPredicate(searchClues));
     }
 
     private static boolean hasSupportedPrefix(ArgumentMultimap argMultimap) {
-        return Stream.of(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_CONTEXT,
-                        PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE)
+        return Arrays.stream(SEARCH_PREFIXES)
                 .anyMatch(prefix -> argMultimap.getValue(prefix).isPresent());
+    }
+
+    private static Optional<String> parseClue(ArgumentMultimap argMultimap, Prefix prefix,
+            String emptyClueMessage) throws ParseException {
+        Optional<String> clue = argMultimap.getValue(prefix);
+        requireNonBlank(clue, emptyClueMessage);
+        return clue.map(FindCommandParser::normaliseClue);
+    }
+
+    private static List<String> parseContextClues(ArgumentMultimap argMultimap) throws ParseException {
+        List<String> contextClues = argMultimap.getAllValues(PREFIX_CONTEXT);
+        if (contextClues.stream().anyMatch(String::isBlank)) {
+            throw new ParseException(FindCommand.MESSAGE_EMPTY_CONTEXT_CLUE);
+        }
+        return removeEquivalentClues(contextClues.stream()
+                .map(FindCommandParser::normaliseClue)
+                .toList());
     }
 
     private static void requireNonBlank(Optional<String> clue, String message) throws ParseException {
