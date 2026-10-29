@@ -52,8 +52,6 @@ public class AddCommand extends Command {
             + "If this is the same person, run delete %4$d to remove the new entry and use edit %3$d instead.";
     public static final String MESSAGE_SIMILAR_PERSON_ARCHIVED_NOTE =
             "Note: %1$s %2$s already exists.";
-    public static final String MESSAGE_SIMILAR_PERSON_ARCHIVED_HINT =
-            " This person is archived; run archives to see them.";
 
     private final Person toAdd;
 
@@ -97,7 +95,7 @@ public class AddCommand extends Command {
                 .collect(Collectors.joining(" "));
         if (similar.isArchived()) {
             return String.format(MESSAGE_SIMILAR_PERSON_ARCHIVED_NOTE, name, sharedContexts)
-                    + MESSAGE_SIMILAR_PERSON_ARCHIVED_HINT;
+                    + " " + Messages.MESSAGE_ARCHIVED_PERSON_HINT;
         }
         return String.format(MESSAGE_SIMILAR_PERSON_ACTIVE_NOTE, name, sharedContexts,
                 getDisplayedIndex(model, similar), getDisplayedIndex(model, toAdd));
