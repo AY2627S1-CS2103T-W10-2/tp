@@ -41,7 +41,7 @@ public class AddCommandParser implements Parser<AddCommand> {
      */
     public AddCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap =
-                ArgumentTokenizer.tokenizeWithLastPrefix(args, PREFIX_NOTE, PREFIX_NAME, PREFIX_PHONE,
+                ArgumentTokenizer.tokenizeWithRestOfLinePrefix(args, PREFIX_NOTE, PREFIX_NAME, PREFIX_PHONE,
                         PREFIX_EMAIL, PREFIX_CONTEXT, PREFIX_ALIAS, PREFIX_INTRODUCER);
 
         // Name and at least one context are compulsory; the remaining fields are optional.

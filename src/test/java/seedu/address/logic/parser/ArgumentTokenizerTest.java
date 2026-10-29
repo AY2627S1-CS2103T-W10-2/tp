@@ -137,10 +137,10 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
-    public void tokenizeWithLastPrefix_lastPrefixTakesRestOfLine() {
+    public void tokenizeWithRestOfLinePrefix_restOfLinePrefixPresent_takesRestOfLine() {
         String argsString = "  pre p/123 -t dash nt/note p/456 -t more nt/again ";
         Prefix note = new Prefix("nt/");
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithLastPrefix(argsString, note, pSlash, dashT);
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithRestOfLinePrefix(argsString, note, pSlash, dashT);
 
         assertPreamblePresent(argMultimap, "pre");
         assertArgumentPresent(argMultimap, pSlash, "123");
@@ -149,9 +149,9 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
-    public void tokenizeWithLastPrefix_lastPrefixAbsent_behavesLikeTokenize() {
+    public void tokenizeWithRestOfLinePrefix_restOfLinePrefixAbsent_behavesLikeTokenize() {
         String argsString = "pre p/123 -t dash";
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithLastPrefix(argsString,
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithRestOfLinePrefix(argsString,
                 new Prefix("nt/"), pSlash, dashT);
 
         assertPreamblePresent(argMultimap, "pre");
@@ -161,8 +161,8 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
-    public void tokenizeWithLastPrefix_lastPrefixNotPrecededByWhitespace_notRecognised() {
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithLastPrefix("pre p/1nt/x",
+    public void tokenizeWithRestOfLinePrefix_restOfLinePrefixNotPrecededByWhitespace_notRecognised() {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithRestOfLinePrefix("pre p/1nt/x",
                 new Prefix("nt/"), pSlash);
 
         assertArgumentPresent(argMultimap, pSlash, "1nt/x");
