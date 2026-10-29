@@ -6,7 +6,9 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javafx.beans.value.ObservableBooleanValue;
 import javafx.collections.ObservableList;
@@ -17,8 +19,8 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
+import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Person;
 import seedu.address.storage.Storage;
 
@@ -55,11 +57,11 @@ public class LogicManager implements Logic {
 
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
-        AddressBook addressBookBeforeCommand = new AddressBook(model.getAddressBook());
+        List<String> savedFormBeforeCommand = describePersons(model.getAddressBook());
         commandResult = command.execute(model);
 
         // commands that change nothing, such as list and find, do not need the data file to be writable
-        if (model.getAddressBook().equals(addressBookBeforeCommand)) {
+        if (describePersons(model.getAddressBook()).equals(savedFormBeforeCommand)) {
             return commandResult;
         }
 
@@ -80,6 +82,15 @@ public class LogicManager implements Logic {
         }
 
         return commandResult;
+    }
+
+    /**
+     * Returns every person, archived or not, as the text that is saved. Persons are not compared with
+     * {@code equals} because it ignores capitalisation in contexts and emails, so a change that only
+     * affects capitalisation would not be saved.
+     */
+    private static List<String> describePersons(ReadOnlyAddressBook addressBook) {
+        return addressBook.getPersonList().stream().map(Person::toString).collect(Collectors.toList());
     }
 
     @Override
