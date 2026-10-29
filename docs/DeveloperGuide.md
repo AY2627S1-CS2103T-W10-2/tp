@@ -1068,7 +1068,7 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: Close the app and make sure the `data` folder exists. It is created by the first command that changes something, such as `add`, so if you ran the test above, start the app, run `add n/Temp c/CS2103T` and close the app again. Make a copy of `data/addressbook.json` so you can restore it afterwards.
 
    1. Test case: Replace the content of `data/addressbook.json` with `{ "persons" : [` (not valid JSON), and start the app<br>
-      Expected: The app starts with an empty list. The data file is renamed to `addressbook.json.<UTC time>.bak` in the `data` folder, and the log file `addressbook.log.0` explains why the file could not be read.
+      Expected: The app starts with an empty list. The data file is renamed to `addressbook.json.<UTC time>.bak` in the `data` folder, and the log file `unicontacts.log.0` explains why the file could not be read.
 
    1. Test case: Delete the `contexts` of one person in `data/addressbook.json` (or give two persons the same phone number), and start the app<br>
       Expected: Same as above. The whole file is treated as unreadable, even though only one person is invalid.
