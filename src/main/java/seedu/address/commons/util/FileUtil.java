@@ -88,7 +88,8 @@ public class FileUtil {
 
     /**
      * Returns the file that {@code file} points to if it is a symbolic link, otherwise {@code file} itself.
-     * The file at the end of a chain of links may not exist yet.
+     * The file at the end of a chain of links may not exist yet. A loop of links is reported by the file system;
+     * a chain of more than {@code MAX_SYMBOLIC_LINK_HOPS} links to a missing file is refused here.
      */
     private static Path followSymbolicLink(Path file) throws IOException {
         Path current = file;
