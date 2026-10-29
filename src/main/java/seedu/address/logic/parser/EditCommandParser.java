@@ -18,11 +18,11 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.logic.commands.FieldEdit;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Alias;
 import seedu.address.model.person.Email;
@@ -90,16 +90,11 @@ public class EditCommandParser implements Parser<EditCommand> {
         if (argMultimap.getValue(PREFIX_NAME).isPresent()) {
             editPersonDescriptor.setName(ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get()));
         }
-        parseOptionalField(argMultimap, PHONE_FIELD,
-                editPersonDescriptor::setPhone, editPersonDescriptor::setPhoneRemoved);
-        parseOptionalField(argMultimap, EMAIL_FIELD,
-                editPersonDescriptor::setEmail, editPersonDescriptor::setEmailRemoved);
-        parseOptionalField(argMultimap, ALIAS_FIELD,
-                editPersonDescriptor::setAlias, editPersonDescriptor::setAliasRemoved);
-        parseOptionalField(argMultimap, INTRODUCER_FIELD,
-                editPersonDescriptor::setIntroducer, editPersonDescriptor::setIntroducerRemoved);
-        parseOptionalField(argMultimap, NOTE_FIELD,
-                editPersonDescriptor::setNote, editPersonDescriptor::setNoteRemoved);
+        editPersonDescriptor.setPhone(parseOptionalField(argMultimap, PHONE_FIELD));
+        editPersonDescriptor.setEmail(parseOptionalField(argMultimap, EMAIL_FIELD));
+        editPersonDescriptor.setAlias(parseOptionalField(argMultimap, ALIAS_FIELD));
+        editPersonDescriptor.setIntroducer(parseOptionalField(argMultimap, INTRODUCER_FIELD));
+        editPersonDescriptor.setNote(parseOptionalField(argMultimap, NOTE_FIELD));
         if (!argMultimap.getAllValues(PREFIX_CONTEXT_ADD).isEmpty()) {
             editPersonDescriptor.setContextsToAdd(
                     ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT_ADD)));
@@ -117,14 +112,15 @@ public class EditCommandParser implements Parser<EditCommand> {
     }
 
     /**
-     * Records the value of {@code field} to set with {@code setValue}, and whether {@code field} should be
-     * removed with {@code setRemoved}. Every field that edit can remove follows these rules.
+     * Returns the edit to {@code field} given in {@code argMultimap}: removed if the remove prefix is given,
+     * set to the parsed value if the set prefix is given, otherwise unchanged.
+     * Every field that edit can remove follows these rules.
      *
      * @throws ParseException if the remove prefix has a value, is given with the set prefix,
      *     or the set prefix is empty or has an invalid value.
      */
-    private static <T> void parseOptionalField(ArgumentMultimap argMultimap, OptionalField<T> field,
-            Consumer<T> setValue, RemovalSetter setRemoved) throws ParseException {
+    private static <T> FieldEdit<T> parseOptionalField(ArgumentMultimap argMultimap, OptionalField<T> field)
+            throws ParseException {
         // Each is empty if its prefix was not typed, e.g. value holds "91234567" for p/91234567
         Optional<String> value = argMultimap.getValue(field.setPrefix());
         Optional<String> valueToRemove = argMultimap.getValue(field.removePrefix());
@@ -145,11 +141,13 @@ public class EditCommandParser implements Parser<EditCommand> {
                     field.emptyMessage(), field.removePrefix(), field.description()));
         }
 
-        // Record the parsed new value and the remove flag in the descriptor
-        if (value.isPresent()) {
-            setValue.accept(field.parser().parse(value.get()));
+        if (valueToRemove.isPresent()) {
+            return FieldEdit.removed();
         }
-        setRemoved.set(valueToRemove.isPresent());
+        if (value.isPresent()) {
+            return FieldEdit.set(field.parser().parse(value.get()));
+        }
+        return FieldEdit.unchanged();
     }
 
     /**
@@ -166,15 +164,6 @@ public class EditCommandParser implements Parser<EditCommand> {
     @FunctionalInterface
     private interface FieldParser<T> {
         T parse(String value) throws ParseException;
-    }
-
-    /**
-     * Represents a function that records whether a field should be removed, such as
-     * {@link EditCommand.EditPersonDescriptor#setPhoneRemoved}.
-     */
-    @FunctionalInterface
-    private interface RemovalSetter {
-        void set(boolean isRemoved);
     }
 
 }

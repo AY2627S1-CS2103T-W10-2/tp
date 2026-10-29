@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.logic.commands.FieldEdit;
 import seedu.address.model.person.Alias;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Email;
@@ -36,11 +37,11 @@ public class EditPersonDescriptorBuilder {
     public EditPersonDescriptorBuilder(Person person) {
         descriptor = new EditPersonDescriptor();
         descriptor.setName(person.getName());
-        person.getPhone().ifPresent(descriptor::setPhone);
-        person.getEmail().ifPresent(descriptor::setEmail);
-        person.getAlias().ifPresent(descriptor::setAlias);
-        person.getIntroducer().ifPresent(descriptor::setIntroducer);
-        person.getNote().ifPresent(descriptor::setNote);
+        person.getPhone().ifPresent(phone -> descriptor.setPhone(FieldEdit.set(phone)));
+        person.getEmail().ifPresent(email -> descriptor.setEmail(FieldEdit.set(email)));
+        person.getAlias().ifPresent(alias -> descriptor.setAlias(FieldEdit.set(alias)));
+        person.getIntroducer().ifPresent(introducer -> descriptor.setIntroducer(FieldEdit.set(introducer)));
+        person.getNote().ifPresent(note -> descriptor.setNote(FieldEdit.set(note)));
         descriptor.setContextsToAdd(person.getContexts());
     }
 
@@ -56,7 +57,7 @@ public class EditPersonDescriptorBuilder {
      * Sets the {@code Phone} of the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withPhone(String phone) {
-        descriptor.setPhone(new Phone(phone));
+        descriptor.setPhone(FieldEdit.set(new Phone(phone)));
         return this;
     }
 
@@ -64,7 +65,7 @@ public class EditPersonDescriptorBuilder {
      * Sets the {@code Email} of the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withEmail(String email) {
-        descriptor.setEmail(new Email(email));
+        descriptor.setEmail(FieldEdit.set(new Email(email)));
         return this;
     }
 
@@ -72,7 +73,7 @@ public class EditPersonDescriptorBuilder {
      * Sets the {@code Alias} of the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withAlias(String alias) {
-        descriptor.setAlias(new Alias(alias));
+        descriptor.setAlias(FieldEdit.set(new Alias(alias)));
         return this;
     }
 
@@ -80,7 +81,7 @@ public class EditPersonDescriptorBuilder {
      * Sets the {@code Introducer} of the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withIntroducer(String introducer) {
-        descriptor.setIntroducer(new Introducer(introducer));
+        descriptor.setIntroducer(FieldEdit.set(new Introducer(introducer)));
         return this;
     }
 
@@ -88,7 +89,7 @@ public class EditPersonDescriptorBuilder {
      * Sets the {@code Note} of the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withNote(String note) {
-        descriptor.setNote(new Note(note));
+        descriptor.setNote(FieldEdit.set(new Note(note)));
         return this;
     }
 
@@ -96,7 +97,7 @@ public class EditPersonDescriptorBuilder {
      * Marks the phone for removal in the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withPhoneRemoved() {
-        descriptor.setPhoneRemoved(true);
+        descriptor.setPhone(FieldEdit.removed());
         return this;
     }
 
@@ -104,7 +105,7 @@ public class EditPersonDescriptorBuilder {
      * Marks the email for removal in the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withEmailRemoved() {
-        descriptor.setEmailRemoved(true);
+        descriptor.setEmail(FieldEdit.removed());
         return this;
     }
 
@@ -112,7 +113,7 @@ public class EditPersonDescriptorBuilder {
      * Marks the alias for removal in the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withAliasRemoved() {
-        descriptor.setAliasRemoved(true);
+        descriptor.setAlias(FieldEdit.removed());
         return this;
     }
 
@@ -120,7 +121,7 @@ public class EditPersonDescriptorBuilder {
      * Marks the introducer for removal in the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withIntroducerRemoved() {
-        descriptor.setIntroducerRemoved(true);
+        descriptor.setIntroducer(FieldEdit.removed());
         return this;
     }
 
@@ -128,7 +129,7 @@ public class EditPersonDescriptorBuilder {
      * Marks the note for removal in the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withNoteRemoved() {
-        descriptor.setNoteRemoved(true);
+        descriptor.setNote(FieldEdit.removed());
         return this;
     }
 

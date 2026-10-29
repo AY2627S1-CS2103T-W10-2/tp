@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
@@ -178,33 +179,18 @@ public class EditCommand extends Command {
         assert personToEdit != null;
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
-        Phone updatedPhone = applyOptionalFieldEdit(editPersonDescriptor.getPhone(),
-                editPersonDescriptor.isPhoneRemoved(), personToEdit.getPhone());
-        Email updatedEmail = applyOptionalFieldEdit(editPersonDescriptor.getEmail(),
-                editPersonDescriptor.isEmailRemoved(), personToEdit.getEmail());
+        // Person takes null for an optional field with no value
+        Phone updatedPhone = editPersonDescriptor.getPhone().applyTo(personToEdit.getPhone()).orElse(null);
+        Email updatedEmail = editPersonDescriptor.getEmail().applyTo(personToEdit.getEmail()).orElse(null);
         Set<Context> updatedContexts = applyContextChanges(personToEdit, editPersonDescriptor);
-        Alias updatedAlias = applyOptionalFieldEdit(editPersonDescriptor.getAlias(),
-                editPersonDescriptor.isAliasRemoved(), personToEdit.getAlias());
-        Introducer updatedIntroducer = applyOptionalFieldEdit(editPersonDescriptor.getIntroducer(),
-                editPersonDescriptor.isIntroducerRemoved(), personToEdit.getIntroducer());
-        Note updatedNote = applyOptionalFieldEdit(editPersonDescriptor.getNote(),
-                editPersonDescriptor.isNoteRemoved(), personToEdit.getNote());
+        Alias updatedAlias = editPersonDescriptor.getAlias().applyTo(personToEdit.getAlias()).orElse(null);
+        Introducer updatedIntroducer = editPersonDescriptor.getIntroducer()
+                .applyTo(personToEdit.getIntroducer()).orElse(null);
+        Note updatedNote = editPersonDescriptor.getNote().applyTo(personToEdit.getNote()).orElse(null);
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedContexts,
                 updatedAlias, updatedIntroducer, updatedNote)
                 .copyWithArchived(personToEdit.isArchived());
-    }
-
-    /**
-     * Returns the value of an optional field after an edit: {@code null} if the field is removed,
-     * otherwise {@code newValue} if given, otherwise {@code currentValue}. {@code null} means no value.
-     */
-    private static <T> T applyOptionalFieldEdit(Optional<T> newValue, boolean isRemoved,
-            Optional<T> currentValue) {
-        if (isRemoved) {
-            return null;
-        }
-        return newValue.orElse(currentValue.orElse(null));
     }
 
     /**
@@ -294,23 +280,20 @@ public class EditCommand extends Command {
     }
 
     /**
-     * Stores the details to edit the person with. Each non-empty field value will replace the
-     * corresponding field value of the person.
+     * Stores the details to edit the person with. A non-null name replaces the person's name.
+     * Each of the phone, email, alias, introducer and note is a {@code FieldEdit}, which leaves the
+     * person's field unchanged, sets it to a new value, or removes it. Contexts are added and removed
+     * by {@code contextsToAdd} and {@code contextsToRemove}.
      */
     public static class EditPersonDescriptor {
         private Name name;
-        private Phone phone;
-        private Email email;
-        private Alias alias;
-        private Introducer introducer;
-        private Note note;
+        private FieldEdit<Phone> phone = FieldEdit.unchanged();
+        private FieldEdit<Email> email = FieldEdit.unchanged();
+        private FieldEdit<Alias> alias = FieldEdit.unchanged();
+        private FieldEdit<Introducer> introducer = FieldEdit.unchanged();
+        private FieldEdit<Note> note = FieldEdit.unchanged();
         private Set<Context> contextsToAdd;
         private Set<Context> contextsToRemove;
-        private boolean isPhoneRemoved;
-        private boolean isEmailRemoved;
-        private boolean isAliasRemoved;
-        private boolean isIntroducerRemoved;
-        private boolean isNoteRemoved;
 
         public EditPersonDescriptor() {}
 
@@ -320,28 +303,22 @@ public class EditCommand extends Command {
          */
         public EditPersonDescriptor(EditPersonDescriptor toCopy) {
             setName(toCopy.name);
-            setPhone(toCopy.phone);
-            setEmail(toCopy.email);
-            setAlias(toCopy.alias);
-            setIntroducer(toCopy.introducer);
-            setNote(toCopy.note);
+            // a FieldEdit is immutable, so it can be shared
+            phone = toCopy.phone;
+            email = toCopy.email;
+            alias = toCopy.alias;
+            introducer = toCopy.introducer;
+            note = toCopy.note;
             setContextsToAdd(toCopy.contextsToAdd);
             setContextsToRemove(toCopy.contextsToRemove);
-            setPhoneRemoved(toCopy.isPhoneRemoved);
-            setEmailRemoved(toCopy.isEmailRemoved);
-            setAliasRemoved(toCopy.isAliasRemoved);
-            setIntroducerRemoved(toCopy.isIntroducerRemoved);
-            setNoteRemoved(toCopy.isNoteRemoved);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, alias, introducer, note,
-                    contextsToAdd, contextsToRemove)
-                    || isPhoneRemoved || isEmailRemoved
-                    || isAliasRemoved || isIntroducerRemoved || isNoteRemoved;
+            return CollectionUtil.isAnyNonNull(name, contextsToAdd, contextsToRemove)
+                    || Stream.of(phone, email, alias, introducer, note).anyMatch(FieldEdit::isEdited);
         }
 
         public void setName(Name name) {
@@ -352,84 +329,49 @@ public class EditCommand extends Command {
             return Optional.ofNullable(name);
         }
 
-        public void setPhone(Phone phone) {
+        public void setPhone(FieldEdit<Phone> phone) {
+            requireNonNull(phone);
             this.phone = phone;
         }
 
-        public Optional<Phone> getPhone() {
-            return Optional.ofNullable(phone);
+        public FieldEdit<Phone> getPhone() {
+            return phone;
         }
 
-        public void setEmail(Email email) {
+        public void setEmail(FieldEdit<Email> email) {
+            requireNonNull(email);
             this.email = email;
         }
 
-        public Optional<Email> getEmail() {
-            return Optional.ofNullable(email);
+        public FieldEdit<Email> getEmail() {
+            return email;
         }
 
-        public void setAlias(Alias alias) {
+        public void setAlias(FieldEdit<Alias> alias) {
+            requireNonNull(alias);
             this.alias = alias;
         }
 
-        public Optional<Alias> getAlias() {
-            return Optional.ofNullable(alias);
+        public FieldEdit<Alias> getAlias() {
+            return alias;
         }
 
-        public void setIntroducer(Introducer introducer) {
+        public void setIntroducer(FieldEdit<Introducer> introducer) {
+            requireNonNull(introducer);
             this.introducer = introducer;
         }
 
-        public Optional<Introducer> getIntroducer() {
-            return Optional.ofNullable(introducer);
+        public FieldEdit<Introducer> getIntroducer() {
+            return introducer;
         }
 
-        public void setNote(Note note) {
+        public void setNote(FieldEdit<Note> note) {
+            requireNonNull(note);
             this.note = note;
         }
 
-        public Optional<Note> getNote() {
-            return Optional.ofNullable(note);
-        }
-
-        public void setPhoneRemoved(boolean isPhoneRemoved) {
-            this.isPhoneRemoved = isPhoneRemoved;
-        }
-
-        public boolean isPhoneRemoved() {
-            return isPhoneRemoved;
-        }
-
-        public void setEmailRemoved(boolean isEmailRemoved) {
-            this.isEmailRemoved = isEmailRemoved;
-        }
-
-        public boolean isEmailRemoved() {
-            return isEmailRemoved;
-        }
-
-        public void setAliasRemoved(boolean isAliasRemoved) {
-            this.isAliasRemoved = isAliasRemoved;
-        }
-
-        public boolean isAliasRemoved() {
-            return isAliasRemoved;
-        }
-
-        public void setIntroducerRemoved(boolean isIntroducerRemoved) {
-            this.isIntroducerRemoved = isIntroducerRemoved;
-        }
-
-        public boolean isIntroducerRemoved() {
-            return isIntroducerRemoved;
-        }
-
-        public void setNoteRemoved(boolean isNoteRemoved) {
-            this.isNoteRemoved = isNoteRemoved;
-        }
-
-        public boolean isNoteRemoved() {
-            return isNoteRemoved;
+        public FieldEdit<Note> getNote() {
+            return note;
         }
 
         /**
@@ -486,12 +428,7 @@ public class EditCommand extends Command {
                     && Objects.equals(introducer, otherEditPersonDescriptor.introducer)
                     && Objects.equals(note, otherEditPersonDescriptor.note)
                     && Objects.equals(contextsToAdd, otherEditPersonDescriptor.contextsToAdd)
-                    && Objects.equals(contextsToRemove, otherEditPersonDescriptor.contextsToRemove)
-                    && isPhoneRemoved == otherEditPersonDescriptor.isPhoneRemoved
-                    && isEmailRemoved == otherEditPersonDescriptor.isEmailRemoved
-                    && isAliasRemoved == otherEditPersonDescriptor.isAliasRemoved
-                    && isIntroducerRemoved == otherEditPersonDescriptor.isIntroducerRemoved
-                    && isNoteRemoved == otherEditPersonDescriptor.isNoteRemoved;
+                    && Objects.equals(contextsToRemove, otherEditPersonDescriptor.contextsToRemove);
         }
 
         @Override
@@ -505,11 +442,6 @@ public class EditCommand extends Command {
                     .add("note", note)
                     .add("contextsToAdd", contextsToAdd)
                     .add("contextsToRemove", contextsToRemove)
-                    .add("isPhoneRemoved", isPhoneRemoved)
-                    .add("isEmailRemoved", isEmailRemoved)
-                    .add("isAliasRemoved", isAliasRemoved)
-                    .add("isIntroducerRemoved", isIntroducerRemoved)
-                    .add("isNoteRemoved", isNoteRemoved)
                     .toString();
         }
     }
