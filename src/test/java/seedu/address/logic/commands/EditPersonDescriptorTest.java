@@ -105,18 +105,13 @@ public class EditPersonDescriptorTest {
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
         String expected = EditPersonDescriptor.class.getCanonicalName() + "{name="
                 + editPersonDescriptor.getName().orElse(null) + ", phone="
-                + editPersonDescriptor.getPhone().orElse(null) + ", email="
-                + editPersonDescriptor.getEmail().orElse(null) + ", alias="
-                + editPersonDescriptor.getAlias().orElse(null) + ", introducer="
-                + editPersonDescriptor.getIntroducer().orElse(null) + ", note="
-                + editPersonDescriptor.getNote().orElse(null) + ", contextsToAdd="
+                + editPersonDescriptor.getPhone() + ", email="
+                + editPersonDescriptor.getEmail() + ", alias="
+                + editPersonDescriptor.getAlias() + ", introducer="
+                + editPersonDescriptor.getIntroducer() + ", note="
+                + editPersonDescriptor.getNote() + ", contextsToAdd="
                 + editPersonDescriptor.getContextsToAdd().orElse(null) + ", contextsToRemove="
-                + editPersonDescriptor.getContextsToRemove().orElse(null) + ", isPhoneRemoved="
-                + editPersonDescriptor.isPhoneRemoved() + ", isEmailRemoved="
-                + editPersonDescriptor.isEmailRemoved() + ", isAliasRemoved="
-                + editPersonDescriptor.isAliasRemoved() + ", isIntroducerRemoved="
-                + editPersonDescriptor.isIntroducerRemoved() + ", isNoteRemoved="
-                + editPersonDescriptor.isNoteRemoved() + "}";
+                + editPersonDescriptor.getContextsToRemove().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }
 }
