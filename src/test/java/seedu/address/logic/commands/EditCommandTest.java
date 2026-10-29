@@ -404,6 +404,18 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_duplicateOfArchivedPerson_failure() {
+        // Benson is archived but still blocks Alice from taking his email
+        model.setPerson(BENSON, BENSON.copyWithArchived(true));
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withEmail("johnd@example.com").build());
+
+        assertCommandFailure(editCommand, model,
+                "This person already exists: Benson Meier has the same email (johnd@example.com)."
+                        + " This person is archived; run archives to see them.");
+    }
+
+    @Test
     public void execute_samePhoneAsBefore_noChange() {
         // the person being edited is not counted as a duplicate of itself
         assertNoChange(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder().withPhone("94351253").build());

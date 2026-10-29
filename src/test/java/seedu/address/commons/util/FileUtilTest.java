@@ -2,11 +2,17 @@ package seedu.address.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -47,6 +53,42 @@ public class FileUtilTest {
         try (Stream<Path> files = Files.list(testFolder)) {
             assertEquals(1, files.count());
         }
+    }
+
+    @Test
+    public void writeToFile_symbolicLink_writesTargetAndKeepsLink() throws IOException {
+        Path target = testFolder.resolve("real.json");
+        Path link = testFolder.resolve("link.json");
+        FileUtil.writeToFile(target, "one");
+        try {
+            Files.createSymbolicLink(link, target.getFileName());
+        } catch (UnsupportedOperationException | IOException e) {
+            assumeTrue(false, "symbolic links are not available");
+        }
+        FileUtil.writeToFile(link, "two");
+        assertTrue(Files.isSymbolicLink(link));
+        assertEquals("two", FileUtil.readFromFile(target));
+    }
+
+    @Test
+    public void writeToFile_existingFile_keepsPermissions() throws IOException {
+        assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"));
+        Path file = testFolder.resolve("data.json");
+        FileUtil.writeToFile(file, "one");
+        Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rw-r--r--"));
+        FileUtil.writeToFile(file, "two");
+        assertEquals(PosixFilePermissions.fromString("rw-r--r--"), Files.getPosixFilePermissions(file));
+    }
+
+    @Test
+    public void writeToFile_readOnlyFile_throwsAccessDeniedExceptionAndKeepsContent() throws IOException {
+        assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"));
+        Path file = testFolder.resolve("data.json");
+        FileUtil.writeToFile(file, "one");
+        Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("r--r--r--"));
+        assumeFalse(Files.isWritable(file)); // running as a user that ignores permissions, such as root
+        assertThrows(AccessDeniedException.class, () -> FileUtil.writeToFile(file, "two"));
+        assertEquals("one", FileUtil.readFromFile(file));
     }
 
     @Test

@@ -39,6 +39,7 @@ public class AddCommand extends Command {
             + "[" + PREFIX_ALIAS + "ALIAS] "
             + "[" + PREFIX_INTRODUCER + "INTRODUCER] "
             + "[" + PREFIX_NOTE + "NOTE]\n"
+            + PREFIX_NOTE + "NOTE must come last: it takes the rest of the line.\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "
             + PREFIX_CONTEXT + "CS2103T "
