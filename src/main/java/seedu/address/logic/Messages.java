@@ -1,10 +1,14 @@
 package seedu.address.logic;
 
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import seedu.address.logic.parser.Prefix;
+import seedu.address.model.person.Context;
 import seedu.address.model.person.Person;
 
 /**
@@ -58,17 +62,34 @@ public class Messages {
     }
 
     /**
+     * Formats {@code contexts} as {@code [A] [B]}, in the order given, as in the person details shown to the
+     * user.
+     */
+    public static String formatContexts(Collection<Context> contexts) {
+        return contexts.stream()
+                .map(context -> "[" + context + "]")
+                .collect(Collectors.joining(" "));
+    }
+
+    /**
+     * Formats {@code contexts} as {@code [A] [B]}, sorted by description ignoring case, as in the person
+     * details shown to the user.
+     */
+    public static String formatContextsSorted(Collection<Context> contexts) {
+        List<Context> sortedContexts = contexts.stream()
+                .sorted(Comparator.comparing(Context::toString, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+        return formatContexts(sortedContexts);
+    }
+
+    /**
      * Formats the {@code person} for display to the user.
      */
     public static String format(Person person) {
         final StringBuilder builder = new StringBuilder();
         builder.append(person.getName())
                 .append("; Contexts: ")
-                .append(person.getContexts().stream()
-                        .map(Object::toString)
-                        .sorted(String.CASE_INSENSITIVE_ORDER)
-                        .map(context -> "[" + context + "]")
-                        .collect(Collectors.joining(" ")));
+                .append(formatContextsSorted(person.getContexts()));
         // a missing phone or email is left out rather than shown as an empty field
         person.getPhone().ifPresent(phone -> builder.append("; Phone: ").append(phone));
         person.getEmail().ifPresent(email -> builder.append("; Email: ").append(email));

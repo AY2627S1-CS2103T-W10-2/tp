@@ -272,9 +272,11 @@ This separation keeps the legacy name-and-context OR search unchanged without ch
 
 #### Implementation
 
-`EditCommandParser` records the requested changes in an `EditPersonDescriptor`, and `EditCommand` applies them to a
-copy of the person, because `Person` is immutable. Besides setting a field, `edit` can remove the phone number or
-email with `-p/` or `-e/`.
+Besides setting a field, `edit` can remove the phone number, email, alias, introducer or note with `-p/`, `-e/`, `-a/`,
+`-i/` or `-nt/`. `EditCommandParser` records the requested changes in an `EditCommand.EditPersonDescriptor`. Each of
+those five fields is held as a `FieldEdit`, which leaves the field unchanged, sets it to a new value, or removes it, so
+a field cannot be both set and removed. `EditCommand` applies each `FieldEdit` to a copy of the person with
+`FieldEdit#applyTo`, because `Person` is immutable.
 
 The activity diagram below shows how the parser handles the phone prefixes. Checks on other parts of the command,
 such as the index and the name, are left out.
@@ -287,9 +289,13 @@ number, not because `p/` is empty. Removing uses its own prefix instead of an em
 easy to send by accident, such as by pressing Enter before typing the number. The error for an empty `p/` points the
 user to `-p/`.
 
-The diagram uses phone as the example, but the activity is the same for every other optional field prefix and its
-removal prefix (such as `e/` and `-e/`). Only the prefix changes. `parsePhoneForEdit` and `parseEmailForEdit` mirror each other, so a change to
-one should be made to the other.
+The diagram uses phone as the example, but the activity is the same for every other removable field and its removal
+prefix (such as `e/` and `-e/`). Only the prefixes change. The one exception is the note: `nt/` takes the rest of the
+line, so a second `nt/` becomes part of the note instead of being rejected as a duplicate prefix. The activity is the
+same because every removable field goes through the same checks in `EditCommandParser#parseOptionalField`. An
+`OptionalField` record configures that method for each field with the set and remove prefixes, the wording used in
+error messages, and the parser for the value. Adding another removable field means adding one more `OptionalField`, not
+another parse method. The value itself is parsed by `ParserUtil#parseIfPresent`, which `AddCommandParser` uses as well.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -1059,7 +1065,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Dealing with corrupted data files
 
-   1. Prerequisites: Close the app. Make a copy of `data/addressbook.json` so you can restore it afterwards.
+   1. Prerequisites: Close the app and make sure the `data` folder exists. It is created by the first command that changes something, such as `add`, so if you ran the test above, start the app, run `add n/Temp c/CS2103T` and close the app again. Make a copy of `data/addressbook.json` so you can restore it afterwards.
 
    1. Test case: Replace the content of `data/addressbook.json` with `{ "persons" : [` (not valid JSON), and start the app<br>
       Expected: The app starts with an empty list. The data file is renamed to `addressbook.json.<UTC time>.bak` in the `data` folder, and the log file `unicontacts.log.0` explains why the file could not be read.
@@ -1072,7 +1078,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Dealing with a data file that cannot be written
 
-   1. Prerequisites: Close the app and make the `data` folder read-only (for example, `chmod 555 data` on macOS or Linux). Start the app.
+   1. Prerequisites: Close the app and make sure the `data` folder exists (see the prerequisites of the test above). Make the `data` folder read-only (for example, `chmod 555 data` on macOS or Linux), and then start the app. Afterwards, make it writable again (for example, `chmod 755 data`).
 
    1. Test case: `add n/Test c/CS2103T`<br>
       Expected: The result display shows an error saying the data could not be saved because of insufficient permissions. The new person still appears in the list for this session, but is not in `data/addressbook.json`.

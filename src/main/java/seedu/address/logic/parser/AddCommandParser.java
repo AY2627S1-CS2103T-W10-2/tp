@@ -54,18 +54,18 @@ public class AddCommandParser implements Parser<AddCommand> {
                 PREFIX_ALIAS, PREFIX_INTRODUCER);
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         requireNonBlankIfPresent(argMultimap, PREFIX_PHONE, MESSAGE_EMPTY_PHONE);
-        Phone phone = argMultimap.getValue(PREFIX_PHONE).isPresent()
-                ? ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get()) : null;
+        Phone phone = ParserUtil.parseIfPresent(argMultimap, PREFIX_PHONE, ParserUtil::parsePhone)
+                .orElse(null);
         requireNonBlankIfPresent(argMultimap, PREFIX_EMAIL, MESSAGE_EMPTY_EMAIL);
-        Email email = argMultimap.getValue(PREFIX_EMAIL).isPresent()
-                ? ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get()) : null;
+        Email email = ParserUtil.parseIfPresent(argMultimap, PREFIX_EMAIL, ParserUtil::parseEmail)
+                .orElse(null);
         Set<Context> contextList = ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT));
-        Alias alias = argMultimap.getValue(PREFIX_ALIAS).isPresent()
-                ? ParserUtil.parseAlias(argMultimap.getValue(PREFIX_ALIAS).get()) : null;
-        Introducer introducer = argMultimap.getValue(PREFIX_INTRODUCER).isPresent()
-                ? ParserUtil.parseIntroducer(argMultimap.getValue(PREFIX_INTRODUCER).get()) : null;
-        Note note = argMultimap.getValue(PREFIX_NOTE).isPresent()
-                ? ParserUtil.parseNote(argMultimap.getValue(PREFIX_NOTE).get()) : null;
+        Alias alias = ParserUtil.parseIfPresent(argMultimap, PREFIX_ALIAS, ParserUtil::parseAlias)
+                .orElse(null);
+        Introducer introducer = ParserUtil.parseIfPresent(argMultimap, PREFIX_INTRODUCER,
+                ParserUtil::parseIntroducer).orElse(null);
+        Note note = ParserUtil.parseIfPresent(argMultimap, PREFIX_NOTE, ParserUtil::parseNote)
+                .orElse(null);
 
         Person person = new Person(name, phone, email, contextList, alias, introducer, note);
 
