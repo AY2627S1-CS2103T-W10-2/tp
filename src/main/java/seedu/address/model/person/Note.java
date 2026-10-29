@@ -35,7 +35,15 @@ public class Note {
         }
         String trimmed = test.trim();
         return !trimmed.isBlank() && trimmed.length() <= 300
-                && test.chars().noneMatch(Character::isISOControl);
+                && test.chars().noneMatch(Note::isControlOrLineBreak);
+    }
+
+    /** Returns true for control characters and the Unicode line and paragraph separators (U+2028, U+2029). */
+    private static boolean isControlOrLineBreak(int codePoint) {
+        int type = Character.getType(codePoint);
+        return Character.isISOControl(codePoint)
+                || type == Character.LINE_SEPARATOR
+                || type == Character.PARAGRAPH_SEPARATOR;
     }
 
     @Override
