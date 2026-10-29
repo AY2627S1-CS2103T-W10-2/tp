@@ -33,7 +33,6 @@ public class JsonAdaptedPersonTest {
 
     private static final String INVALID_NAME = "R@chel";
     private static final String INVALID_PHONE = "+65";
-    private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_CONTEXT = " ";
     private static final String INVALID_ALIAS = "Alex123";
