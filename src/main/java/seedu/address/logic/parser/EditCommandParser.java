@@ -116,8 +116,8 @@ public class EditCommandParser implements Parser<EditCommand> {
      *
      * @throws ParseException if any context is invalid.
      */
-    private static void parseContextChanges(ArgumentMultimap argMultimap, EditPersonDescriptor editPersonDescriptor)
-            throws ParseException {
+    private static void parseContextChanges(ArgumentMultimap argMultimap,
+            EditPersonDescriptor editPersonDescriptor) throws ParseException {
         if (!argMultimap.getAllValues(PREFIX_CONTEXT_ADD).isEmpty()) {
             editPersonDescriptor.setContextsToAdd(
                     ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT_ADD)));

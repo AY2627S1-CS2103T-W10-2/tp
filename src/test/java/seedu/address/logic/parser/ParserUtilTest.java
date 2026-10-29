@@ -416,8 +416,10 @@ public class ParserUtilTest {
 
     @Test
     public void parseIfPresent_prefixAbsent_returnsEmpty() throws Exception {
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" e/" + VALID_EMAIL, PREFIX_PHONE, PREFIX_EMAIL);
-        assertEquals(Optional.empty(), ParserUtil.parseIfPresent(argMultimap, PREFIX_PHONE, ParserUtil::parsePhone));
+        ArgumentMultimap argMultimap =
+                ArgumentTokenizer.tokenize(" e/" + VALID_EMAIL, PREFIX_PHONE, PREFIX_EMAIL);
+        assertEquals(Optional.empty(),
+                ParserUtil.parseIfPresent(argMultimap, PREFIX_PHONE, ParserUtil::parsePhone));
     }
 
     @Test

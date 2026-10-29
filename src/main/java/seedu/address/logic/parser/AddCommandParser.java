@@ -54,14 +54,18 @@ public class AddCommandParser implements Parser<AddCommand> {
                 PREFIX_ALIAS, PREFIX_INTRODUCER);
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         requireNonBlankIfPresent(argMultimap, PREFIX_PHONE, MESSAGE_EMPTY_PHONE);
-        Phone phone = ParserUtil.parseIfPresent(argMultimap, PREFIX_PHONE, ParserUtil::parsePhone).orElse(null);
+        Phone phone = ParserUtil.parseIfPresent(argMultimap, PREFIX_PHONE, ParserUtil::parsePhone)
+                .orElse(null);
         requireNonBlankIfPresent(argMultimap, PREFIX_EMAIL, MESSAGE_EMPTY_EMAIL);
-        Email email = ParserUtil.parseIfPresent(argMultimap, PREFIX_EMAIL, ParserUtil::parseEmail).orElse(null);
+        Email email = ParserUtil.parseIfPresent(argMultimap, PREFIX_EMAIL, ParserUtil::parseEmail)
+                .orElse(null);
         Set<Context> contextList = ParserUtil.parseContexts(argMultimap.getAllValues(PREFIX_CONTEXT));
-        Alias alias = ParserUtil.parseIfPresent(argMultimap, PREFIX_ALIAS, ParserUtil::parseAlias).orElse(null);
-        Introducer introducer =
-                ParserUtil.parseIfPresent(argMultimap, PREFIX_INTRODUCER, ParserUtil::parseIntroducer).orElse(null);
-        Note note = ParserUtil.parseIfPresent(argMultimap, PREFIX_NOTE, ParserUtil::parseNote).orElse(null);
+        Alias alias = ParserUtil.parseIfPresent(argMultimap, PREFIX_ALIAS, ParserUtil::parseAlias)
+                .orElse(null);
+        Introducer introducer = ParserUtil.parseIfPresent(argMultimap, PREFIX_INTRODUCER,
+                ParserUtil::parseIntroducer).orElse(null);
+        Note note = ParserUtil.parseIfPresent(argMultimap, PREFIX_NOTE, ParserUtil::parseNote)
+                .orElse(null);
 
         Person person = new Person(name, phone, email, contextList, alias, introducer, note);
 

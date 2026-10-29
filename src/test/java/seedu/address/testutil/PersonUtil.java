@@ -46,9 +46,12 @@ public class PersonUtil {
     public static String getEditPersonDescriptorDetails(EditPersonDescriptor descriptor) {
         StringBuilder sb = new StringBuilder();
         descriptor.getName().ifPresent(name -> sb.append(PREFIX_NAME).append(name.fullName).append(" "));
-        descriptor.getPhone().getValue().ifPresent(phone -> sb.append(PREFIX_PHONE).append(phone.value).append(" "));
-        descriptor.getEmail().getValue().ifPresent(email -> sb.append(PREFIX_EMAIL).append(email.value).append(" "));
-        descriptor.getAlias().getValue().ifPresent(alias -> sb.append(PREFIX_ALIAS).append(alias.value).append(" "));
+        descriptor.getPhone().getValue().ifPresent(phone ->
+                sb.append(PREFIX_PHONE).append(phone.value).append(" "));
+        descriptor.getEmail().getValue().ifPresent(email ->
+                sb.append(PREFIX_EMAIL).append(email.value).append(" "));
+        descriptor.getAlias().getValue().ifPresent(alias ->
+                sb.append(PREFIX_ALIAS).append(alias.value).append(" "));
         descriptor.getIntroducer().getValue().ifPresent(introducer ->
                 sb.append(PREFIX_INTRODUCER).append(introducer.value).append(" "));
         descriptor.getContextsToAdd().ifPresent(contexts -> contexts.forEach(
@@ -56,7 +59,8 @@ public class PersonUtil {
         descriptor.getContextsToRemove().ifPresent(contexts -> contexts.forEach(
                 context -> sb.append(PREFIX_CONTEXT_REMOVE).append(context.description).append(" ")));
         // nt/ takes the rest of the line, so it must come last
-        descriptor.getNote().getValue().ifPresent(note -> sb.append(PREFIX_NOTE).append(note.value).append(" "));
+        descriptor.getNote().getValue().ifPresent(note ->
+                sb.append(PREFIX_NOTE).append(note.value).append(" "));
         return sb.toString();
     }
 }

@@ -223,8 +223,8 @@ public class ParserUtil {
      *
      * @throws ParseException if {@code parser} rejects the value.
      */
-    public static <T> Optional<T> parseIfPresent(ArgumentMultimap argMultimap, Prefix prefix, FieldParser<T> parser)
-            throws ParseException {
+    public static <T> Optional<T> parseIfPresent(ArgumentMultimap argMultimap, Prefix prefix,
+            FieldParser<T> parser) throws ParseException {
         requireNonNull(argMultimap);
         requireNonNull(prefix);
         requireNonNull(parser);

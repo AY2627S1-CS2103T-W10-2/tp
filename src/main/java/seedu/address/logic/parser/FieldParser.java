@@ -7,5 +7,10 @@ import seedu.address.logic.parser.exceptions.ParseException;
  */
 @FunctionalInterface
 public interface FieldParser<T> {
+    /**
+     * Parses {@code value} into the value of a field.
+     *
+     * @throws ParseException if {@code value} is invalid.
+     */
     T parse(String value) throws ParseException;
 }

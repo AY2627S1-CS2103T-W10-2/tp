@@ -71,7 +71,8 @@ public final class FieldEdit<T> {
 
     /**
      * Returns the value of the field after this edit, given its {@code currentValue}.
-     * The result is empty if the field is removed or {@code currentValue} is empty and the field is unchanged.
+     * The result is empty if the field is removed or {@code currentValue} is empty and the field is
+     * unchanged.
      */
     public Optional<T> applyTo(Optional<T> currentValue) {
         return switch (state) {

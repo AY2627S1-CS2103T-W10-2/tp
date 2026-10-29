@@ -62,7 +62,8 @@ public class Messages {
     }
 
     /**
-     * Formats {@code contexts} as {@code [A] [B]}, in the order given, as in the person details shown to the user.
+     * Formats {@code contexts} as {@code [A] [B]}, in the order given, as in the person details shown to the
+     * user.
      */
     public static String formatContexts(Collection<Context> contexts) {
         return contexts.stream()
