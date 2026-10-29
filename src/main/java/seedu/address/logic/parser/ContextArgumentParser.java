@@ -15,7 +15,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +34,7 @@ class ContextArgumentParser {
      * be added here too.
      */
     private static final Prefix[] ALL_PREFIXES = {
-        PREFIX_NAME, PREFIX_PHONE, PREFIX_PHONE_REMOVE, PREFIX_EMAIL, PREFIX_EMAIL_REMOVE, PREFIX_TAG,
+        PREFIX_NAME, PREFIX_PHONE, PREFIX_PHONE_REMOVE, PREFIX_EMAIL, PREFIX_EMAIL_REMOVE,
         PREFIX_CONTEXT, PREFIX_CONTEXT_ADD, PREFIX_CONTEXT_REMOVE, PREFIX_ALIAS, PREFIX_ALIAS_REMOVE,
         PREFIX_INTRODUCER, PREFIX_INTRODUCER_REMOVE, PREFIX_NOTE, PREFIX_NOTE_REMOVE
     };
