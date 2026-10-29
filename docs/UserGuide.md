@@ -478,7 +478,7 @@ Each save is written to a temporary file first and then moved over `data/address
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+AddressBook data is saved automatically as a JSON file `data/addressbook.json`, in the folder you start AddressBook from (normally the folder that contains the JAR file). Advanced users are welcome to update data directly by editing that data file.
 
 Each person is stored like this:
 
