@@ -138,7 +138,7 @@ A person is a duplicate if they have the same phone number or the same email as 
 
 `This person already exists: Alex Yeoh has the same phone number (87438807).`
 
-If the person you clash with is archived, the message ends with ` This person is archived; run archives to see them.`
+If the person you clash with is archived, the message ends with `This person is archived; run archives to see them.`
 
 * Two persons can have the same name, as long as their phone numbers and emails are different.
 * A person with no phone number and no email is never a duplicate.
@@ -309,7 +309,7 @@ A value after `-p/`, `-e/`, `-a/`, `-i/` or `-nt/` | `edit 1 -p/91234567`<br>`ed
 Nothing after `n/`, `p/`, `e/`, `a/`, `i/`, `nt/`, `+c/` or `-c/` | `edit 1 p/` | Depending on the prefix:<br>`Name cannot be empty.`<br>`Phone number cannot be empty. Use -p/ to remove the phone number.`<br>`Email cannot be empty. Use -e/ to remove the email.`<br>`Alias cannot be empty. Use -a/ to remove the alias.`<br>`Introducer cannot be empty. Use -i/ to remove the introducer.`<br>`Note cannot be empty. Use -nt/ to remove the note.`<br>`Contexts cannot be empty.`
 Any prefix other than `+c/` or `-c/` given more than once | `edit 1 p/91234567 p/98765432` | `Multiple values specified for the following single-valued field(s): p/`
 A value that breaks its rule | `edit 1 p/9123-4567` | That parameter's rule, such as `Phone numbers should contain only digits, may start with +, and have 3 to 15 digits.`
-Another person has the same phone number or email | `edit 1 p/99272758` | `This person already exists: Bernice Yu has the same phone number (99272758).`<br>If that person is archived, the message ends with ` This person is archived; run archives to see them.`
+Another person has the same phone number or email | `edit 1 p/99272758` | `This person already exists: Bernice Yu has the same phone number (99272758).`<br>If that person is archived, the message ends with `This person is archived; run archives to see them.`
 
 ### Finding persons by name or context: `find`
 
