@@ -58,9 +58,12 @@ public class StringUtil {
     public static boolean isNonZeroUnsignedInteger(String s) {
         requireNonNull(s);
 
+        // Integer#parseInt accepts non-ASCII digits such as "１", which the user guide does not allow
+        if (!s.chars().allMatch(c -> c >= '0' && c <= '9')) {
+            return false;
+        }
         try {
-            int value = Integer.parseInt(s);
-            return value > 0 && !s.startsWith("+"); // "+1" is successfully parsed by Integer#parseInt(String)
+            return Integer.parseInt(s) > 0;
         } catch (NumberFormatException nfe) {
             return false;
         }
