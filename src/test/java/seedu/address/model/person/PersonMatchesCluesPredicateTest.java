@@ -39,6 +39,10 @@ public class PersonMatchesCluesPredicateTest {
         // same values -> returns true
         assertTrue(predicate.equals(new PersonMatchesCluesPredicate(createFullSearchClues())));
 
+        // differs only in case and spacing -> returns true
+        assertTrue(predicate.equals(new PersonMatchesCluesPredicate(
+                createFullSearchClues().withNameClue("  TONY ").withContextClues(List.of("cs2103t")))));
+
         // differs only in name clue -> returns false
         assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
                 createFullSearchClues().withNameClue("Zhang"))));
@@ -151,6 +155,18 @@ public class PersonMatchesCluesPredicateTest {
     }
 
     @Test
+    public void test_nameSavedWithRepeatedSpaces_matchesFullNameClue() {
+        Person alex = new PersonBuilder().withName("Alex  Tan").withContexts("CS2040S  Lab").build();
+
+        assertTrue(new PersonMatchesCluesPredicate(
+                new PersonSearchClues().withNameClue("Alex Tan")).test(alex));
+        assertTrue(new PersonMatchesCluesPredicate(
+                new PersonSearchClues().withNameClue("Alex  Tan")).test(alex));
+        assertTrue(new PersonMatchesCluesPredicate(
+                new PersonSearchClues().withContextClues(List.of("CS2040S Lab"))).test(alex));
+    }
+
+    @Test
     public void test_contextOnlyMatches_returnsTrue() {
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
                 new PersonSearchClues().withContextClues(List.of("Hack&Roll")));
@@ -203,7 +219,7 @@ public class PersonMatchesCluesPredicateTest {
                         .withContextClues(List.of("CS2103T")));
 
         String expected = PersonMatchesCluesPredicate.class.getCanonicalName()
-                + "{nameClue=Tony, phoneClue=null, emailClue=null, contextClues=[CS2103T], "
+                + "{nameClue=tony, phoneClue=null, emailClue=null, contextClues=[cs2103t], "
                 + "aliasClue=null, introducerClue=null, noteClue=null}";
         assertEquals(expected, predicate.toString());
     }

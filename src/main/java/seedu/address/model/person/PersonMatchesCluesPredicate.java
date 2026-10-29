@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import seedu.address.commons.util.StringUtil;
 import seedu.address.commons.util.ToStringBuilder;
 
 /**
@@ -23,30 +24,33 @@ public class PersonMatchesCluesPredicate implements Predicate<Person> {
 
     /**
      * Creates a predicate from the supplied field-specific search clues.
+     * Each clue is normalised for search once here, rather than once per person tested.
      */
     public PersonMatchesCluesPredicate(PersonSearchClues searchClues) {
         requireNonNull(searchClues);
         assert !searchClues.isEmpty() : "At least one structured search clue must be provided";
-        this.nameClue = searchClues.getNameClue();
-        this.phoneClue = searchClues.getPhoneClue();
-        this.emailClue = searchClues.getEmailClue();
-        this.contextClues = List.copyOf(searchClues.getContextClues());
-        this.aliasClue = searchClues.getAliasClue();
-        this.introducerClue = searchClues.getIntroducerClue();
-        this.noteClue = searchClues.getNoteClue();
+        this.nameClue = normaliseClue(searchClues.getNameClue());
+        this.phoneClue = normaliseClue(searchClues.getPhoneClue());
+        this.emailClue = normaliseClue(searchClues.getEmailClue());
+        this.contextClues = searchClues.getContextClues().stream()
+                .map(PersonMatchesCluesPredicate::normaliseForSearch)
+                .toList();
+        this.aliasClue = normaliseClue(searchClues.getAliasClue());
+        this.introducerClue = normaliseClue(searchClues.getIntroducerClue());
+        this.noteClue = normaliseClue(searchClues.getNoteClue());
     }
 
     @Override
     public boolean test(Person person) {
         requireNonNull(person);
         boolean matchesName = nameClue
-                .map(clue -> containsIgnoreCase(person.getName().fullName, clue))
+                .map(clue -> containsClue(person.getName().fullName, clue))
                 .orElse(true);
         boolean matchesPhone = matchesOptionalField(person.getPhone(), phoneClue);
         boolean matchesEmail = matchesOptionalField(person.getEmail(), emailClue);
         boolean matchesAllContexts = contextClues.stream()
                 .allMatch(clue -> person.getContexts().stream()
-                        .anyMatch(context -> containsIgnoreCase(context.description, clue)));
+                        .anyMatch(context -> containsClue(context.description, clue)));
         boolean matchesAlias = matchesOptionalField(person.getAlias(), aliasClue);
         boolean matchesIntroducer = matchesOptionalField(person.getIntroducer(), introducerClue);
         boolean matchesNote = matchesOptionalField(person.getNote(), noteClue);
@@ -57,17 +61,21 @@ public class PersonMatchesCluesPredicate implements Predicate<Person> {
     private static boolean matchesOptionalField(Optional<?> field, Optional<String> clue) {
         return clue.map(searchValue -> field
                 .map(Object::toString)
-                .map(fieldValue -> containsIgnoreCase(fieldValue, searchValue))
+                .map(fieldValue -> containsClue(fieldValue, searchValue))
                 .orElse(false))
                 .orElse(true);
     }
 
-    private static boolean containsIgnoreCase(String value, String clue) {
-        return normaliseForSearch(value).contains(normaliseForSearch(clue));
+    private static boolean containsClue(String value, String normalisedClue) {
+        return normaliseForSearch(value).contains(normalisedClue);
+    }
+
+    private static Optional<String> normaliseClue(Optional<String> clue) {
+        return clue.map(PersonMatchesCluesPredicate::normaliseForSearch);
     }
 
     private static String normaliseForSearch(String value) {
-        return value.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+        return StringUtil.collapseWhitespace(value).toLowerCase(Locale.ROOT);
     }
 
     @Override
