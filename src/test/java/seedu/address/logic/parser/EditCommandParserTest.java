@@ -47,7 +47,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER_REMOVE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
@@ -149,8 +148,8 @@ public class EditCommandParserTest {
     public void parse_allFieldsSpecified_success() {
         Index targetIndex = INDEX_SECOND_PERSON;
         String userInput = targetIndex.getOneBased() + PHONE_DESC_BOB + ADD_CONTEXT_DESC_HUSBAND
-                + EMAIL_DESC_AMY + NOTE_DESC_AMY + NAME_DESC_AMY + ALIAS_DESC_AMY + ADD_CONTEXT_DESC_FRIEND
-                + INTRODUCER_DESC_AMY;
+                + EMAIL_DESC_AMY + NAME_DESC_AMY + ALIAS_DESC_AMY + ADD_CONTEXT_DESC_FRIEND
+                + INTRODUCER_DESC_AMY + NOTE_DESC_AMY;
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_AMY)
                 .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_AMY).withAlias(VALID_ALIAS_AMY)
@@ -334,7 +333,7 @@ public class EditCommandParserTest {
                 "Cannot set and remove the alias in the same command.");
         assertParseFailure(parser, "1" + INTRODUCER_DESC_AMY + REMOVE_INTRODUCER_DESC,
                 "Cannot set and remove the introducer in the same command.");
-        assertParseFailure(parser, "1" + NOTE_DESC_AMY + REMOVE_NOTE_DESC,
+        assertParseFailure(parser, "1" + REMOVE_NOTE_DESC + NOTE_DESC_AMY,
                 "Cannot set and remove the note in the same command.");
 
         // the conflict is reported before an empty or invalid phone
@@ -353,9 +352,39 @@ public class EditCommandParserTest {
     }
 
     @Test
-    public void parse_repeatedAliasIntroducerOrNote_failure() {
-        assertParseFailure(parser, "1" + ALIAS_DESC_AMY + INTRODUCER_DESC_AMY + NOTE_DESC_AMY
+    public void parse_repeatedAliasOrIntroducer_failure() {
+        assertParseFailure(parser, "1" + ALIAS_DESC_AMY + INTRODUCER_DESC_AMY
                 + ALIAS_DESC_AMY + INTRODUCER_DESC_AMY + NOTE_DESC_AMY,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE));
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ALIAS, PREFIX_INTRODUCER));
+    }
+
+    @Test
+    public void parse_noteContainsPrefixLikeText_noteTakesRestOfLine() {
+        // text that looks like prefixes stays in the note and changes no other field
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withNote("Owes me n/a").build();
+        assertParseSuccess(parser, "1 nt/Owes me n/a", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+
+        descriptor = new EditPersonDescriptorBuilder().withNote("Prefers a/b testing").build();
+        assertParseSuccess(parser, "2 nt/Prefers a/b testing", new EditCommand(INDEX_SECOND_PERSON, descriptor));
+
+        // a remove prefix inside the note is part of the note
+        descriptor = new EditPersonDescriptorBuilder().withNote("Ask -p/ later").build();
+        assertParseSuccess(parser, "1 nt/Ask -p/ later", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
+    public void parse_fieldsBeforeNote_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAlias("Alex")
+                .withIntroducerRemoved().withNote("Prefers Telegram").build();
+        assertParseSuccess(parser, "1 a/Alex -i/ nt/Prefers Telegram",
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
+    public void parse_prefixesAfterNote_treatedAsNote() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withNote("Prefers Telegram -i/").build();
+        assertParseSuccess(parser, "1 nt/Prefers Telegram -i/", new EditCommand(INDEX_FIRST_PERSON, descriptor));
     }
 }

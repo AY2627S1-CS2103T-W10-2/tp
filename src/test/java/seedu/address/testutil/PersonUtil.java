@@ -51,11 +51,12 @@ public class PersonUtil {
         descriptor.getAlias().ifPresent(alias -> sb.append(PREFIX_ALIAS).append(alias.value).append(" "));
         descriptor.getIntroducer().ifPresent(introducer ->
                 sb.append(PREFIX_INTRODUCER).append(introducer.value).append(" "));
-        descriptor.getNote().ifPresent(note -> sb.append(PREFIX_NOTE).append(note.value).append(" "));
         descriptor.getContextsToAdd().ifPresent(contexts -> contexts.forEach(
                 context -> sb.append(PREFIX_CONTEXT_ADD).append(context.description).append(" ")));
         descriptor.getContextsToRemove().ifPresent(contexts -> contexts.forEach(
                 context -> sb.append(PREFIX_CONTEXT_REMOVE).append(context.description).append(" ")));
+        // nt/ takes the rest of the line, so it must come last
+        descriptor.getNote().ifPresent(note -> sb.append(PREFIX_NOTE).append(note.value).append(" "));
         return sb.toString();
     }
 }

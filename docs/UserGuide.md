@@ -58,7 +58,8 @@ UniContacts is a **desktop contact manager for CS students, optimized for use th
   For example, `[c/CONTEXT]…​` may be omitted, or written as `c/CS2103T` or `c/CS2103T c/NUS Hackers`.
 
 * Parameters can be in any order.<br>
-  For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
+  For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.<br>
+  The exception is `nt/NOTE` in `add` and `edit`, which must come last.
 
 * Command words are case-insensitive, but prefixes must be in lowercase.<br>
   For example, `add`, `ADD` and `Add` all work, but `N/John Doe` is not read as `n/John Doe`.
@@ -89,6 +90,7 @@ Format: `add n/NAME c/CONTEXT [c/CONTEXT]…​ [p/PHONE] [e/EMAIL] [a/ALIAS] [i
 * `n/NAME` and at least one `c/CONTEXT` are compulsory. All other fields are optional.
 * To give more than one context, repeat `c/`, one context each. Every other prefix can be given only once.
 * Spaces before and after each value are ignored.
+* `nt/NOTE` must be the last parameter. Everything after `nt/` is the note, so text such as `c/o`, `n/a` or `p/t` inside a note is saved as part of the note.
 
 Examples:
 * `add n/Alex Tan c/CS2103T` adds `Alex Tan` with just a name and one context.
@@ -107,7 +109,7 @@ Parameter | Rules | Valid | Invalid
 `e/EMAIL` | Of the form `local-part@domain`, at most 254 characters. See the email rules below. | `e0123456@u.nus.edu`, `alex.tan+work@gmail.com` | `alex@`, `.alex@gmail.com`, `alex..tan@gmail.com`
 `a/ALIAS` | Alternative name; follows the same character and 100-character rules as `n/NAME`. | `Alex`, `Jean-Luc` | `Alex123`, empty `a/`
 `i/INTRODUCER` | Plain name of the person who introduced this contact; follows the same rules as `n/NAME`. It does not need to be another saved contact. | `Ben Lee` | `Ben123`, empty `i/`
-`nt/NOTE` | Short, single-line note of at most 300 characters. No line breaks or control characters. | `Met at Hack&Roll` | Empty `nt/`, a note over 300 characters
+`nt/NOTE` | Short, single-line note of at most 300 characters. No line breaks or control characters. Must be the last parameter; the rest of the line is the note, so it can contain text such as `c/o` or `n/a`. | `Met at Hack&Roll`, `Lives c/o his aunt` | Empty `nt/`, a note over 300 characters
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 `/` is not allowed in names, so enter a name such as `Raj s/o Kumar` as `Raj s o Kumar` or `Raj son of Kumar`.
@@ -150,7 +152,7 @@ Problem | Example | Message shown
 --------|---------|--------------
 `n/` or `c/` missing | `add n/Alex Tan` | `Invalid command format!`, followed by how to use `add`
 Text before the first prefix, or an uppercase prefix | `add Alex n/Alex Tan c/CS2103T`<br>`add N/Alex Tan c/CS2103T` | `Invalid command format!`, followed by how to use `add`
-Any prefix other than `c/` given more than once | `add n/Alex n/Alex Tan c/CS2103T` | `Multiple values specified for the following single-valued field(s): n/`
+Any prefix other than `c/` given more than once | `add n/Alex n/Alex Tan c/CS2103T` | `Multiple values specified for the following single-valued field(s): n/`<br>A second `nt/` is not an error: it becomes part of the note.
 Nothing after a prefix | `add n/Alex Tan c/` | Depending on the prefix:<br>`Name cannot be empty.`<br>`Contexts cannot be empty.`<br>`Phone number cannot be empty. Leave out p/ if there is no phone number.`<br>`Email cannot be empty. Leave out e/ if there is no email.`<br>`Alias cannot be empty.`<br>`Introducer cannot be empty.`<br>`Note cannot be empty.`
 A value that breaks its rule | `add n/Alex Tan c/CS2103T p/9123-4567` | That parameter's rule, such as `Phone numbers should contain only digits, may start with +, and have 3 to 15 digits.`
 A prefix that `add` does not use, such as `t/` | `add n/Alex Tan t/friend c/CS2103T` | The prefix and its text become part of the value before it. Here the name becomes `Alex Tan t/friend`, so the name rule is shown.
@@ -238,9 +240,9 @@ and also matches partial names and contexts.
 
 Edits the person at the given index in the displayed list.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [nt/NOTE]`<br>
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER]`<br>
 `[-p/] [-e/] [-a/] [-i/] [-nt/]`<br>
-`[+c/CONTEXT]…​ [-c/CONTEXT]…​`
+`[+c/CONTEXT]…​ [-c/CONTEXT]…​ [nt/NOTE]`
 
 The format is split over lines to make it easier to read. Type the whole command on one line.
 
@@ -252,6 +254,7 @@ The format is split over lines to make it easier to read. Type the whole command
 * `-c/` is applied before `+c/`, so you can swap a person's only context in one command.
 * A person must keep at least one context.
 * Every prefix other than `+c/` and `-c/` can be given only once.
+* `nt/NOTE` must be the last parameter. Everything after `nt/` is the note, even text that looks like a prefix, such as `n/a`.
 * An archived person cannot be edited: AddressBook shows `This person is archived and can't be edited. Unarchive the person first.` Use [`unarchive`](#unarchiving-a-person-unarchive) first.
 
 Examples:
@@ -260,7 +263,7 @@ Examples:
 * `edit 3 +c/RC4 -c/Hall` replaces the 3rd person's only context, `Hall`, with `RC4`.
 * `edit 2 -c/hiking club +c/Hiking Club` changes how the 2nd person's `Hiking club` context is spelt.
 * `edit 4 n/David Li Wei -e/` renames the 4th person and removes their email.
-* `edit 1 a/Alex nt/Prefers Telegram -i/` gives the 1st person the alias `Alex` and a note, and removes who introduced them.
+* `edit 1 a/Alex -i/ nt/Prefers Telegram` gives the 1st person the alias `Alex` and a note, and removes who introduced them.
 
 How contexts are matched:
 * Contexts are compared ignoring capitalisation and repeated spaces, as in `add`. So `-c/hiking club` removes `Hiking club`.
@@ -305,7 +308,7 @@ Removing every context | `edit 1 -c/CS2103T` | `A person must have at least one 
 A prefix that sets a field together with the prefix that removes it, such as `p/` and `-p/` | `edit 1 p/91234567 -p/`<br>`edit 1 a/Alex -a/` | `Cannot set and remove the phone number in the same command.`<br>`Cannot set and remove the alias in the same command.`<br>The email, introducer and note give the same message with their own name.
 A value after `-p/`, `-e/`, `-a/`, `-i/` or `-nt/` | `edit 1 -p/91234567`<br>`edit 1 -nt/Met at NUS` | `-p/ does not take a value. Use p/PHONE to change the phone number.`<br>`-nt/ does not take a value. Use nt/NOTE to change the note.`<br>`-e/`, `-a/` and `-i/` give the same message for their own field.
 Nothing after `n/`, `p/`, `e/`, `a/`, `i/`, `nt/`, `+c/` or `-c/` | `edit 1 p/` | Depending on the prefix:<br>`Name cannot be empty.`<br>`Phone number cannot be empty. Use -p/ to remove the phone number.`<br>`Email cannot be empty. Use -e/ to remove the email.`<br>`Alias cannot be empty. Use -a/ to remove the alias.`<br>`Introducer cannot be empty. Use -i/ to remove the introducer.`<br>`Note cannot be empty. Use -nt/ to remove the note.`<br>`Contexts cannot be empty.`
-Any prefix other than `+c/` or `-c/` given more than once | `edit 1 p/91234567 p/98765432` | `Multiple values specified for the following single-valued field(s): p/`
+Any prefix other than `+c/` or `-c/` given more than once | `edit 1 p/91234567 p/98765432` | `Multiple values specified for the following single-valued field(s): p/`<br>A second `nt/` is not an error: it becomes part of the note.
 A value that breaks its rule | `edit 1 p/9123-4567` | That parameter's rule, such as `Phone numbers should contain only digits, may start with +, and have 3 to 15 digits.`
 Another person has the same phone number or email | `edit 1 p/99272758` | `This person already exists: Bernice Yu has the same phone number (99272758).`
 
@@ -542,7 +545,7 @@ Action | Format, Examples
 **Clear** | `clear`
 **Contexts** | `contexts`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [nt/NOTE] [-p/] [-e/] [-a/] [-i/] [-nt/] [+c/CONTEXT]…​ [-c/CONTEXT]…​`<br> e.g., `edit 2 p/91234567 +c/NUS Hackers -c/Hiking club`
+**Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [-p/] [-e/] [-a/] [-i/] [-nt/] [+c/CONTEXT]…​ [-c/CONTEXT]…​ [nt/NOTE]`<br> e.g., `edit 2 p/91234567 +c/NUS Hackers -c/Hiking club`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…` or `find [n/NAME_PART] [p/PHONE_PART] [e/EMAIL_PART] [c/CONTEXT_PART]… [a/ALIAS_PART] [i/INTRODUCER_PART] [nt/NOTE_PART]`<br> e.g., `find n/Tony Zhang c/CS2103T a/Toto`
 **List** | `list`
 **Help** | `help`
