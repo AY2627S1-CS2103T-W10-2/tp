@@ -1065,7 +1065,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Dealing with corrupted data files
 
-   1. Prerequisites: Close the app. Make a copy of `data/addressbook.json` so you can restore it afterwards.
+   1. Prerequisites: Close the app and make sure the `data` folder exists. It is created by the first command that changes something, such as `add`, so if you ran the test above, start the app, run `add n/Temp c/CS2103T` and close the app again. Make a copy of `data/addressbook.json` so you can restore it afterwards.
 
    1. Test case: Replace the content of `data/addressbook.json` with `{ "persons" : [` (not valid JSON), and start the app<br>
       Expected: The app starts with an empty list. The data file is renamed to `addressbook.json.<UTC time>.bak` in the `data` folder, and the log file `addressbook.log.0` explains why the file could not be read.
@@ -1078,7 +1078,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Dealing with a data file that cannot be written
 
-   1. Prerequisites: Close the app and make the `data` folder read-only (for example, `chmod 555 data` on macOS or Linux). Start the app.
+   1. Prerequisites: Close the app and make sure the `data` folder exists (see the prerequisites of the test above). Make the `data` folder read-only (for example, `chmod 555 data` on macOS or Linux), and then start the app. Afterwards, make it writable again (for example, `chmod 755 data`).
 
    1. Test case: `add n/Test c/CS2103T`<br>
       Expected: The result display shows an error saying the data could not be saved because of insufficient permissions. The new person still appears in the list for this session, but is not in `data/addressbook.json`.
