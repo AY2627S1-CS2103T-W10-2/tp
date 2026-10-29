@@ -1,10 +1,13 @@
 package seedu.address.testutil;
 
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_ADD;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONTEXT_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
 import seedu.address.logic.commands.AddCommand;
@@ -45,10 +48,15 @@ public class PersonUtil {
         descriptor.getName().ifPresent(name -> sb.append(PREFIX_NAME).append(name.fullName).append(" "));
         descriptor.getPhone().ifPresent(phone -> sb.append(PREFIX_PHONE).append(phone.value).append(" "));
         descriptor.getEmail().ifPresent(email -> sb.append(PREFIX_EMAIL).append(email.value).append(" "));
+        descriptor.getAlias().ifPresent(alias -> sb.append(PREFIX_ALIAS).append(alias.value).append(" "));
+        descriptor.getIntroducer().ifPresent(introducer ->
+                sb.append(PREFIX_INTRODUCER).append(introducer.value).append(" "));
         descriptor.getContextsToAdd().ifPresent(contexts -> contexts.forEach(
                 context -> sb.append(PREFIX_CONTEXT_ADD).append(context.description).append(" ")));
         descriptor.getContextsToRemove().ifPresent(contexts -> contexts.forEach(
                 context -> sb.append(PREFIX_CONTEXT_REMOVE).append(context.description).append(" ")));
+        // nt/ takes the rest of the line, so it must come last
+        descriptor.getNote().ifPresent(note -> sb.append(PREFIX_NOTE).append(note.value).append(" "));
         return sb.toString();
     }
 }

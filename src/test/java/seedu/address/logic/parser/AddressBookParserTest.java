@@ -4,12 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_ALIAS_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTRODUCER_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -25,12 +27,16 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.SetArchivedByContextCommand;
 import seedu.address.logic.commands.UnarchiveCommand;
 import seedu.address.logic.commands.ViewArchivesCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Context;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.model.person.PersonMatchesCluesPredicate;
+import seedu.address.model.person.PersonSearchClues;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
@@ -95,7 +101,8 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_edit() throws Exception {
-        Person person = new PersonBuilder().build();
+        Person person = new PersonBuilder().withAlias(VALID_ALIAS_AMY).withIntroducer(VALID_INTRODUCER_AMY)
+                .withNote(VALID_NOTE_AMY).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
         EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " "
                 + INDEX_FIRST_PERSON.getOneBased() + " " + PersonUtil.getEditPersonDescriptorDetails(descriptor));
@@ -132,12 +139,21 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_findWithStructuredClues() throws Exception {
-        FindCommand expectedCommand = new FindCommand(new PersonMatchesCluesPredicate(
-                Optional.of("Tony"), List.of("CS2103T")));
+        PersonSearchClues searchClues = new PersonSearchClues()
+                .withNameClue("Tony")
+                .withPhoneClue("9123")
+                .withEmailClue("@example.com")
+                .withContextClues(List.of("CS2103T"))
+                .withAliasClue("Toto")
+                .withIntroducerClue("Alice")
+                .withNoteClue("project");
+        FindCommand expectedCommand = new FindCommand(new PersonMatchesCluesPredicate(searchClues));
 
-        assertEquals(expectedCommand, parser.parseCommand("find n/Tony c/CS2103T"));
-        assertEquals(expectedCommand, parser.parseCommand("find c/CS2103T n/Tony"));
-        assertEquals(expectedCommand, parser.parseCommand("FIND n/Tony c/CS2103T"));
+        String clues = "n/Tony p/9123 e/@example.com c/CS2103T a/Toto i/Alice nt/project";
+        String reorderedClues = "nt/project i/Alice a/Toto c/CS2103T e/@example.com p/9123 n/Tony";
+        assertEquals(expectedCommand, parser.parseCommand("find " + clues));
+        assertEquals(expectedCommand, parser.parseCommand("find " + reorderedClues));
+        assertEquals(expectedCommand, parser.parseCommand("FIND " + clues));
     }
 
     @Test
@@ -167,6 +183,13 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_lineSeparatorInArguments_reportsFieldError() {
+        // a line separator in the note must give the note error, not the generic "Invalid command format!"
+        assertThrows(ParseException.class, Note.MESSAGE_CONSTRAINTS, () -> parser.parseCommand(
+                AddCommand.COMMAND_WORD + " n/Amy Bee c/CS2103T nt/a\u2028b"));
+    }
+
+    @Test
     public void parseCommand_unknownCommand_throwsParseException() {
         assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("unknownCommand"));
         assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("UNKNOWNCOMMAND"));
@@ -188,6 +211,10 @@ public class AddressBookParserTest {
         assertTrue(parser.parseCommand("Unarchive 1") instanceof UnarchiveCommand);
         assertTrue(parser.parseCommand(ViewArchivesCommand.COMMAND_WORD) instanceof ViewArchivesCommand);
         assertTrue(parser.parseCommand("ARCHIVES") instanceof ViewArchivesCommand);
+        assertEquals(new SetArchivedByContextCommand(new Context("CS2103T"), true),
+                parser.parseCommand("archive c/CS2103T"));
+        assertEquals(new SetArchivedByContextCommand(new Context("CS2103T"), false),
+                parser.parseCommand("unarchive c/CS2103T"));
         // unlike list, archives does not ignore text after it, as it is one letter away from archive
         assertThrows(ParseException.class,
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewArchivesCommand.MESSAGE_USAGE), ()

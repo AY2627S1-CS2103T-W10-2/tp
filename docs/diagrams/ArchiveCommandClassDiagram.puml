@@ -1,0 +1,38 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor LOGIC_COLOR_T4
+skinparam classBackgroundColor LOGIC_COLOR
+
+Class ArchiveCommandParser
+Class ContextArgumentParser
+
+Class "{abstract}\nCommand" as Command
+Class SetArchivedByIndexCommand
+Class ArchiveCommand
+Class UnarchiveCommand
+Class SetArchivedByContextCommand
+
+Class Model MODEL_COLOR
+Class Context MODEL_COLOR
+
+Command <|-down- SetArchivedByIndexCommand
+Command <|-down- SetArchivedByContextCommand
+SetArchivedByIndexCommand <|-down- ArchiveCommand
+SetArchivedByIndexCommand <|-down- UnarchiveCommand
+
+SetArchivedByContextCommand -right->"1" Context
+SetArchivedByContextCommand .right.> Model : <<call>>
+SetArchivedByIndexCommand .right.> Model : <<call>>
+
+ArchiveCommandParser .up.> ArchiveCommand
+ArchiveCommandParser .up.> UnarchiveCommand
+ArchiveCommandParser .up.> SetArchivedByContextCommand
+ArchiveCommandParser .right.> ContextArgumentParser
+
+note bottom of ContextArgumentParser
+  The parser <<create>>s the commands
+  and calls ContextArgumentParser
+  (dotted arrows are dependencies)
+end note
+@enduml

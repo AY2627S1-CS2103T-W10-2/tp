@@ -14,6 +14,8 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -24,6 +26,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ContextsCommand;
+import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -134,6 +137,17 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_editChangesOnlyCapitalisation_changeIsSaved() throws Exception {
+        logic.execute("add n/Alex Tan e/alex@example.com c/Hiking");
+        logic.execute("edit 1 e/ALEX@Example.com +c/hiking -c/Hiking");
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        Person saved = storage.readAddressBook().orElseThrow().getPersonList().get(0);
+        assertEquals("ALEX@Example.com", saved.getEmail().orElseThrow().value);
+        assertEquals("hiking", saved.getContexts().iterator().next().description);
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
@@ -142,7 +156,30 @@ public class LogicManagerTest {
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT,
+                temporaryFolder.resolve("ExceptionUserPrefs.json")));
+    }
+
+    @Test
+    public void execute_storageThrowsIoExceptionOnCommandThatChangesNothing_succeeds() throws Exception {
+        logic = new LogicManager(model, createStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION));
+
+        assertEquals(new CommandResult(FindCommand.MESSAGE_NO_PERSONS_FOUND), logic.execute("find nobody"));
+    }
+
+    @Test
+    public void execute_storageThrowsFileAlreadyExistsExceptionForFile_throwsCommandException() throws IOException {
+        Path file = Files.createFile(temporaryFolder.resolve("data"));
+        assertCommandFailureForExceptionFromStorage(new FileAlreadyExistsException(file.toString()), String.format(
+                LogicManager.FILE_OPS_NOT_A_FOLDER_FORMAT,
+                temporaryFolder.resolve("ExceptionUserPrefs.json"), file));
+    }
+
+    @Test
+    public void execute_storageThrowsFileAlreadyExistsExceptionForOtherPath_throwsCommandException() {
+        IOException notAFile = new FileAlreadyExistsException("missing");
+        assertCommandFailureForExceptionFromStorage(notAFile, String.format(
+                LogicManager.FILE_OPS_ERROR_FORMAT, notAFile.getMessage()));
     }
 
     @Test
@@ -210,28 +247,29 @@ public class LogicManagerTest {
      * @param expectedMessage the message expected inside exception thrown by the Logic component
      */
     private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
-        Path prefPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
+        logic = new LogicManager(model, createStorageThatThrowsOnSave(e));
 
-        // Inject LogicManager with a JsonAddressBookStorage that throws the IOException e when saving
+        // Triggers the saveAddressBook method by executing an add command
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + CONTEXT_DESC_FRIEND;
+        // the change is kept for the current session, as the use cases in the developer guide say
+        Person expectedPerson = new PersonBuilder(AMY).build();
+        ModelManager expectedModel = new ModelManager();
+        expectedModel.addPerson(expectedPerson);
+        assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+    }
+
+    /**
+     * Returns a {@code StorageManager} whose address book storage throws {@code e} whenever it is asked to save.
+     */
+    private StorageManager createStorageThatThrowsOnSave(IOException e) {
+        Path prefPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(prefPath) {
             @Override
             public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
                 throw e;
             }
         };
-
-        JsonUserPrefsStorage userPrefsStorage =
-                new JsonUserPrefsStorage(temporaryFolder.resolve("ExceptionUserPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
-
-        logic = new LogicManager(model, storage);
-
-        // Triggers the saveAddressBook method by executing an add command
-        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
-                + EMAIL_DESC_AMY + CONTEXT_DESC_FRIEND;
-        Person expectedPerson = new PersonBuilder(AMY).build();
-        ModelManager expectedModel = new ModelManager();
-        expectedModel.addPerson(expectedPerson);
-        assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+        return new StorageManager(addressBookStorage, new JsonUserPrefsStorage(prefPath));
     }
 }

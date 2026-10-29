@@ -32,7 +32,8 @@ public class AddressBookParser {
     /**
      * Used for initial separation of command word and args.
      */
-    private static final Pattern BASIC_COMMAND_FORMAT = Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)");
+    private static final Pattern BASIC_COMMAND_FORMAT = Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)",
+            Pattern.DOTALL);
     private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
 
     /**
@@ -68,8 +69,8 @@ public class AddressBookParser {
             case ContextsCommand.COMMAND_WORD -> new ContextsCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
-            case ArchiveCommand.COMMAND_WORD -> new ArchiveCommandParser().parse(arguments);
-            case UnarchiveCommand.COMMAND_WORD -> new UnarchiveCommandParser().parse(arguments);
+            case ArchiveCommand.COMMAND_WORD -> new ArchiveCommandParser(true).parse(arguments);
+            case UnarchiveCommand.COMMAND_WORD -> new ArchiveCommandParser(false).parse(arguments);
             case ViewArchivesCommand.COMMAND_WORD -> new ViewArchivesCommandParser().parse(arguments);
             default -> {
                 logger.finer("This user input caused a ParseException: " + userInput);

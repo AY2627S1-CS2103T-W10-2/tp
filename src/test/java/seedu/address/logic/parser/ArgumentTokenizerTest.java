@@ -137,6 +137,39 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenizeWithRestOfLinePrefix_restOfLinePrefixPresent_takesRestOfLine() {
+        String argsString = "  pre p/123 -t dash nt/note p/456 -t more nt/again ";
+        Prefix note = new Prefix("nt/");
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithRestOfLinePrefix(argsString, note, pSlash, dashT);
+
+        assertPreamblePresent(argMultimap, "pre");
+        assertArgumentPresent(argMultimap, pSlash, "123");
+        assertArgumentPresent(argMultimap, dashT, "dash");
+        assertArgumentPresent(argMultimap, note, "note p/456 -t more nt/again");
+    }
+
+    @Test
+    public void tokenizeWithRestOfLinePrefix_restOfLinePrefixAbsent_behavesLikeTokenize() {
+        String argsString = "pre p/123 -t dash";
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithRestOfLinePrefix(argsString,
+                new Prefix("nt/"), pSlash, dashT);
+
+        assertPreamblePresent(argMultimap, "pre");
+        assertArgumentPresent(argMultimap, pSlash, "123");
+        assertArgumentPresent(argMultimap, dashT, "dash");
+        assertArgumentAbsent(argMultimap, new Prefix("nt/"));
+    }
+
+    @Test
+    public void tokenizeWithRestOfLinePrefix_restOfLinePrefixNotPrecededByWhitespace_notRecognised() {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithRestOfLinePrefix("pre p/1nt/x",
+                new Prefix("nt/"), pSlash);
+
+        assertArgumentPresent(argMultimap, pSlash, "1nt/x");
+        assertArgumentAbsent(argMultimap, new Prefix("nt/"));
+    }
+
+    @Test
     public void equalsMethod() {
         Prefix aaa = new Prefix("aaa");
 
