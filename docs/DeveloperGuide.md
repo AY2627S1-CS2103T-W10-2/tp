@@ -464,8 +464,9 @@ These stories record useful extensions considered beyond the MVP. Their prioriti
 | US21 | `* *` | CS student who knows someone by more than one name | record and search a contact's nickname or alternative name | find them using the name I remember |
 | US22 | `* *` | CS student who needs to remember additional details about a person | attach a short personal note to a contact | retain useful information that does not fit the standard contact fields |
 
-The MVP already allows optional phone and email details; US12 extends this to additional channels. Editing (US20)
-was implemented after the MVP; its placement here records the original MVP scope.
+The MVP already allows optional phone and email details; US12 extends this to additional channels. US13, US19,
+US20, US21 and US22 were implemented after the MVP; their placement here records the original MVP scope.
+The other stories remain possible future enhancements.
 
 #### Considered but excluded
 
