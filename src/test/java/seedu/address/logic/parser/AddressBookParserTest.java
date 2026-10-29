@@ -12,7 +12,6 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -37,6 +36,7 @@ import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.model.person.PersonMatchesCluesPredicate;
+import seedu.address.model.person.PersonSearchClues;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
@@ -131,12 +131,21 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_findWithStructuredClues() throws Exception {
-        FindCommand expectedCommand = new FindCommand(new PersonMatchesCluesPredicate(
-                Optional.of("Tony"), List.of("CS2103T")));
+        PersonSearchClues searchClues = new PersonSearchClues()
+                .withNameClue("Tony")
+                .withPhoneClue("9123")
+                .withEmailClue("@example.com")
+                .withContextClues(List.of("CS2103T"))
+                .withAliasClue("Toto")
+                .withIntroducerClue("Alice")
+                .withNoteClue("project");
+        FindCommand expectedCommand = new FindCommand(new PersonMatchesCluesPredicate(searchClues));
 
-        assertEquals(expectedCommand, parser.parseCommand("find n/Tony c/CS2103T"));
-        assertEquals(expectedCommand, parser.parseCommand("find c/CS2103T n/Tony"));
-        assertEquals(expectedCommand, parser.parseCommand("FIND n/Tony c/CS2103T"));
+        String clues = "n/Tony p/9123 e/@example.com c/CS2103T a/Toto i/Alice nt/project";
+        String reorderedClues = "nt/project i/Alice a/Toto c/CS2103T e/@example.com p/9123 n/Tony";
+        assertEquals(expectedCommand, parser.parseCommand("find " + clues));
+        assertEquals(expectedCommand, parser.parseCommand("find " + reorderedClues));
+        assertEquals(expectedCommand, parser.parseCommand("FIND " + clues));
     }
 
     @Test

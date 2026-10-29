@@ -21,12 +21,18 @@ public class FindCommand extends Command {
             + ": Finds persons using keywords or field-specific clues.\n"
             + "Parameters:\n"
             + "  KEYWORD [MORE_KEYWORDS]...\n"
-            + "  [n/NAME_PART] [c/CONTEXT_PART]...\n"
-            + "Example: " + COMMAND_WORD + " n/Alex c/CS2103T";
+            + "  [n/NAME_PART] [p/PHONE_PART] [e/EMAIL_PART] [c/CONTEXT_PART]... "
+            + "[a/ALIAS_PART] [i/INTRODUCER_PART] [nt/NOTE_PART]\n"
+            + "Example: " + COMMAND_WORD + " n/Alex c/CS2103T nt/project";
 
     public static final String MESSAGE_NO_PERSONS_FOUND = "No persons found!";
     public static final String MESSAGE_EMPTY_NAME_CLUE = "Name search clue cannot be empty.";
+    public static final String MESSAGE_EMPTY_PHONE_CLUE = "Phone search clue cannot be empty.";
+    public static final String MESSAGE_EMPTY_EMAIL_CLUE = "Email search clue cannot be empty.";
     public static final String MESSAGE_EMPTY_CONTEXT_CLUE = "Context search clue cannot be empty.";
+    public static final String MESSAGE_EMPTY_ALIAS_CLUE = "Alias search clue cannot be empty.";
+    public static final String MESSAGE_EMPTY_INTRODUCER_CLUE = "Introducer search clue cannot be empty.";
+    public static final String MESSAGE_EMPTY_NOTE_CLUE = "Note search clue cannot be empty.";
 
     private final Predicate<Person> predicate;
 

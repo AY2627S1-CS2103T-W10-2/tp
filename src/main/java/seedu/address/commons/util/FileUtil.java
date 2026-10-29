@@ -1,8 +1,10 @@
 package seedu.address.commons.util;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Clock;
@@ -56,11 +58,20 @@ public class FileUtil {
      * Will create the file if it does not exist yet.
      * The content is first written to a temporary file in the same folder and then moved over {@code file},
      * so an interrupted write leaves the previous content of {@code file} intact instead of a half-written file.
+     * If {@code file} is a symbolic link, the file it points to is written and the link is kept.
+     * If the file already exists, it must be writable and the new file keeps its permissions.
+     *
+     * @throws AccessDeniedException if the file exists but is not writable.
      */
-    public static void writeToFile(Path file, String content) throws IOException {
+    public static void writeToFile(Path linkOrFile, String content) throws IOException {
+        Path file = followSymbolicLink(linkOrFile);
+        if (Files.exists(file) && !Files.isWritable(file)) {
+            throw new AccessDeniedException(file.toString());
+        }
         Path folder = file.toAbsolutePath().getParent();
         Path tempFile = Files.createTempFile(folder, file.getFileName().toString(), ".tmp");
         try {
+            copyPermissions(file, tempFile);
             Files.write(tempFile, content.getBytes(CHARSET));
             try {
                 Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
@@ -69,6 +80,36 @@ public class FileUtil {
             }
         } finally {
             Files.deleteIfExists(tempFile);
+        }
+    }
+
+    /**
+     * Returns the file that {@code file} points to if it is a symbolic link, otherwise {@code file} itself.
+     */
+    private static Path followSymbolicLink(Path file) throws IOException {
+        if (!Files.isSymbolicLink(file)) {
+            return file;
+        }
+        try {
+            return file.toRealPath();
+        } catch (NoSuchFileException e) {
+            // the link points to a file that does not exist yet: create it there
+            return file.resolveSibling(Files.readSymbolicLink(file)).normalize();
+        }
+    }
+
+    /**
+     * Gives {@code target} the permissions of {@code source}, if {@code source} exists. Does nothing on file systems
+     * without POSIX permissions.
+     */
+    private static void copyPermissions(Path source, Path target) throws IOException {
+        if (!Files.exists(source)) {
+            return;
+        }
+        try {
+            Files.setPosixFilePermissions(target, Files.getPosixFilePermissions(source));
+        } catch (UnsupportedOperationException e) {
+            // not a POSIX file system, such as on Windows: nothing to copy
         }
     }
 

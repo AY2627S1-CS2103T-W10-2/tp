@@ -312,24 +312,31 @@ Any prefix other than `+c/` or `-c/` given more than once | `edit 1 p/91234567 p
 A value that breaks its rule | `edit 1 p/9123-4567` | That parameter's rule, such as `Phone numbers should contain only digits, may start with +, and have 3 to 15 digits.`
 Another person has the same phone number or email | `edit 1 p/99272758` | `This person already exists: Bernice Yu has the same phone number (99272758).`
 
-### Finding persons by name or context: `find`
+### Finding persons: `find`
 
-Finds persons using either general keywords or field-specific name and context clues.
+Finds persons using either general keywords or field-specific clues.
 
 Formats:
 
 * `find KEYWORD [MORE_KEYWORDS]…`
-* `find [n/NAME_PART] [c/CONTEXT_PART]…`
+* `find [n/NAME_PART] [p/PHONE_PART] [e/EMAIL_PART] [c/CONTEXT_PART]… [a/ALIAS_PART]`
+  `[i/INTRODUCER_PART] [nt/NOTE_PART]`
 
 * The command word and search are case-insensitive; for example, `FIND cs2103t` works.
 * Partial matches are supported; for example, `Alex` matches both `Alex Tan` and `Alexander Lim`.
 * In a keyword search, a keyword can match either a person's name or any of their contexts. Persons matching at least
   one keyword are returned (an `OR` search).
-* In a field-specific search, `n/` searches only the person's name and each `c/` searches only the person's contexts.
-  A person is returned only if every clue matches (an `AND` search).
-* `n/` may appear at most once. `c/` is repeatable.
+* In a field-specific search, each prefix searches only its corresponding field: `n/` for name, `p/` for phone,
+  `e/` for email, `c/` for contexts, `a/` for alias, `i/` for introducer and `nt/` for note.
+  A person is returned only if every supplied clue matches (an `AND` search).
+* `n/`, `p/`, `e/`, `a/`, `i/` and `nt/` may each appear at most once. `c/` is repeatable; every context clue
+  must match at least one of the person's contexts.
 * Prefixes may appear in any order, so `find n/Tony c/CS2103T` and `find c/CS2103T n/Tony` are equivalent.
 * Each prefix value is one clue. For example, `n/Tony Zhang` searches for the partial name `Tony Zhang`.
+* Field-specific clues are partial and case-insensitive. They do not need to satisfy the full-field format required by
+  `add`; for example, `p/9123` can match the phone number `91234567`.
+* If a person does not have an optional field, they do not match a clue for that field. For example, a person without
+  an alias does not match `a/Toto`.
 * Keywords and prefixed clues cannot be mixed in one command.
 * Archived persons are never found, whichever kind of search you use. Use [`archives`](#viewing-archived-persons-archives) to see them.
 * Each `find` command searches the full person list, even if a previous command filtered the displayed results.
@@ -344,6 +351,8 @@ Examples:
 * `find n/Tony Zhang c/CS2103T` returns persons whose name contains `Tony Zhang` and who have a context containing
   `CS2103T`.
 * `find c/CS2103T c/Hack` returns persons matching both context clues.
+* `find c/CS2103T p/9123 a/Toto nt/project` returns persons whose contexts, phone number, alias and note all match
+  their corresponding clues. The prefixes can be supplied in any order.
 
 ### Deleting a person: `delete`
 
@@ -501,7 +510,7 @@ If AddressBook cannot read the data file when it starts (for example, a person h
 To recover your data:
 
 1. Exit AddressBook.
-2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `addressbook.log`, which is in the folder you started AddressBook from.
+2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `addressbook.log.0`, which is in the folder you started AddressBook from.
 3. If there is a new `addressbook.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
 4. Start AddressBook again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
@@ -537,7 +546,7 @@ Action | Format, Examples
 **Contexts** | `contexts`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [-p/] [-e/] [-a/] [-i/] [-nt/] [+c/CONTEXT]…​ [-c/CONTEXT]…​ [nt/NOTE]`<br> e.g., `edit 2 p/91234567 +c/NUS Hackers -c/Hiking club`
-**Find** | `find KEYWORD [MORE_KEYWORDS]…` or `find [n/NAME_PART] [c/CONTEXT_PART]…`<br> e.g., `find n/Tony Zhang c/CS2103T`
+**Find** | `find KEYWORD [MORE_KEYWORDS]…` or `find [n/NAME_PART] [p/PHONE_PART] [e/EMAIL_PART] [c/CONTEXT_PART]… [a/ALIAS_PART] [i/INTRODUCER_PART] [nt/NOTE_PART]`<br> e.g., `find n/Tony Zhang c/CS2103T a/Toto`
 **List** | `list`
 **Help** | `help`
 **Unarchive** | `unarchive INDEX` or `unarchive c/CONTEXT`<br> e.g., `unarchive 1`, `unarchive c/CS2103T`
