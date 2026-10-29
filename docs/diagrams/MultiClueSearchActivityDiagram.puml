@@ -7,19 +7,19 @@ start
 
 :User enters `find` command;
 
-if () then ([prefix-like token present])
+if () then ([supported search prefix present])
     :Validate and normalise clues;
     :Use structured search\n(AND semantics);
-else ([else])
+else ([no supported search prefix present])
     :Use keyword search\n(OR semantics);
 endif
 
 :Filter unarchived contacts;
 
-if () then ([any contacts matched])
+if () then ([contacts matched])
     :Display matching contacts;
     :Report number of persons listed;
-else ([else])
+else ([no contacts matched])
     :Return "No persons found!";
 endif
 

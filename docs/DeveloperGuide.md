@@ -257,25 +257,28 @@ The `find` command supports two search modes while preserving the existing keywo
 
 * An unprefixed command such as `find Alex CS2103T` uses `PersonContainsKeywordsPredicate`. A person matches when
   any keyword occurs in the person's name or contexts.
-* A structured command such as `find n/Alex c/CS2103T` uses `PersonMatchesCluesPredicate`. A person matches only
-  when the optional name clue and every context clue match their corresponding fields.
+* A structured command such as `find n/Alex c/CS2103T nt/project` uses `PersonMatchesCluesPredicate`. A person
+  matches only when every supplied clue matches its corresponding field.
 
-`FindCommandParser` selects the mode by scanning the arguments for prefix-like tokens. If none are present, it creates
-the existing keyword predicate. If tokens are present, only `n/` and `c/` are accepted. The parser then uses
-`ArgumentTokenizer` to read the clues, allowing the prefixes to appear in any order. `n/` may appear at most once,
-while `c/` is repeatable.
+`FindCommandParser` uses `ArgumentTokenizer` with `n/`, `p/`, `e/`, `c/`, `a/`, `i/` and `nt/` to select the search
+mode and read the clues. If none of these prefixes is recognised, it creates the existing keyword predicate. If at
+least one is recognised, it creates the structured predicate. The prefixes may appear in any order. `n/`, `p/`, `e/`,
+`a/`, `i/` and `nt/` may each appear at most once, while `c/` is repeatable. Other slash-containing text remains part
+of a keyword or clue rather than being treated as an unsupported prefix.
 
 Before constructing `PersonMatchesCluesPredicate`, the parser trims each clue, collapses repeated whitespace and
-removes equivalent repeated context clues case-insensitively. Unsupported prefixes, empty clues and unprefixed text
-before a structured clue are rejected without changing the current filtered list.
+removes equivalent repeated context clues case-insensitively. Empty clues and unprefixed text before a recognised
+structured clue are rejected without changing the current filtered list. The normalised values are collected in a
+`PersonSearchClues` builder using field-named methods, avoiding ambiguous positional arguments for the similarly typed
+optional clues.
 
 `FindCommand` stores a `Predicate<Person>` rather than a concrete predicate type, allowing both search modes to share
-the same command execution. In structured mode, `PersonMatchesCluesPredicate` checks the name clue against the
-person's name and uses AND matching across the context clues. Each individual context clue may match any one of the
-person's contexts.
+the same command execution. In structured mode, `PersonMatchesCluesPredicate` checks each clue only against its
+corresponding person field and combines all results using AND. Each individual context clue may match any one of the
+person's contexts. A person with a missing optional field does not match a clue for that field. Comparisons are
+case-insensitive partial matches, with repeated whitespace treated as one space.
 
-This separation keeps the legacy OR search unchanged and allows more structured clue types to be introduced later
-without changing `FindCommand` execution.
+This separation keeps the legacy name-and-context OR search unchanged without changing `FindCommand` execution.
 
 ### Edit feature
 
@@ -442,7 +445,7 @@ US1 to US22 retain the identifiers from the Project Notes.
 | US18 | `* * *` | CS student reconnecting with people from a particular activity | view contacts associated with a module, event, project, or organisation | rediscover people from that group |
 
 Context-based search (US10) directly supports UniContacts' value proposition: retrieving people through the contexts
-in which the user knows them. Multi-clue search (US17) extends this by requiring every supplied name or context clue to
+in which the user knows them. Multi-clue search (US17) extends this by requiring every supplied field-specific clue to
 match the same contact.
 
 #### Future candidates
@@ -871,6 +874,25 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases …​ }_
 
+### Finding a person using multiple clues
+
+1. Matching clues across all supported fields
+
+   1. Prerequisites: Add a contact using `add n/Tony Zhang p/91234567 e/tony@example.com c/CS2103T`
+      `c/Hack&Roll a/Toto i/Alice Tan nt/Project teammate`.
+
+   1. Test case: `find nt/project c/Hack p/9123 n/tony i/alice e/@example a/toto c/2103`<br>
+      Expected: Tony Zhang is the only displayed contact. The order of the prefixes does not affect the result.
+
+   1. Test case: `find n/Tony c/CS2103T nt/internship`<br>
+      Expected: No contacts are displayed and the status message is `No persons found!`, because every clue must match.
+
+   1. Test case: `find p/`<br>
+      Expected: The displayed list is unchanged and the status message is `Phone search clue cannot be empty.`
+
+   1. Test case: `find a/Toto a/TZ`<br>
+      Expected: The displayed list is unchanged and the status message reports that `a/` was specified more than once.
+
 ### Deleting a person
 
 1. Deleting a person while all persons are being shown
@@ -1003,8 +1025,32 @@ testers are expected to do more *exploratory* testing.
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+1. Dealing with a missing data file
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+   1. Prerequisites: Close the app and delete the `data` folder.
 
-1. _{ more test cases …​ }_
+   1. Test case: Start the app<br>
+      Expected: The app starts with the sample contacts. `data/addressbook.json` is not created until a command that changes something, such as `add`, is run.
+
+1. Dealing with corrupted data files
+
+   1. Prerequisites: Close the app. Make a copy of `data/addressbook.json` so you can restore it afterwards.
+
+   1. Test case: Replace the content of `data/addressbook.json` with `{ "persons" : [` (not valid JSON), and start the app<br>
+      Expected: The app starts with an empty list. The data file is renamed to `addressbook.json.<UTC time>.bak` in the `data` folder, and the log file `addressbook.log.0` explains why the file could not be read.
+
+   1. Test case: Delete the `contexts` of one person in `data/addressbook.json` (or give two persons the same phone number), and start the app<br>
+      Expected: Same as above. The whole file is treated as unreadable, even though only one person is invalid.
+
+   1. Test case: After either test above, run `add n/Test c/CS2103T`<br>
+      Expected: A new `data/addressbook.json` is created with only the new person. The `.bak` file is not changed.
+
+1. Dealing with a data file that cannot be written
+
+   1. Prerequisites: Close the app and make the `data` folder read-only (for example, `chmod 555 data` on macOS or Linux). Start the app.
+
+   1. Test case: `add n/Test c/CS2103T`<br>
+      Expected: The result display shows an error saying the data could not be saved because of insufficient permissions. The new person still appears in the list for this session, but is not in `data/addressbook.json`.
+
+   1. Test case: `list`<br>
+      Expected: The command succeeds, because commands that change nothing do not save.

@@ -26,7 +26,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -102,8 +101,9 @@ public class AddCommandParserTest {
         Person expectedPerson = new PersonBuilder(BOB).withContexts(VALID_CONTEXT_FRIEND)
                 .withAlias("Bobby").withIntroducer("Alex Tan")
                 .withNote("Met at Hack&Roll").build();
-        assertParseSuccess(parser, " a/Bobby nt/Met at Hack&Roll" + NAME_DESC_BOB
-                + " i/Alex Tan" + CONTEXT_DESC_FRIEND + PHONE_DESC_BOB + EMAIL_DESC_BOB,
+        assertParseSuccess(parser, " a/Bobby" + NAME_DESC_BOB
+                + " i/Alex Tan" + CONTEXT_DESC_FRIEND + PHONE_DESC_BOB + EMAIL_DESC_BOB
+                + " nt/Met at Hack&Roll",
                 new AddCommand(expectedPerson));
     }
 
@@ -114,8 +114,30 @@ public class AddCommandParserTest {
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ALIAS));
         assertParseFailure(parser, compulsoryFields + " i/Alex Tan i/Ben Lee",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_INTRODUCER));
-        assertParseFailure(parser, compulsoryFields + " nt/First note nt/Second note",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NOTE));
+    }
+
+    @Test
+    public void parse_noteContainsPrefixLikeText_noteTakesRestOfLine() {
+        Person expectedPerson = new PersonBuilder(AMY).withoutPhone().withoutEmail()
+                .withContexts("X").withNote("hi c/Y").build();
+        assertParseSuccess(parser, NAME_DESC_AMY + " c/X nt/hi c/Y", new AddCommand(expectedPerson));
+
+        expectedPerson = new PersonBuilder(AMY).withoutPhone().withoutEmail()
+                .withContexts("CS2103T").withNote("Lives c/o his aunt").build();
+        assertParseSuccess(parser, NAME_DESC_AMY + " c/CS2103T nt/Lives c/o his aunt",
+                new AddCommand(expectedPerson));
+
+        // a second nt/ is part of the note, not a duplicate prefix
+        expectedPerson = new PersonBuilder(AMY).withoutPhone().withoutEmail()
+                .withContexts("CS2103T").withNote("First note nt/Second note").build();
+        assertParseSuccess(parser, NAME_DESC_AMY + " c/CS2103T nt/First note nt/Second note",
+                new AddCommand(expectedPerson));
+
+        // p/ inside the note is not read as a phone
+        expectedPerson = new PersonBuilder(AMY).withoutPhone().withoutEmail()
+                .withContexts("CS2103T").withNote("Ask about p/t job").build();
+        assertParseSuccess(parser, NAME_DESC_AMY + " c/CS2103T nt/Ask about p/t job",
+                new AddCommand(expectedPerson));
     }
 
     @Test

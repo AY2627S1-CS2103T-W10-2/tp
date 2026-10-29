@@ -12,6 +12,8 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -95,6 +97,17 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_editChangesOnlyCapitalisation_changeIsSaved() throws Exception {
+        logic.execute("add n/Alex Tan e/alex@example.com c/Hiking");
+        logic.execute("edit 1 e/ALEX@Example.com +c/hiking -c/Hiking");
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        Person saved = storage.readAddressBook().orElseThrow().getPersonList().get(0);
+        assertEquals("ALEX@Example.com", saved.getEmail().orElseThrow().value);
+        assertEquals("hiking", saved.getContexts().iterator().next().description);
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
@@ -112,6 +125,21 @@ public class LogicManagerTest {
         logic = new LogicManager(model, createStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION));
 
         assertEquals(new CommandResult(FindCommand.MESSAGE_NO_PERSONS_FOUND), logic.execute("find nobody"));
+    }
+
+    @Test
+    public void execute_storageThrowsFileAlreadyExistsExceptionForFile_throwsCommandException() throws IOException {
+        Path file = Files.createFile(temporaryFolder.resolve("data"));
+        assertCommandFailureForExceptionFromStorage(new FileAlreadyExistsException(file.toString()), String.format(
+                LogicManager.FILE_OPS_NOT_A_FOLDER_FORMAT,
+                temporaryFolder.resolve("ExceptionUserPrefs.json"), file));
+    }
+
+    @Test
+    public void execute_storageThrowsFileAlreadyExistsExceptionForOtherPath_throwsCommandException() {
+        IOException notAFile = new FileAlreadyExistsException("missing");
+        assertCommandFailureForExceptionFromStorage(notAFile, String.format(
+                LogicManager.FILE_OPS_ERROR_FORMAT, notAFile.getMessage()));
     }
 
     @Test
