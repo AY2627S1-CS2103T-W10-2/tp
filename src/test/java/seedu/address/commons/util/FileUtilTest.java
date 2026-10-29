@@ -91,14 +91,16 @@ public class FileUtilTest {
     }
 
     @Test
-    public void backUp_sameSecond_replacesBackupWithSameName() throws IOException {
+    public void backUp_sameSecond_keepsBothBackups() throws IOException {
         Path file = testFolder.resolve("data.json");
         FileUtil.writeToFile(file, "first");
-        FileUtil.backUp(file, FIXED_CLOCK);
+        Path first = FileUtil.backUp(file, FIXED_CLOCK).get();
         FileUtil.writeToFile(file, "second");
 
-        Path backup = FileUtil.backUp(file, FIXED_CLOCK).get();
+        Path second = FileUtil.backUp(file, FIXED_CLOCK).get();
 
-        assertEquals("second", FileUtil.readFromFile(backup));
+        assertEquals(testFolder.resolve("data.json.20261015T101723Z-1.bak"), second);
+        assertEquals("first", FileUtil.readFromFile(first));
+        assertEquals("second", FileUtil.readFromFile(second));
     }
 }

@@ -1,22 +1,25 @@
 @startuml
+skin rose
+skinparam ActivityFontSize 15
+skinparam ArrowFontSize 12
 
 start
 
 :User enters `find` command;
 
-if (Prefix-like token present?) then (Yes)
+if () then ([prefix-like token present])
     :Validate and normalise clues;
     :Use structured search\n(AND semantics);
-else (No)
+else ([else])
     :Use keyword search\n(OR semantics);
 endif
 
 :Filter unarchived contacts;
 
-if (Any contacts matched?) then (Yes)
+if () then ([any contacts matched])
     :Display matching contacts;
     :Report number of persons listed;
-else (No)
+else ([else])
     :Return "No persons found!";
 endif
 
