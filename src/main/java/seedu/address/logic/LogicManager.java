@@ -3,7 +3,9 @@ package seedu.address.logic;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
+import java.nio.file.Path;
 import java.util.logging.Logger;
 
 import javafx.beans.value.ObservableBooleanValue;
@@ -67,8 +69,12 @@ public class LogicManager implements Logic {
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT,
                     storage.getAddressBookFilePath()), e);
         } catch (FileAlreadyExistsException | NotDirectoryException e) {
-            throw new CommandException(String.format(FILE_OPS_NOT_A_FOLDER_FORMAT,
-                    storage.getAddressBookFilePath(), e.getMessage()), e);
+            // FileAlreadyExistsException is also thrown for other causes, such as a link to a missing file
+            if (e.getFile() != null && Files.isRegularFile(Path.of(e.getFile()))) {
+                throw new CommandException(String.format(FILE_OPS_NOT_A_FOLDER_FORMAT,
+                        storage.getAddressBookFilePath(), e.getFile()), e);
+            }
+            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
