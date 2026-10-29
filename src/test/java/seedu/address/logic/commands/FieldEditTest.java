@@ -42,6 +42,13 @@ public class FieldEditTest {
     }
 
     @Test
+    public void applyTo_nullCurrentValue_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> FieldEdit.unchanged().applyTo(null));
+        assertThrows(NullPointerException.class, () -> FieldEdit.set(VALUE).applyTo(null));
+        assertThrows(NullPointerException.class, () -> FieldEdit.removed().applyTo(null));
+    }
+
+    @Test
     public void applyTo_unchanged_returnsCurrentValue() {
         FieldEdit<String> fieldEdit = FieldEdit.unchanged();
 

@@ -75,6 +75,7 @@ public final class FieldEdit<T> {
      * unchanged.
      */
     public Optional<T> applyTo(Optional<T> currentValue) {
+        requireNonNull(currentValue);
         return switch (state) {
             case REMOVED -> Optional.empty();
             case SET -> Optional.of(value);
