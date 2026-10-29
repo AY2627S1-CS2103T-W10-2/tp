@@ -81,6 +81,42 @@ public class JsonAddressBookStorageTest {
         assertEquals(originalContent, FileUtil.readFromFile(backup));
     }
 
+    @Test
+    public void unreadableFile_notBackedUpBeforeSave_savingBacksItUpFirst() throws Exception {
+        Path dataFile = testFolder.resolve("addressbook.json");
+        Files.copy(TEST_DATA_FOLDER.resolve("invalidPersonAddressBook.json"), dataFile);
+        String originalContent = FileUtil.readFromFile(dataFile);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile);
+
+        // the app could not rename the file at start-up, so it is still in place when the first save comes
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        storage.saveAddressBook(getTypicalAddressBook());
+
+        assertEquals(getTypicalAddressBook(), new AddressBook(storage.readAddressBook().get()));
+        try (java.util.stream.Stream<Path> files = Files.list(testFolder)) {
+            Path backup = files.filter(file -> file.getFileName().toString().endsWith(".bak")).findFirst().get();
+            assertEquals(originalContent, FileUtil.readFromFile(backup));
+        }
+    }
+
+    @Test
+    public void readAddressBook_folderCannotBeSearched_throwsDataLoadingException() throws Exception {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("posix"));
+        Path folder = testFolder.resolve("data");
+        Files.createDirectory(folder);
+        Path dataFile = folder.resolve("addressbook.json");
+        new JsonAddressBookStorage(dataFile).saveAddressBook(getTypicalAddressBook());
+        Files.setPosixFilePermissions(folder, java.nio.file.attribute.PosixFilePermissions.fromString("---------"));
+        try {
+            org.junit.jupiter.api.Assumptions.assumeFalse(Files.isReadable(folder)); // a user that ignores permissions
+            // the file is there but cannot be reached: that is not the same as having no data file yet
+            assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(dataFile).readAddressBook());
+        } finally {
+            Files.setPosixFilePermissions(folder, java.nio.file.attribute.PosixFilePermissions.fromString("rwx------"));
+        }
+    }
+
     private java.util.Optional<ReadOnlyAddressBook> readAddressBook(String filePath) throws Exception {
         return new JsonAddressBookStorage(Paths.get(filePath)).readAddressBook(addToTestDataPathIfNotNull(filePath));
     }

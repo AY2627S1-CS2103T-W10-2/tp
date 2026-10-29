@@ -23,6 +23,9 @@ public class JsonAddressBookStorage {
 
     private Path filePath;
 
+    /** A data file that could not be loaded and may still be in place. It must be backed up before a save. */
+    private Path unreadableFile;
+
     public JsonAddressBookStorage(Path filePath) {
         this.filePath = filePath;
     }
@@ -50,17 +53,20 @@ public class JsonAddressBookStorage {
     public Optional<ReadOnlyAddressBook> readAddressBook(Path filePath) throws DataLoadingException {
         requireNonNull(filePath);
 
-        Optional<JsonSerializableAddressBook> jsonAddressBook = JsonUtil.readJsonFile(
-                filePath, JsonSerializableAddressBook.class);
-        if (!jsonAddressBook.isPresent()) {
-            return Optional.empty();
-        }
-
         try {
+            Optional<JsonSerializableAddressBook> jsonAddressBook = JsonUtil.readJsonFile(
+                    filePath, JsonSerializableAddressBook.class);
+            if (!jsonAddressBook.isPresent()) {
+                return Optional.empty();
+            }
             return Optional.of(jsonAddressBook.get().toModelType());
         } catch (IllegalValueException ive) {
             logger.info("Illegal values found in " + filePath + ": " + ive.getMessage());
+            unreadableFile = filePath;
             throw new DataLoadingException(ive);
+        } catch (DataLoadingException e) {
+            unreadableFile = filePath;
+            throw e;
         }
     }
 
@@ -82,8 +88,24 @@ public class JsonAddressBookStorage {
         requireNonNull(addressBook);
         requireNonNull(filePath);
 
+        backUpUnreadableFileIfStillThere(filePath);
         FileUtil.createIfMissing(filePath);
         JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), filePath);
+    }
+
+    /**
+     * If {@code filePath} is a data file that could not be loaded and is still in place, for example because its
+     * folder was not writable when the app started, renames it to a backup before it is overwritten.
+     *
+     * @throws IOException if the file cannot be backed up. The file is then left as it is and the save is refused.
+     */
+    private void backUpUnreadableFileIfStillThere(Path filePath) throws IOException {
+        if (!filePath.equals(unreadableFile)) {
+            return;
+        }
+        FileUtil.backUp(filePath).ifPresent(backup ->
+                logger.warning("The unreadable data file was renamed to " + backup));
+        unreadableFile = null;
     }
 
 }

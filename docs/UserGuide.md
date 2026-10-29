@@ -522,6 +522,8 @@ To recover your data:
 3. If there is a new `addressbook.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
 4. Start AddressBook again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
+If AddressBook cannot rename the file, for example because the `data` folder is read-only, it still starts with an empty address book and leaves the file where it is. It renames the file to a `.bak` file just before its next save, so a save can never overwrite the unreadable file. The same applies when the `data` folder cannot be opened at all: AddressBook starts empty instead of with the sample data.
+
 If AddressBook fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name.
 
 --------------------------------------------------------------------------------------------------------------------
