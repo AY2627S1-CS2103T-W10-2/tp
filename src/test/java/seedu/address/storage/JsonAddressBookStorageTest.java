@@ -3,6 +3,8 @@ package seedu.address.storage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.HOON;
@@ -10,9 +12,12 @@ import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -93,7 +98,7 @@ public class JsonAddressBookStorageTest {
         storage.saveAddressBook(getTypicalAddressBook());
 
         assertEquals(getTypicalAddressBook(), new AddressBook(storage.readAddressBook().get()));
-        try (java.util.stream.Stream<Path> files = Files.list(testFolder)) {
+        try (Stream<Path> files = Files.list(testFolder)) {
             Path backup = files.filter(file -> file.getFileName().toString().endsWith(".bak")).findFirst().get();
             assertEquals(originalContent, FileUtil.readFromFile(backup));
         }
@@ -101,19 +106,47 @@ public class JsonAddressBookStorageTest {
 
     @Test
     public void readAddressBook_folderCannotBeSearched_throwsDataLoadingException() throws Exception {
-        org.junit.jupiter.api.Assumptions.assumeTrue(
-                java.nio.file.FileSystems.getDefault().supportedFileAttributeViews().contains("posix"));
+        assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"));
         Path folder = testFolder.resolve("data");
         Files.createDirectory(folder);
         Path dataFile = folder.resolve("addressbook.json");
         new JsonAddressBookStorage(dataFile).saveAddressBook(getTypicalAddressBook());
-        Files.setPosixFilePermissions(folder, java.nio.file.attribute.PosixFilePermissions.fromString("---------"));
+        Files.setPosixFilePermissions(folder, PosixFilePermissions.fromString("---------"));
         try {
-            org.junit.jupiter.api.Assumptions.assumeFalse(Files.isReadable(folder)); // a user that ignores permissions
+            assumeFalse(Files.isReadable(folder)); // a user that ignores permissions, such as root
             // the file is there but cannot be reached: that is not the same as having no data file yet
             assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(dataFile).readAddressBook());
         } finally {
-            Files.setPosixFilePermissions(folder, java.nio.file.attribute.PosixFilePermissions.fromString("rwx------"));
+            Files.setPosixFilePermissions(folder, PosixFilePermissions.fromString("rwx------"));
+        }
+    }
+
+    @Test
+    public void saveAddressBook_folderWasUnreachableThenFixed_backsUpTheUnreadableFileBeforeSaving()
+            throws Exception {
+        assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"));
+        Path folder = testFolder.resolve("data");
+        Files.createDirectory(folder);
+        Path dataFile = folder.resolve("addressbook.json");
+        new JsonAddressBookStorage(dataFile).saveAddressBook(getTypicalAddressBook());
+        String originalContent = FileUtil.readFromFile(dataFile);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile);
+
+        Files.setPosixFilePermissions(folder, PosixFilePermissions.fromString("---------"));
+        try {
+            assumeFalse(Files.isReadable(folder)); // a user that ignores permissions, such as root
+            assertThrows(DataLoadingException.class, storage::readAddressBook);
+            // the first save cannot see the file and fails; the file must still count as unreadable
+            assertThrows(IOException.class, () -> storage.saveAddressBook(new AddressBook()));
+        } finally {
+            Files.setPosixFilePermissions(folder, PosixFilePermissions.fromString("rwx------"));
+        }
+
+        storage.saveAddressBook(new AddressBook());
+
+        try (Stream<Path> files = Files.list(folder)) {
+            Path backup = files.filter(file -> file.getFileName().toString().endsWith(".bak")).findFirst().get();
+            assertEquals(originalContent, FileUtil.readFromFile(backup));
         }
     }
 

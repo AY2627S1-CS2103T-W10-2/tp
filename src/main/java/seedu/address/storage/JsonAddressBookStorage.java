@@ -3,6 +3,7 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -103,9 +104,12 @@ public class JsonAddressBookStorage {
         if (!filePath.equals(unreadableFile)) {
             return;
         }
-        FileUtil.backUp(filePath).ifPresent(backup ->
-                logger.warning("The unreadable data file was renamed to " + backup));
-        unreadableFile = null;
+        Optional<Path> backup = FileUtil.backUp(filePath);
+        backup.ifPresent(path -> logger.warning("The unreadable data file was renamed to " + path));
+        // backUp also returns empty when the file's folder cannot be opened, and then the file is still there
+        if (backup.isPresent() || Files.notExists(filePath)) {
+            unreadableFile = null;
+        }
     }
 
 }
