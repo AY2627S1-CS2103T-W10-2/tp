@@ -426,7 +426,7 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-The stories below cover UniContacts' core requirements, future candidates, and ideas considered but excluded from the product scope. They describe user needs, not the implementation status of features. Future candidates are outside the MVP and are not commitments for the final release.
+The stories below cover UniContacts' core requirements, post-MVP candidates, and ideas considered but excluded from the product scope. They record the team's scope decisions at the MVP stage, rather than the current implementation status of each feature.
 
 US1 to US22 retain the identifiers from the Project Notes.
 
@@ -448,9 +448,9 @@ Context-based search (US10) directly supports UniContacts' value proposition: re
 in which the user knows them. Multi-clue search (US17) extends this by requiring every supplied field-specific clue to
 match the same contact.
 
-#### Future candidates
+#### Post-MVP candidates
 
-These stories record useful extensions beyond the MVP. Their priorities express their relative importance; inclusion here does not mean they will all be implemented.
+These stories record useful extensions considered beyond the MVP. Their priorities express their relative importance. Some were implemented after the MVP, while others remain possible future enhancements.
 
 | ID | Priority | As a ... | I want to ... | So that I can ... |
 | --- | --- | --- | --- | --- |
@@ -467,8 +467,9 @@ These stories record useful extensions beyond the MVP. Their priorities express 
 | US21 | `* *` | CS student who knows someone by more than one name | record and search a contact's nickname or alternative name | find them using the name I remember |
 | US22 | `* *` | CS student who needs to remember additional details about a person | attach a short personal note to a contact | retain useful information that does not fit the standard contact fields |
 
-The MVP already allows optional phone and email details; US12 extends this to additional channels. Editing (US20)
-remains a future candidate as described in the MVP discussions.
+The MVP already allows optional phone and email details; US12 extends this to additional channels. US13, US19,
+US20, US21 and US22 were implemented after the MVP; their placement here records the original MVP scope.
+The other stories remain possible future enhancements.
 
 #### Considered but excluded
 
