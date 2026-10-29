@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
@@ -89,7 +90,7 @@ public class FindCommandParser implements Parser<FindCommand> {
             String emptyClueMessage) throws ParseException {
         Optional<String> clue = argMultimap.getValue(prefix);
         requireNonBlank(clue, emptyClueMessage);
-        return clue.map(FindCommandParser::normaliseClue);
+        return clue.map(StringUtil::collapseWhitespace);
     }
 
     private static List<String> parseContextClues(ArgumentMultimap argMultimap) throws ParseException {
@@ -98,7 +99,7 @@ public class FindCommandParser implements Parser<FindCommand> {
             throw new ParseException(FindCommand.MESSAGE_EMPTY_CONTEXT_CLUE);
         }
         return removeEquivalentClues(contextClues.stream()
-                .map(FindCommandParser::normaliseClue)
+                .map(StringUtil::collapseWhitespace)
                 .toList());
     }
 
@@ -117,10 +118,6 @@ public class FindCommandParser implements Parser<FindCommand> {
             }
         }
         return distinctClues;
-    }
-
-    private static String normaliseClue(String clue) {
-        return clue.trim().replaceAll("\\s+", " ");
     }
 
     private static ParseException invalidFormat() {

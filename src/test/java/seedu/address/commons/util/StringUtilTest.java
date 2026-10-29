@@ -1,5 +1,6 @@
 package seedu.address.commons.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -125,6 +126,29 @@ public class StringUtilTest {
 
         // Matches multiple words in sentence
         assertTrue(StringUtil.containsWordIgnoreCase("AAA bBb ccc  bbb", "bbB"));
+    }
+
+    //---------------- Tests for collapseWhitespace --------------------------------------
+
+    @Test
+    public void collapseWhitespace_nullGiven_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> StringUtil.collapseWhitespace(null));
+    }
+
+    @Test
+    public void collapseWhitespace_validInputs_correctResult() {
+        // Nothing to collapse
+        assertEquals("", StringUtil.collapseWhitespace(""));
+        assertEquals("Alex Tan", StringUtil.collapseWhitespace("Alex Tan"));
+
+        // Only whitespace
+        assertEquals("", StringUtil.collapseWhitespace("   "));
+
+        // Leading and trailing whitespace
+        assertEquals("Alex", StringUtil.collapseWhitespace("  Alex \t"));
+
+        // Repeated spaces, tabs and newlines inside
+        assertEquals("Alex Tan Wei", StringUtil.collapseWhitespace("Alex   Tan\t\nWei"));
     }
 
     //---------------- Tests for getDetails --------------------------------------
