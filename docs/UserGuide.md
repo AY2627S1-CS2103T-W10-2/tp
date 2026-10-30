@@ -280,7 +280,7 @@ How contexts are matched:
 
 **If the command succeeds**
 
-The list stays as it was before the edit. After a [`find`](#finding-persons-find), the find results stay on screen, so the next index refers to the same list, as after [`delete`](#deleting-a-person-delete) and [`archive`](#archiving-a-person-archive). After an edit in the full list, the full list is still shown. The result display shows the person's new details. For example, with the sample data, `edit 2 +c/NUS Hackers -c/Hiking club` shows:
+The list on screen stays the same. For example, after `find Irfan Roy` shows Irfan as 1 and Roy as 2, `edit 1 p/90000021` keeps both on screen, so `edit 2 ...` next still edits Roy. The result display shows the person's new details. For example, with the sample data, `edit 2 +c/NUS Hackers -c/Hiking club` shows:
 
 `Edited person: Bernice Yu; Contexts: [CS2103T] [NUS Hackers]; Phone: 99272758; Email: berniceyu@example.com`
 
