@@ -37,7 +37,7 @@ public class ModelManager implements Model {
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
-        // the normal contact list hides archived persons, also right after the app starts
+        // the normal person list hides archived persons, also right after the app starts
         filteredPersons.setPredicate(PREDICATE_SHOW_ACTIVE);
         showingArchives = Bindings.createBooleanBinding(() ->
                 filteredPersons.getPredicate() == PREDICATE_SHOW_ARCHIVED, filteredPersons.predicateProperty());

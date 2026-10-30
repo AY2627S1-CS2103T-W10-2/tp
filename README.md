@@ -5,16 +5,16 @@
 # UniContacts
 
 **UniContacts is a desktop contact manager for CS students who meet many people across modules, project teams, hackathons, tech communities and internships.**
-Every contact is saved with one or more *contexts* describing how you know them (e.g. `CS2103T`, `Hack&Roll 2026`, `Google internship`), so you can find people by where you met them, not just by name.
+Every person is saved with one or more *contexts* describing how you know them (e.g. `CS2103T`, `Hack&Roll 2026`, `Google internship`), so you can find people by where you met them, not just by name.
 
 UniContacts is optimised for fast typists: you work through a command box, while the GUI shows your contacts as cards.
 
 ## Features
 
-* Add a contact with a name, at least one context, and an optional phone and email
+* Add a person with a name, at least one context, and an optional phone and email
 * List all persons, with every context shown on each card
-* Find contacts by part of their name or context
-* Delete a contact by its index in the list
+* Find persons by part of their name or context
+* Delete a person by its index in the list
 * Save data automatically after every change
 
 ## Links

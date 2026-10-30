@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
 /**
- * Stores the plain name of the person who introduced a contact, without linking to another contact.
+ * Stores the plain name of the person who introduced them, without linking to another person.
  * Guarantees: immutable; valid under the same character and length rules as a {@link Name}.
  */
 public class Introducer {
