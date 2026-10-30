@@ -236,7 +236,7 @@ NUS Hackers: 1 person
 ```
 
 The summary says `1 context listed.` when there is exactly one distinct context.
-If your contact list is empty, the result is `No contexts found. Add a person with c/CONTEXT to get started.`
+If your person list is empty, the result is `No contexts found. Add a person with c/CONTEXT to get started.`
 If all contacts are archived, the result is `No active contexts found. Run archives to view archived persons, then use unarchive INDEX to include them.`
 Scroll within the result display if the overview is too long to view at once.
 
@@ -376,7 +376,7 @@ Format: `delete INDEX`
 * If the archived persons are shown (see [`archives`](#viewing-archived-persons-archives)), `delete` deletes an archived person.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the contact list.
+* `list` followed by `delete 2` deletes the 2nd person in the person list.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
 ### Archiving a person: `archive`
@@ -513,7 +513,7 @@ Edit the data file only while UniContacts is closed, and only if you are confide
 If UniContacts cannot read the data file when it starts (for example, a person has no context or has an invalid phone number or email, two persons share a phone number or email, the file is not valid JSON, or the file is a data file from AddressBook-Level3), it:
 
 1. renames the file to `addressbook.json.<UTC time>.bak` in the same `data` folder, for example `addressbook.json.20261015T101723Z.bak`, so that your data is not overwritten; and
-2. starts with an empty contact list. A new `data/addressbook.json` is created by the first command that changes something, such as `add`.
+2. starts with an empty person list. A new `data/addressbook.json` is created by the first command that changes something, such as `add`.
 
 To recover your data:
 
@@ -522,7 +522,7 @@ To recover your data:
 3. If there is a new `addressbook.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
 4. Start UniContacts again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
-If UniContacts cannot rename the file, for example because the `data` folder is read-only, it still starts with an empty contact list and leaves the file where it is. It renames the file to a `.bak` file just before its next save, so a save can never overwrite the unreadable file. The same applies when the `data` folder cannot be opened at all: UniContacts starts empty instead of with the sample data.
+If UniContacts cannot rename the file, for example because the `data` folder is read-only, it still starts with an empty person list and leaves the file where it is. It renames the file to a `.bak` file just before its next save, so a save can never overwrite the unreadable file. The same applies when the `data` folder cannot be opened at all: UniContacts starts empty instead of with the sample data.
 
 If UniContacts fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name. If two failures happen in the same second, the later `.bak` file gets `-1` (then `-2`, and so on) before `.bak`, for example `addressbook.json.20261015T101723Z-1.bak`.
 
