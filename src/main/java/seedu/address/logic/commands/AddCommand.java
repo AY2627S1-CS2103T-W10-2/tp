@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+import seedu.address.commons.util.StringUtil;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -132,7 +133,7 @@ public class AddCommand extends Command {
     }
 
     private static String normalise(String name) {
-        return name.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+        return StringUtil.collapseWhitespace(name).toLowerCase(Locale.ROOT);
     }
 
     @Override
