@@ -113,22 +113,15 @@ public class AddCommand extends Command {
 
     /**
      * Returns an existing person in {@code model} with the same name (ignoring case and repeated spaces) and
-     * at least one context in common with the person to add, if the person to add has no phone and no email.
+     * at least one context in common with the person to add, whatever their phone numbers and emails.
      * An active person is preferred over an archived one, then the first in address book order.
      */
     private Optional<Person> findSimilarPerson(Model model) {
-        if (!hasNoPhoneAndEmail(toAdd)) {
-            return Optional.empty();
-        }
         String normalisedName = normalise(toAdd.getName().fullName);
         return model.getAddressBook().getPersonList().stream()
                 .filter(existing -> normalise(existing.getName().fullName).equals(normalisedName)
                         && !Collections.disjoint(existing.getContexts(), toAdd.getContexts()))
                 .min(Comparator.comparing(Person::isArchived));
-    }
-
-    private static boolean hasNoPhoneAndEmail(Person person) {
-        return person.getPhone().isEmpty() && person.getEmail().isEmpty();
     }
 
     private static String normalise(String name) {

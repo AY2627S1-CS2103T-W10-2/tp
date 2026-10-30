@@ -143,7 +143,8 @@ A person is a duplicate if they have the same phone number or the same email as 
 If the person you clash with is archived, the message ends with `This person is archived; run archives to see them.`
 
 * Two persons can have the same name, as long as their phone numbers and emails are different.
-* A person with no phone number and no email is never a duplicate. If you add such a person and an existing person (whatever their phone number or email) has the same name and at least one context in common, the new person is still added, with an extra line. Names are compared ignoring capitalisation and repeated spaces. For example, if Wei Jie with context CS2103T is already at index 7 and the list has 9 persons, `add n/Wei Jie c/CS2103T` adds the new person at index 10 and shows:
+* A person with no phone number and no email is never a duplicate.
+* If the new person has the same name and at least one context in common with an existing person, the new person is still added, with an extra line. This happens whatever the phone numbers and emails of the two persons are, so adding the same classmate again with a different phone number or email also shows the line. Names are compared ignoring capitalisation and repeated spaces. For example, if Wei Jie with context CS2103T is already at index 7 and the list has 9 persons, `add n/Wei Jie c/CS2103T` or `add n/Wei Jie c/CS2103T p/91234567` adds the new person at index 10 and shows:
 
   `Note: Wei Jie [CS2103T] already exists at index 7. If this is the same person, run delete 10 to remove the new entry and use edit 7 instead.`
 

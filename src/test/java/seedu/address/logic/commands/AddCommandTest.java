@@ -95,15 +95,51 @@ public class AddCommandTest {
     }
 
     @Test
-    public void execute_newPersonHasPhoneOrEmail_noNote() throws Exception {
-        Person existing = person("Wei Jie", false, "CS2103T");
+    public void execute_newPersonHasPhoneOrEmail_addedWithNote() throws Exception {
+        String note = "\nNote: Wei Jie [CS2103T] already exists at index 1. "
+                + "If this is the same person, run delete 2 to remove the new entry and use edit 1 instead.";
         Person withPhone = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
                 .withPhone("91234567").withoutEmail().build();
         Person withEmail = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
                 .withEmail("weijie@example.com").withoutPhone().build();
 
-        assertNoteAfterAdding(existing, withPhone, "");
-        assertNoteAfterAdding(existing, withEmail, "");
+        // existing person has no phone or email
+        assertNoteAfterAdding(person("Wei Jie", false, "CS2103T"), withPhone, note);
+        assertNoteAfterAdding(person("Wei Jie", false, "CS2103T"), withEmail, note);
+        // existing person has a different phone or email
+        assertNoteAfterAdding(withPhone, withEmail, note);
+        assertNoteAfterAdding(withEmail, withPhone, note);
+        assertNoteAfterAdding(withPhone, new PersonBuilder(withPhone).withPhone("98765432").build(), note);
+        assertNoteAfterAdding(withEmail, new PersonBuilder(withEmail).withEmail("weijie@u.nus.edu").build(), note);
+    }
+
+    @Test
+    public void execute_newPersonHasPhoneOrEmailAndArchivedSimilarPerson_addedWithArchivedNote() throws Exception {
+        Person archived = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withPhone("91234567").withoutEmail().withArchived(true).build();
+        Person withEmail = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withEmail("weijie@example.com").withoutPhone().build();
+
+        assertNoteAfterAdding(archived, withEmail,
+                "\nNote: Wei Jie [CS2103T] already exists."
+                        + " This person is archived; run archives to see them.");
+    }
+
+    @Test
+    public void execute_similarPersonWithSamePhoneOrEmail_throwsCommandException() {
+        Person existing = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
+                .withPhone("91234567").withEmail("weijie@example.com").build();
+        Model model = new ModelManager();
+        model.addPerson(existing);
+
+        // same name and context, so only the shared phone or email makes it a duplicate
+        Person samePhone = new PersonBuilder(existing).withoutEmail().build();
+        String samePhoneMessage = Messages.getErrorMessageForDuplicatePerson(existing, samePhone);
+        assertThrows(CommandException.class, samePhoneMessage, () -> new AddCommand(samePhone).execute(model));
+        Person sameEmail = new PersonBuilder(existing).withoutPhone().build();
+        String sameEmailMessage = Messages.getErrorMessageForDuplicatePerson(existing, sameEmail);
+        assertThrows(CommandException.class, sameEmailMessage, () -> new AddCommand(sameEmail).execute(model));
+        assertEquals(1, model.getAddressBook().getPersonList().size());
     }
 
     @Test
