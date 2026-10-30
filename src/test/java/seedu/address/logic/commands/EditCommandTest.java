@@ -8,6 +8,7 @@ import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ALIAS_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ALIAS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_HUSBAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_INTRODUCER_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_INTRODUCER_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
@@ -21,7 +22,11 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.DANIEL;
+import static seedu.address.testutil.TypicalPersons.KEYWORD_MATCHING_MEIER;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +38,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -111,12 +117,104 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        // the new name does not match the search, so the person leaves the list and a note says so
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                + "\n" + String.format(EditCommand.MESSAGE_NO_LONGER_MATCHES, editedPerson.getName());
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showPersonAtIndex(expectedModel, INDEX_FIRST_PERSON);
         expectedModel.setPerson(personInFilteredList, editedPerson);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_fullList_keepsFullListWithoutNote() {
+        Person alice = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person editedPerson = new PersonBuilder(alice).withName(VALID_NAME_BOB).build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(alice, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_twoEditsAfterFind_editsPersonsByFindResultIndex() {
+        showFindResults(model);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showFindResults(expectedModel);
+
+        // the find results are Benson and Daniel, so index 1 is Benson
+        Person editedBenson = new PersonBuilder(BENSON).withPhone(VALID_PHONE_BOB).build();
+        expectedModel.setPerson(BENSON, editedBenson);
+        assertCommandSuccess(new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build()), model,
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedBenson)), expectedModel);
+
+        // the find results stay, so index 2 is still Daniel and not the second person of the full list
+        Person editedDaniel = new PersonBuilder(DANIEL).withEmail(VALID_EMAIL_BOB).build();
+        expectedModel.setPerson(DANIEL, editedDaniel);
+        assertCommandSuccess(new EditCommand(INDEX_SECOND_PERSON,
+                new EditPersonDescriptorBuilder().withEmail(VALID_EMAIL_BOB).build()), model,
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedDaniel)), expectedModel);
+    }
+
+    @Test
+    public void execute_editMakesPersonStopMatchingFind_personLeavesListWithNote() {
+        showFindResults(model);
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withName("Benson Lim").build());
+        Person editedBenson = new PersonBuilder(BENSON).withName("Benson Lim").build();
+
+        // "Benson Lim" does not contain "Meier", so Benson leaves the find results; the note comes last
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedBenson))
+                + "\n" + String.format(EditCommand.MESSAGE_NO_LONGER_MATCHES, "Benson Lim");
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showFindResults(expectedModel);
+        expectedModel.setPerson(BENSON, editedBenson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        // Daniel is the only find result left, so he is now at index 1
+        assertEquals(List.of(DANIEL), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_editMakesPersonStopMatchingFindWithSkippedContext_noteComesLast() {
+        showFindResults(model);
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
+                .withName("Benson Lim").withContextsToAdd("cs2103t").build());
+        Person editedBenson = new PersonBuilder(BENSON).withName("Benson Lim").build();
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedBenson))
+                + "\nNote: Benson Lim already has context(s): [CS2103T]. Skipped."
+                + "\n" + String.format(EditCommand.MESSAGE_NO_LONGER_MATCHES, "Benson Lim");
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showFindResults(expectedModel);
+        expectedModel.setPerson(BENSON, editedBenson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_noChangeAfterFind_keepsFindResultsWithoutNote() {
+        showFindResults(model);
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone("98765432").build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, BENSON.getName());
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showFindResults(expectedModel);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEquals(List.of(BENSON, DANIEL), model.getFilteredPersonList());
     }
 
     @Test
@@ -544,6 +642,13 @@ public class EditCommandTest {
         String expected = EditCommand.class.getCanonicalName() + "{index=" + INDEX_FIRST_PERSON
                 + ", editPersonDescriptor=" + editPersonDescriptor + "}";
         assertEquals(expected, editCommand.toString());
+    }
+
+    /**
+     * Shows in {@code targetModel} the persons that {@code find Meier} shows: Benson and Daniel.
+     */
+    private static void showFindResults(Model targetModel) {
+        new FindCommand(new PersonContainsKeywordsPredicate(List.of(KEYWORD_MATCHING_MEIER))).execute(targetModel);
     }
 
     /**

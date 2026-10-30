@@ -280,7 +280,7 @@ How contexts are matched:
 
 **If the command succeeds**
 
-The list shows all persons again. The result display shows the person's new details. For example, with the sample data, `edit 2 +c/NUS Hackers -c/Hiking club` shows:
+The list stays as it was before the edit. After a [`find`](#finding-persons-find), the find results stay on screen, so the next index refers to the same list, as after [`delete`](#deleting-a-person-delete) and [`archive`](#archiving-a-person-archive). After an edit in the full list, the full list is still shown. The result display shows the person's new details. For example, with the sample data, `edit 2 +c/NUS Hackers -c/Hiking club` shows:
 
 `Edited person: Bernice Yu; Contexts: [CS2103T] [NUS Hackers]; Phone: 99272758; Email: berniceyu@example.com`
 
@@ -297,6 +297,12 @@ If any `+c/` context was skipped because the person already has it, a note follo
 `Note: Bernice Yu already has context(s): [CS2103T]. Skipped.`
 
 If both kinds of context are skipped, the `-c/` note comes first.
+
+If the edit means the person no longer matches the search whose results are shown, the person leaves the list and a note follows on a new line, after any context notes. For example, with the sample data, `find Irfan` followed by `edit 1 n/Ian Ibrahim` adds this line:
+
+`Note: Ian Ibrahim no longer matches the current search. Run list to see all persons.`
+
+The numbers of the persons after them in the results go down by one. A person who was edited but still matches stays where they were.
 
 **Duplicate persons**
 

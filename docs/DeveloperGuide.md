@@ -170,9 +170,11 @@ The user sees `ModelManager#filteredPersons`, a `FilteredList<Person>`. The list
 
 | Command | Predicate set | What is shown |
 |---------|---------------|---------------|
-| _(start-up)_, `list`, `add`, `edit` | `PREDICATE_SHOW_ACTIVE` | persons who are not archived |
+| _(start-up)_, `list`, `add` | `PREDICATE_SHOW_ACTIVE` | persons who are not archived |
 | `find KEYWORDS` | `PREDICATE_SHOW_ACTIVE.and(keyword predicate)` | matching persons who are not archived |
 | `archives` | `PREDICATE_SHOW_ARCHIVED` | archived persons only |
+
+`edit`, `delete`, `archive` and `unarchive` leave the predicate as it is, so the list on screen stays. A person changed by `edit` so that they no longer pass the predicate drops out of the list, and `EditCommand` adds a note to the result.
 
 Because the shown list is the predicate, no separate "view mode" is stored. The window shows the **Archives** header by binding to `Model#showingArchivesProperty()`, which is true only while the predicate is `PREDICATE_SHOW_ARCHIVED`. After a `find`, the predicate is a combined one, so the header is hidden.
 
