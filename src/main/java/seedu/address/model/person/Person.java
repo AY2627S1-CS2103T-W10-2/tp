@@ -55,7 +55,7 @@ public class Person {
     /**
      * Creates a person with optional alias, introducer, and note details, and says whether the person is archived.
      * The optional arguments may be null if absent; name and contexts must be present.
-     * An archived person is kept in the address book but is left out of the normal contact list.
+     * An archived person is kept in the address book but is left out of the normal person list.
      *
      * @throws NullPointerException if {@code contexts} contains a null element.
      * @throws IllegalArgumentException if {@code contexts} is empty.

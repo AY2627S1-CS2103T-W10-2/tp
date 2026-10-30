@@ -111,7 +111,7 @@ public class ContextsCommandTest {
     }
 
     @Test
-    public void execute_sameNamePersons_countsSeparateContacts() {
+    public void execute_sameNamePersons_countsSeparatePersons() {
         Model model = createModel(createPerson("Alex Tan", "CS2103T"),
                 createPerson("Alex Tan", "CS2103T", "NUS Hackers"));
 
