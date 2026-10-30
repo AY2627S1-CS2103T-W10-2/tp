@@ -238,8 +238,7 @@ public class EditCommand extends Command {
             EditPersonDescriptor editPersonDescriptor) {
         assert personToEdit != null;
 
-        Set<Context> keptContexts = new LinkedHashSet<>(personToEdit.getContexts());
-        keptContexts.removeAll(editPersonDescriptor.getContextsToRemove().orElse(Set.of()));
+        Set<Context> keptContexts = getContextsAfterRemovals(personToEdit, editPersonDescriptor);
         Set<Context> contextsToAdd = editPersonDescriptor.getContextsToAdd().orElse(Set.of());
 
         List<Context> skippedContexts = new ArrayList<>();
@@ -254,6 +253,19 @@ public class EditCommand extends Command {
     }
 
     /**
+     * Returns a new set of the contexts of {@code personToEdit} left after removing the contexts in
+     * {@code editPersonDescriptor} to remove. A context the person does not have is not removed.
+     */
+    private static Set<Context> getContextsAfterRemovals(Person personToEdit,
+            EditPersonDescriptor editPersonDescriptor) {
+        assert personToEdit != null;
+
+        Set<Context> remainingContexts = new LinkedHashSet<>(personToEdit.getContexts());
+        remainingContexts.removeAll(editPersonDescriptor.getContextsToRemove().orElse(Set.of()));
+        return remainingContexts;
+    }
+
+    /**
      * Returns the contexts of {@code personToEdit} after removing and then adding the contexts in
      * {@code editPersonDescriptor}. A context the person does not have is not removed, and a context
      * the person already has is not added again.
@@ -262,8 +274,7 @@ public class EditCommand extends Command {
      */
     private static Set<Context> applyContextChanges(Person personToEdit, EditPersonDescriptor editPersonDescriptor)
             throws CommandException {
-        Set<Context> updatedContexts = new LinkedHashSet<>(personToEdit.getContexts());
-        updatedContexts.removeAll(editPersonDescriptor.getContextsToRemove().orElse(Set.of()));
+        Set<Context> updatedContexts = getContextsAfterRemovals(personToEdit, editPersonDescriptor);
         // Set#add keeps the existing spelling when the person already has the context
         updatedContexts.addAll(editPersonDescriptor.getContextsToAdd().orElse(Set.of()));
 
