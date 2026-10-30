@@ -30,7 +30,7 @@ UniContacts is a **desktop contact manager for CS students, optimized for use th
 
    * `contexts` : Lists all active contacts' contexts with the number of contacts linked to each.
 
-   * `add n/John Doe c/CS2103T p/98765432 e/johnd@example.com` : Adds a person named `John Doe` to the address book.
+   * `add n/John Doe c/CS2103T p/98765432 e/johnd@example.com` : Adds a person named `John Doe` to UniContacts.
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
 
@@ -81,7 +81,7 @@ Format: `help`
 
 ### Adding a person: `add`
 
-Adds a person to the address book.
+Adds a person to UniContacts.
 
 Every person has at least one context: how you know them, such as a module, project, CCA, internship or event.
 
@@ -208,7 +208,7 @@ Shows every distinct context of active contacts (contacts who are not archived) 
 
 Format: `contexts`
 
-* Counts cover all active contacts in the address book, even if `find` currently shows only some contacts or no contacts.
+* Counts cover all active contacts in UniContacts, even if `find` currently shows only some contacts or no contacts.
 * Archived contacts never contribute to counts or displayed context names. Contexts belonging only to archived contacts are omitted. This rule also applies when you run `contexts` while viewing `archives`.
 * Each contact is counted once per context. Different contacts with the same name are counted separately.
 * Contexts that differ only in capitalisation, surrounding spaces or repeated spaces are grouped together.
@@ -217,7 +217,7 @@ Format: `contexts`
 * Counts are recalculated each time you run `contexts`, so they reflect additions, edits, deletions, archiving and unarchiving.
 * The command word is case-insensitive: `CONTEXTS` works. Extra text such as `contexts CS2103T`, `contexts c/CS2103T` or `contexts archived` is rejected with `Invalid command format!` and usage guidance.
 
-For example, suppose the address book contains only these active contacts:
+For example, suppose UniContacts contains only these active contacts:
 
 Person | Contexts
 -------|---------
@@ -236,7 +236,7 @@ NUS Hackers: 1 person
 ```
 
 The summary says `1 context listed.` when there is exactly one distinct context.
-If the full address book is empty, the result is `No contexts found. Add a person with c/CONTEXT to get started.`
+If your person list is empty, the result is `No contexts found. Add a person with c/CONTEXT to get started.`
 If all contacts are archived, the result is `No active contexts found. Run archives to view archived persons, then use unarchive INDEX to include them.`
 Scroll within the result display if the overview is too long to view at once.
 
@@ -364,7 +364,7 @@ Examples:
 
 ### Deleting a person: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified person from UniContacts.
 
 Format: `delete INDEX`
 
@@ -376,7 +376,7 @@ Format: `delete INDEX`
 * If the archived persons are shown (see [`archives`](#viewing-archived-persons-archives)), `delete` deletes an archived person.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
+* `list` followed by `delete 2` deletes the 2nd person in the person list.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
 ### Archiving a person: `archive`
@@ -389,7 +389,7 @@ Format: `archive INDEX` or `archive c/CONTEXT`
 * The index **must be a positive integer** 1, 2, 3, …​
 * An archived person is not shown by `list` and is not found by `find`. They stay saved, with all their details, and they still count when UniContacts checks for a duplicate phone number or email.
 * A person who is already archived cannot be archived again.
-* `archive c/CONTEXT` archives every person who has that context and is not archived yet. It works on all persons in the address book, not only the ones currently displayed, so an earlier `find` makes no difference.
+* `archive c/CONTEXT` archives every person who has that context and is not archived yet. It works on all persons in UniContacts, not only the ones currently displayed, so an earlier `find` makes no difference.
 * The context must match exactly, ignoring capitalisation: `c/cs2103t` matches `CS2103T`, but `c/CS` does not.
 * `c/CONTEXT` cannot be combined with an index or any other prefix, and only one `c/` is allowed.
 
@@ -433,7 +433,7 @@ Format: `unarchive INDEX` or `unarchive c/CONTEXT`
 * Unarchives the person at the specified `INDEX`. The index refers to the index number shown in the displayed list, so show the archived persons with [`archives`](#viewing-archived-persons-archives) first.
 * The index **must be a positive integer** 1, 2, 3, …​
 * If the person at that index is not archived, for example because you are looking at your normal list, nothing is changed and UniContacts tells you to run `archives` first.
-* `unarchive c/CONTEXT` unarchives every archived person who has that context. Like `archive c/CONTEXT`, it works on all persons in the address book, not only the ones currently displayed, and the context must match exactly, ignoring capitalisation.
+* `unarchive c/CONTEXT` unarchives every archived person who has that context. Like `archive c/CONTEXT`, it works on all persons in UniContacts, not only the ones currently displayed, and the context must match exactly, ignoring capitalisation.
 * After a successful `unarchive`, you stay in the archived list, so you can unarchive several persons in a row. The person is back in your normal list, which you reach with `list`.
 
 Examples:
@@ -455,7 +455,7 @@ No archived person has that context | `No archived persons with context CONTEXT.
 
 ### Clearing all non-archived persons: `clear`
 
-Clears all persons from the address book, except the archived ones.
+Clears all persons from UniContacts, except the archived ones.
 
 Format: `clear`
 
@@ -510,10 +510,10 @@ Edit the data file only while UniContacts is closed, and only if you are confide
 
 #### If the data file cannot be read
 
-If UniContacts cannot read the data file when it starts (for example, a person has no context or has an invalid phone number or email, two persons share a phone number or email, the file is not valid JSON, or the file was saved by an older version that used addresses and tags), it:
+If UniContacts cannot read the data file when it starts (for example, a person has no context or has an invalid phone number or email, two persons share a phone number or email, the file is not valid JSON, or the file is a data file from AddressBook-Level3), it:
 
 1. renames the file to `addressbook.json.<UTC time>.bak` in the same `data` folder, for example `addressbook.json.20261015T101723Z.bak`, so that your data is not overwritten; and
-2. starts with an empty address book. A new `data/addressbook.json` is created by the first command that changes something, such as `add`.
+2. starts with an empty person list. A new `data/addressbook.json` is created by the first command that changes something, such as `add`.
 
 To recover your data:
 
@@ -522,7 +522,7 @@ To recover your data:
 3. If there is a new `addressbook.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
 4. Start UniContacts again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
-If UniContacts cannot rename the file, for example because the `data` folder is read-only, it still starts with an empty address book and leaves the file where it is. It renames the file to a `.bak` file just before its next save, so a save can never overwrite the unreadable file. The same applies when the `data` folder cannot be opened at all: UniContacts starts empty instead of with the sample data.
+If UniContacts cannot rename the file, for example because the `data` folder is read-only, it still starts with an empty person list and leaves the file where it is. It renames the file to a `.bak` file just before its next save, so a save can never overwrite the unreadable file. The same applies when the `data` folder cannot be opened at all: UniContacts starts empty instead of with the sample data.
 
 If UniContacts fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name. If two failures happen in the same second, the later `.bak` file gets `-1` (then `-2`, and so on) before `.bak`, for example `addressbook.json.20261015T101723Z-1.bak`.
 
