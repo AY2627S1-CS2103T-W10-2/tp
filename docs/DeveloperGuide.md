@@ -124,7 +124,7 @@ The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object), whether they are archived or not.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* shows only some of those objects at a time. The filtered list uses a `Predicate<Person>`: `PREDICATE_SHOW_ACTIVE` (persons who are not archived, the normal contact list and the list shown at start-up) or `PREDICATE_SHOW_ARCHIVED`. `Model#showingArchivesProperty()` tells the UI which of the two is in use. See [Archive feature](#archive-feature).
+* shows only some of those objects at a time. The filtered list uses a `Predicate<Person>`: `PREDICATE_SHOW_ACTIVE` (persons who are not archived, the normal person list and the list shown at start-up) or `PREDICATE_SHOW_ARCHIVED`. `Model#showingArchivesProperty()` tells the UI which of the two is in use. See [Archive feature](#archive-feature).
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -154,17 +154,17 @@ This section describes some noteworthy details on how certain features are imple
 
 The `contexts` command lists active persons' distinct contexts with person counts in the existing scrollable result display. `AddressBookParser` delegates to `ContextsCommandParser`, which rejects non-whitespace arguments with the usage message and a pointer to `find c/CONTEXT`. Command words remain case-insensitive. The command stays separate from `list`, as `archives` does; `list` continues to show active persons and ignore trailing arguments.
 
-`ContextsCommand#execute()` reads `Model#getAddressBook().getPersonList()` rather than the filtered person list. It visits persons in their stored order, skips those that do not match `Model.PREDICATE_SHOW_ACTIVE`, and aggregates the remaining context descriptions in a `TreeMap` using `String.CASE_INSENSITIVE_ORDER`. This groups equivalent names and sorts the output while retaining the spelling from the first active person. Archived persons cannot contribute counts, context names or spelling. `Context` already normalizes surrounding and repeated spaces, and each person's contexts form a set, so a person contributes at most one to each context's count. Separate contacts with the same name are counted separately.
+`ContextsCommand#execute()` reads `Model#getAddressBook().getPersonList()` rather than the filtered person list. It visits persons in their stored order, skips those that do not match `Model.PREDICATE_SHOW_ACTIVE`, and aggregates the remaining context descriptions in a `TreeMap` using `String.CASE_INSENSITIVE_ORDER`. This groups equivalent names and sorts the output while retaining the spelling from the first active person. Archived persons cannot contribute counts, context names or spelling. `Context` already normalizes surrounding and repeated spaces, and each person's contexts form a set, so a person contributes at most one to each context's count. Separate persons with the same name are counted separately.
 
 The command returns one line per context followed by a distinct-context summary. An empty address book gets the add-person hint; an address book containing only archived persons gets a separate no-active-contexts message with instructions to view and unarchive persons. It does not update the model or its filter, so the displayed person list, search predicate, Archives header and indices remain unchanged. Even in the archive view, the overview counts all active persons, rather than the displayed archived persons. Counts are recomputed on each execution, and no storage format change is required. Existing `LogicManager` save handling applies as it does for other commands.
 
-`ContextsCommandTest` covers normalization, counts, alphabetical order, spelling from the first active person, empty and archived-only data, filtered lists, archive views and changes between executions. Parser tests cover command casing, whitespace and rejected arguments. `LogicManagerTest` verifies filtering, archive/unarchive transitions, preservation of the archive view, rejected input and counts after reloading saved contacts.
+`ContextsCommandTest` covers normalization, counts, alphabetical order, spelling from the first active person, empty and archived-only data, filtered lists, archive views and changes between executions. Parser tests cover command casing, whitespace and rejected arguments. `LogicManagerTest` verifies filtering, archive/unarchive transitions, preservation of the archive view, rejected input and counts after reloading saved persons.
 
 ### Archive feature
 
 #### Implementation
 
-An archived contact is an ordinary `Person` whose `archived` flag is `true`. It stays in the same `AddressBook` and the same data file as every other person. What changes is which persons the user *sees*.
+An archived person is an ordinary `Person` whose `archived` flag is `true`. It stays in the same `AddressBook` and the same data file as every other person. What changes is which persons the user *sees*.
 
 The user sees `ModelManager#filteredPersons`, a `FilteredList<Person>`. The list that is shown depends only on the predicate set on it, in the same way as for `find`:
 
@@ -400,15 +400,15 @@ _{more aspects and alternatives to be added}_
 
 * is a Computer Science (CS) student at university
 * actively builds and maintains academic and professional networks through modules, project teams, hackathons, tech communities, internships and other collaborative activities
-* accumulates contacts across many overlapping academic and professional contexts
+* accumulates persons across many overlapping academic and professional contexts
 * often remembers the context in which they know someone, but not the person's exact details
-* has a need to manage a significant number of contacts
+* has a need to manage a significant number of persons
 * prefers desktop apps over other types of applications
 * can type fast
 * prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Help CS students organise and retrieve people in their academic and professional network, especially when they remember the context in which they know someone but not the person's exact details. Each contact is saved with one or more contexts (e.g. a module, project team, hackathon or internship), so users can find the right person by name or context, faster than with a typical mouse-driven contact app.
+**Value proposition**: Help CS students organise and retrieve people in their academic and professional network, especially when they remember the context in which they know someone but not the person's exact details. Each person is saved with one or more contexts (e.g. a module, project team, hackathon or internship), so users can find the right person by name or context, faster than with a typical mouse-driven contact app.
 
 
 ### User stories
@@ -423,20 +423,20 @@ US1 to US22 retain the identifiers from the Project Notes.
 
 | ID | Priority | As a ... | I want to ... | So that I can ... |
 | --- | --- | --- | --- | --- |
-| US1 | `* * *` | CS student who meets people at hackathons or datathons | record where and how I met someone when adding their contact | recall the connection even if I later forget their name |
-| US4 | `* * *` | CS student with limited time | quickly add a contact with a name and context, even when I do not yet have their phone number or email | capture people I meet before I forget their details |
-| US5 | `* * *` | CS student who meets people through different activities | organise contacts using contexts such as modules, clubs, internships, and events | remember which parts of my network each person belongs to |
-| US10 | `* * *` | CS student who remembers an activity but not someone's name | search contacts by their associated module, event, project, or organisation | find the right person using the context I remember |
-| US11 | `* * *` | CS student who knows someone through several activities | associate multiple contexts with the same contact | keep those connections together without creating a separate entry for each context |
-| US15 | `* * *` | CS student who remembers only part of a name | search contacts using a full or partial name regardless of capitalisation | find someone without remembering their exact full name |
-| US16 | `* * *` | CS student who knows people with similar names | see contextual information alongside search results | distinguish between the matching contacts |
-| US17 | `* *` | CS student who remembers several partial details about someone | narrow search results to contacts matching all the clues I provide | identify the person from the combination of details I remember |
-| US18 | `* * *` | CS student reconnecting with people from a particular activity | view contacts associated with a module, event, project, or organisation | rediscover people from that group |
-| US23 | `* *` | CS student with contacts from many activities | view my active contexts and the number of contacts linked to each | choose a relevant group before searching my network |
+| US1 | `* * *` | CS student who meets people at hackathons or datathons | record where and how I met someone when adding their person | recall the connection even if I later forget their name |
+| US4 | `* * *` | CS student with limited time | quickly add a person with a name and context, even when I do not yet have their phone number or email | capture people I meet before I forget their details |
+| US5 | `* * *` | CS student who meets people through different activities | organise persons using contexts such as modules, clubs, internships, and events | remember which parts of my network each person belongs to |
+| US10 | `* * *` | CS student who remembers an activity but not someone's name | search persons by their associated module, event, project, or organisation | find the right person using the context I remember |
+| US11 | `* * *` | CS student who knows someone through several activities | associate multiple contexts with the same person | keep those connections together without creating a separate entry for each context |
+| US15 | `* * *` | CS student who remembers only part of a name | search persons using a full or partial name regardless of capitalisation | find someone without remembering their exact full name |
+| US16 | `* * *` | CS student who knows people with similar names | see contextual information alongside search results | distinguish between the matching persons |
+| US17 | `* *` | CS student who remembers several partial details about someone | narrow search results to persons matching all the clues I provide | identify the person from the combination of details I remember |
+| US18 | `* * *` | CS student reconnecting with people from a particular activity | view persons associated with a module, event, project, or organisation | rediscover people from that group |
+| US23 | `* *` | CS student with persons from many activities | view my active contexts and the number of persons linked to each | choose a relevant group before searching my network |
 
 Context-based search (US10) directly supports UniContacts' value proposition: retrieving people through the contexts
 in which the user knows them. Multi-clue search (US17) extends this by requiring every supplied field-specific clue to
-match the same contact.
+match the same person.
 
 #### Post-MVP candidates
 
@@ -444,18 +444,18 @@ These stories record useful extensions considered beyond the MVP. Their prioriti
 
 | ID | Priority | As a ... | I want to ... | So that I can ... |
 | --- | --- | --- | --- | --- |
-| US3 | `* *` | CS student looking for teammates or collaborators | filter contacts by skills, interests, or past project experience | find suitable people for future projects or hackathons |
-| US6 | `* *` | CS student maintaining relationships | set reminders to check in with contacts | avoid losing touch with people in my network |
-| US7 | `*` | CS student building a network | record and view which of my contacts know each other | understand the connections within my network |
-| US8 | `* *` | CS student keeping track of friends' activities | record and view notes about a contact's current role, project, or location | recall what they are doing without asking for the same information again |
-| US9 | `* *` | CS student exploring career paths | search or filter contacts by role, company, or field | identify people whose experience is relevant to my career interests |
+| US3 | `* *` | CS student looking for teammates or collaborators | filter persons by skills, interests, or past project experience | find suitable people for future projects or hackathons |
+| US6 | `* *` | CS student maintaining relationships | set reminders to check in with persons | avoid losing touch with people in my network |
+| US7 | `*` | CS student building a network | record and view which of my persons know each other | understand the connections within my network |
+| US8 | `* *` | CS student keeping track of friends' activities | record and view notes about a person's current role, project, or location | recall what they are doing without asking for the same information again |
+| US9 | `* *` | CS student exploring career paths | search or filter persons by role, company, or field | identify people whose experience is relevant to my career interests |
 | US12 | `* *` | CS student who connects with people through different channels | store additional contact channels, such as Telegram handles, alongside phone numbers and email addresses | choose an appropriate way to reach each person |
-| US13 | `* *` | CS student whose project team or module has ended | archive contacts I no longer actively need | keep my active list relevant while retaining past connections |
-| US14 | `* *` | CS student who regularly contacts a few key people | mark contacts as favourites | access them quickly without searching the whole list |
-| US19 | `* *` | CS student who met someone through another person | record who introduced me to a contact | remember how the connection was formed |
-| US20 | `* *` | CS student whose contacts' details and shared activities change | edit contact details and add or remove contexts | keep records accurate without deleting and recreating contacts |
-| US21 | `* *` | CS student who knows someone by more than one name | record and search a contact's nickname or alternative name | find them using the name I remember |
-| US22 | `* *` | CS student who needs to remember additional details about a person | attach a short personal note to a contact | retain useful information that does not fit the standard contact fields |
+| US13 | `* *` | CS student whose project team or module has ended | archive persons I no longer actively need | keep my active list relevant while retaining past connections |
+| US14 | `* *` | CS student who regularly contacts a few key people | mark persons as favourites | access them quickly without searching the whole list |
+| US19 | `* *` | CS student who met someone through another person | record who introduced me to a person | remember how the connection was formed |
+| US20 | `* *` | CS student whose persons' details and shared activities change | edit contact details and add or remove contexts | keep records accurate without deleting and recreating persons |
+| US21 | `* *` | CS student who knows someone by more than one name | record and search a person's nickname or alternative name | find them using the name I remember |
+| US22 | `* *` | CS student who needs to remember additional details about a person | attach a short personal note to a person | retain useful information that does not fit the standard person fields |
 
 The MVP already allows optional phone and email details; US12 extends this to additional channels. US13, US19,
 US20, US21 and US22 were implemented after the MVP; their placement here records the original MVP scope.
@@ -463,27 +463,27 @@ The other stories remain possible future enhancements.
 
 #### Considered but excluded
 
-The following story is retained to document the scope decision. UniContacts manages a student's personal contacts; social discovery is outside its intended scope. The priority records the desirability of the idea, not a commitment to implement it.
+The following story is retained to document the scope decision. UniContacts manages a student's personal persons; social discovery is outside its intended scope. The priority records the desirability of the idea, not a commitment to implement it.
 
 | ID | Priority | As a ... | I want to ... | So that I can ... |
 | --- | --- | --- | --- | --- |
-| US2 | `* *` | CS student seeking social connections | discover and start conversations with other students who share my interests | make friends beyond my existing contacts |
+| US2 | `* *` | CS student seeking social connections | discover and start conversations with other students who share my interests | make friends beyond my existing persons |
 
 ### Use cases
 
 (For all use cases below, the **System** is `UniContacts` and the **Actor** is the `user`. Steps state the user's intention rather than command syntax; command formats and error messages are specified in the User Guide.)
 
-**Use case: UC01 - Add a contact**
+**Use case: UC01 - Add a person**
 
 **Guarantees**
 
-* If the entered data is invalid or duplicates an existing contact, no contact is added.
-* Otherwise, the new contact is stored with its name and at least one context.
+* If the entered data is invalid or duplicates an existing person, no person is added.
+* Otherwise, the new person is stored with its name and at least one context.
 
 **MSS**
 
-1.  User requests to add a contact, providing the contact's name, at least one context, and optionally a phone number and email
-2.  System adds the contact and shows the details of the new contact
+1.  User requests to add a person, providing the person's name, at least one context, and optionally a phone number and email
+2.  System adds the person and shows the details of the new person
 
     Use case ends.
 
@@ -499,30 +499,30 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case resumes at step 2.
 
-* 1b. The phone number or email matches an existing contact.
+* 1b. The phone number or email matches an existing person.
 
-    * 1b1. System informs the user that the contact already exists.
+    * 1b1. System informs the user that the person already exists.
 
       Use case ends.
 
 * 2a. System is unable to save the change.
 
-    * 2a1. System adds the contact for the current session and warns the user that the change may be lost when the app is closed.
+    * 2a1. System adds the person for the current session and warns the user that the change may be lost when the app is closed.
 
       Use case ends.
 
 
-**Use case: UC02 - Find contacts by context**
+**Use case: UC02 - Find persons by context**
 
 **Guarantees**
 
-* No contact data is changed.
-* Every saved contact with a context matching the request is shown, regardless of capitalisation.
+* No person data is changed.
+* Every saved person with a context matching the request is shown, regardless of capitalisation.
 
 **MSS**
 
-1.  User requests to find contacts linked to a specific context
-2.  System shows the matching contacts filtered by that specific context
+1.  User requests to find persons linked to a specific context
+2.  System shows the matching persons filtered by that specific context
 
     Use case ends.
 
@@ -540,23 +540,23 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case resumes at step 1.
 
-* 2a. No contacts match the context.
+* 2a. No persons match the context.
 
-    * 2a1. System shows an empty list and informs the user that no contacts were found.
+    * 2a1. System shows an empty list and informs the user that no persons were found.
 
       Use case ends.
 
-**Use case: UC03 - Find contacts by name**
+**Use case: UC03 - Find persons by name**
 
 **Guarantees**
 
-* No contact data is changed.
-* Every saved contact whose name contains the requested name is shown, regardless of capitalisation.
+* No person data is changed.
+* Every saved person whose name contains the requested name is shown, regardless of capitalisation.
 
 **MSS**
 
-1.  User requests to find contacts by a full or partial name
-2.  System shows the matching contacts, each with its contexts
+1.  User requests to find persons by a full or partial name
+2.  System shows the matching persons, each with its contexts
 
     Use case ends.
 
@@ -568,23 +568,23 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case resumes at step 1.
 
-* 2a. No contacts match the name.
+* 2a. No persons match the name.
 
-    * 2a1. System shows an empty list and informs the user that no contacts were found.
+    * 2a1. System shows an empty list and informs the user that no persons were found.
 
       Use case ends.
 
-**Use case: UC04 - Find contacts using multiple clues**
+**Use case: UC04 - Find persons using multiple clues**
 
 **Guarantees**
 
-* No contact data is changed.
-* Every displayed contact matches every supplied name and context clue, regardless of capitalisation.
+* No person data is changed.
+* Every displayed person matches every supplied name and context clue, regardless of capitalisation.
 
 **MSS**
 
-1.  User requests to find contacts using one or more partial name and context clues
-2.  System searches the full contact list and shows contacts matching every clue
+1.  User requests to find persons using one or more partial name and context clues
+2.  System searches the full person list and shows persons matching every clue
 
     Use case ends.
 
@@ -602,32 +602,32 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case resumes at step 1.
 
-* 2a. No contact matches every clue.
+* 2a. No person matches every clue.
 
-    * 2a1. System shows an empty list and informs the user that no contacts were found.
+    * 2a1. System shows an empty list and informs the user that no persons were found.
 
       Use case ends.
 
-**Use case: UC05 - Delete a contact**
+**Use case: UC05 - Delete a person**
 
 **Guarantees**
 
-* If the user does not identify a contact in the displayed list, no contact is deleted.
-* Only the identified contact is deleted; other contacts, including ones with the same name, are unchanged.
-* The deleted contact no longer appears in the contact list.
+* If the user does not identify a person in the displayed list, no person is deleted.
+* Only the identified person is deleted; other persons, including ones with the same name, are unchanged.
+* The deleted person no longer appears in the person list.
 
 **MSS**
 
-1.  User requests to list contacts
-2.  System shows a list of contacts
-3.  User requests to delete a specific contact in the list
-4.  System deletes the contact and shows the details of the deleted contact
+1.  User requests to list persons
+2.  System shows a list of persons
+3.  User requests to delete a specific person in the list
+4.  System deletes the person and shows the details of the deleted person
 
     Use case ends.
 
 **Extensions**
 
-* 1a. User finds the contact by context (UC02) or by name (UC03) instead.
+* 1a. User finds the person by context (UC02) or by name (UC03) instead.
 
   Use case resumes at step 3.
 
@@ -635,7 +635,7 @@ The following story is retained to document the scope decision. UniContacts mana
 
   Use case ends.
 
-* 3a. The requested contact is not in the displayed list.
+* 3a. The requested person is not in the displayed list.
 
     * 3a1. System shows an error message.
 
@@ -643,7 +643,7 @@ The following story is retained to document the scope decision. UniContacts mana
 
 * 4a. System is unable to save the change.
 
-    * 4a1. System deletes the contact for the current session and warns the user that the change may be lost when the app is closed.
+    * 4a1. System deletes the person for the current session and warns the user that the change may be lost when the app is closed.
 
       Use case ends.
 
@@ -651,16 +651,16 @@ The following story is retained to document the scope decision. UniContacts mana
 
 **Guarantees**
 
-* No contact data is changed, and the displayed contact list is unchanged.
+* No person data is changed, and the displayed person list is unchanged.
 * Each context appears once, regardless of capitalisation or extra spaces.
-* Counts include every active contact in the address book, regardless of the current search filter or archive view.
-* Archived contacts contribute neither counts nor context names. Spelling comes from the first active contact.
-* Each contact contributes at most one to each context's count. Different contacts with the same name count separately.
+* Counts include every active person in the address book, regardless of the current search filter or archive view.
+* Archived persons contribute neither counts nor context names. Spelling comes from the first active person.
+* Each person contributes at most one to each context's count. Different persons with the same name count separately.
 
 **MSS**
 
 1.  User requests to view all contexts
-1.  System shows each context in alphabetical order, with the number of active contacts linked to it
+1.  System shows each context in alphabetical order, with the number of active persons linked to it
 
     Use case ends.
 
@@ -672,40 +672,40 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case resumes at step 1.
 
-* 2a. No contacts have been saved.
+* 2a. No persons have been saved.
 
     * 2a1. System informs the user that there are no contexts yet.
 
       Use case ends.
 
-* 2b. All saved contacts are archived.
+* 2b. All saved persons are archived.
 
-    * 2b1. System reports that there are no active contexts and explains how to view and unarchive contacts.
+    * 2b1. System reports that there are no active contexts and explains how to view and unarchive persons.
 
       Use case ends.
 
 
-**Use case: UC07 - Archive a contact**
+**Use case: UC07 - Archive a person**
 
 **Guarantees**
 
-* If the user does not identify a contact in the displayed list, or the contact is already archived, nothing is changed.
-* Only the identified contact is archived; other contacts are unchanged.
-* The archived contact is not deleted: it stays saved with all its details.
-* The archived contact no longer appears in the contact list or in find results.
+* If the user does not identify a person in the displayed list, or the person is already archived, nothing is changed.
+* Only the identified person is archived; other persons are unchanged.
+* The archived person is not deleted: it stays saved with all its details.
+* The archived person no longer appears in the person list or in find results.
 
 **MSS**
 
-1.  User requests to list contacts
-2.  System shows a list of contacts
-3.  User requests to archive a specific contact in the list
-4.  System archives the contact and shows the details of the archived contact
+1.  User requests to list persons
+2.  System shows a list of persons
+3.  User requests to archive a specific person in the list
+4.  System archives the person and shows the details of the archived person
 
     Use case ends.
 
 **Extensions**
 
-* 1a. User finds the contact by context (UC02) or by name (UC03) instead.
+* 1a. User finds the person by context (UC02) or by name (UC03) instead.
 
   Use case resumes at step 3.
 
@@ -713,25 +713,25 @@ The following story is retained to document the scope decision. UniContacts mana
 
   Use case ends.
 
-* 3a. The requested contact is not in the displayed list.
+* 3a. The requested person is not in the displayed list.
 
     * 3a1. System shows an error message.
 
       Use case resumes at step 2.
 
-* 3b. The requested contact is already archived.
+* 3b. The requested person is already archived.
 
     * 3b1. System shows an error message.
 
       Use case resumes at step 2.
 
-* 3c. User requests to archive all contacts with a context instead of one contact.
+* 3c. User requests to archive all persons with a context instead of one person.
 
-    * 3c1. System archives every contact with that context who is not archived yet, whatever contacts the list shows, and shows how many were archived.
+    * 3c1. System archives every person with that context who is not archived yet, whatever persons the list shows, and shows how many were archived.
 
       Use case ends.
 
-    * 3c2. No contact with that context can be archived, or the context is not valid.
+    * 3c2. No person with that context can be archived, or the context is not valid.
 
         * 3c2a. System shows an error message.
 
@@ -739,21 +739,21 @@ The following story is retained to document the scope decision. UniContacts mana
 
 * 4a. System is unable to save the change.
 
-    * 4a1. System archives the contact for the current session and warns the user that the change may be lost when the app is closed.
+    * 4a1. System archives the person for the current session and warns the user that the change may be lost when the app is closed.
 
       Use case ends.
 
-**Use case: UC08 - View archived contacts**
+**Use case: UC08 - View archived persons**
 
 **Guarantees**
 
-* No contact data is changed.
-* Only archived contacts are shown, under the heading "Archives".
+* No person data is changed.
+* Only archived persons are shown, under the heading "Archives".
 
 **MSS**
 
-1.  User requests to view archived contacts
-2.  System shows the archived contacts under the heading "Archives"
+1.  User requests to view archived persons
+2.  System shows the archived persons under the heading "Archives"
 
     Use case ends.
 
@@ -765,49 +765,49 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case resumes at step 1.
 
-* 2a. There are no archived contacts.
+* 2a. There are no archived persons.
 
-    * 2a1. System tells the user that there are no archived contacts.
+    * 2a1. System tells the user that there are no archived persons.
 
       Use case ends.
 
-**Use case: UC09 - Unarchive a contact**
+**Use case: UC09 - Unarchive a person**
 
 **Guarantees**
 
-* If the user does not identify an archived contact in the displayed list, nothing is changed.
-* Only the identified contact is unarchived; other contacts are unchanged.
-* The unarchived contact appears in the normal contact list again.
+* If the user does not identify an archived person in the displayed list, nothing is changed.
+* Only the identified person is unarchived; other persons are unchanged.
+* The unarchived person appears in the normal person list again.
 
 **MSS**
 
-1.  User views the archived contacts (UC08)
-2.  User requests to unarchive a specific contact in the list
-3.  System unarchives the contact and shows the details of the unarchived contact
+1.  User views the archived persons (UC08)
+2.  User requests to unarchive a specific person in the list
+3.  System unarchives the person and shows the details of the unarchived person
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The requested contact is not in the displayed list.
+* 2a. The requested person is not in the displayed list.
 
     * 2a1. System shows an error message.
 
       Use case resumes at step 1.
 
-* 2b. The requested contact is not archived, for example because the normal list is shown.
+* 2b. The requested person is not archived, for example because the normal list is shown.
 
-    * 2b1. System shows an error message that tells the user to view the archived contacts first.
+    * 2b1. System shows an error message that tells the user to view the archived persons first.
 
       Use case resumes at step 1.
 
-* 2c. User requests to unarchive all contacts with a context instead of one contact.
+* 2c. User requests to unarchive all persons with a context instead of one person.
 
-    * 2c1. System unarchives every archived contact with that context, whatever contacts the list shows, and shows how many were unarchived.
+    * 2c1. System unarchives every archived person with that context, whatever persons the list shows, and shows how many were unarchived.
 
       Use case ends.
 
-    * 2c2. No archived contact has that context, or the context is not valid.
+    * 2c2. No archived person has that context, or the context is not valid.
 
         * 2c2a. System shows an error message.
 
@@ -815,7 +815,7 @@ The following story is retained to document the scope decision. UniContacts mana
 
 * 3a. System is unable to save the change.
 
-    * 3a1. System unarchives the contact for the current session and warns the user that the change may be lost when the app is closed.
+    * 3a1. System unarchives the person for the current session and warns the user that the change may be lost when the app is closed.
 
       Use case ends.
 
@@ -824,13 +824,13 @@ The following story is retained to document the scope decision. UniContacts mana
 1.  UniContacts should work on Windows, Linux, and macOS computers with Java `25` installed.
 2.  UniContacts should be distributed as a single JAR file no larger than 100 MB and should not require an installer.
 3.  All features should remain usable without an Internet connection, a user account, or a remote server.
-4.  Contact data should be stored locally in a human-editable text file without using a database management system. Correctly formatted manual edits to the data file should be loaded by the application.
+4.  Person data should be stored locally in a human-editable text file without using a database management system. Correctly formatted manual edits to the data file should be loaded by the application.
 5.  UniContacts should support a single user per installation and should not require its data file to be shared or accessed concurrently.
-6.  Contact data should not be transmitted outside the user's computer.
-7.  UniContacts should be able to hold up to 1000 contacts. Commands used during typical operation, such as adding, editing, deleting, listing, and finding contacts, should complete within one second.
+6.  Person data should not be transmitted outside the user's computer.
+7.  UniContacts should be able to hold up to 1000 persons. Commands used during typical operation, such as adding, editing, deleting, listing, and finding persons, should complete within one second.
 8.  A user with above-average typing speed for regular English text should be able to perform all primary contact-management tasks using only the keyboard and faster than with an equivalent mouse-driven interface.
 9.  The GUI should work well at resolutions of `1920x1080` and above with screen scales of 100% and 125%. It should remain usable at resolutions of `1280x720` and above with a screen scale of 150%.
-10. Invalid commands and invalid contact details entered by the user should not modify existing contact data or cause the application to stop responding. The application should display an error message and remain usable.
+10. Invalid commands and invalid contact details entered by the user should not modify existing person data or cause the application to stop responding. The application should display an error message and remain usable.
 
 ### Glossary
 
@@ -838,11 +838,11 @@ The following story is retained to document the scope decision. UniContacts mana
 * **Datathon**: A collaborative competition—similar to a hackathon—where participants analyze complex, real-world datasets to build data-driven applications, machine learning models, or strategic insights within a set timeframe
 * **Duplicate**: The input is considered as a duplicate when the email/phone number inputted matches one of stored emails/phone numbers in the database. Inputs with same name matched is allowed and will not be considered as a duplicate.
 * **Capitalisation**: Whether the letters in a context name are uppercase or lowercase.
-* **Contact**: A saved record representing a specific person within the user's academic, professional, or social network.
+* **Person**: A saved record representing a specific person within the user's academic, professional, or social network.
 * **Context**: A descriptive tag representing the shared environment, activity, or relationship (such as a school module, project team, CCA, internship, or event) that explains how or where the user knows a specific person.
-* **Archived contact**: A contact that has been set aside with `archive`. It stays saved but is left out of the normal contact list and out of `find` results, and it is shown only by `archives`.
-* **Index**: A numerical value used to identify and select a specific contact based on its position in the currently displayed contact list.
-* **Partial-match**: A name/context input can match to multiple contacts in the local JSON.
+* **Archived person**: A person that has been set aside with `archive`. It stays saved but is left out of the normal person list and out of `find` results, and it is shown only by `archives`.
+* **Index**: A numerical value used to identify and select a specific person based on its position in the currently displayed person list.
+* **Partial-match**: A name/context input can match to multiple persons in the local JSON.
 * **Case-insensitive**: No distinctions between uppercase and lowercase inputs including commands, names and contexts.
 * **Session**: A single continuous period of using UniContacts, starting when the application is opened and ending when it is closed.
 
@@ -866,7 +866,7 @@ testers are expected to do more *exploratory* testing.
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+      Expected: The GUI opens with a set of sample persons. The window size may not be optimal.
 
 1. Saving window preferences
 
@@ -881,14 +881,14 @@ testers are expected to do more *exploratory* testing.
 
 1. Matching clues across all supported fields
 
-   1. Prerequisites: Add a contact using `add n/Tony Zhang p/91234567 e/tony@example.com c/CS2103T`
+   1. Prerequisites: Add a person using `add n/Tony Zhang p/91234567 e/tony@example.com c/CS2103T`
       `c/Hack&Roll a/Toto i/Alice Tan nt/Project teammate`.
 
    1. Test case: `find nt/project c/Hack p/9123 n/tony i/alice e/@example a/toto c/2103`<br>
-      Expected: Tony Zhang is the only displayed contact. The order of the prefixes does not affect the result.
+      Expected: Tony Zhang is the only displayed person. The order of the prefixes does not affect the result.
 
    1. Test case: `find n/Tony c/CS2103T nt/internship`<br>
-      Expected: No contacts are displayed and the status message is `No persons found!`, because every clue must match.
+      Expected: No persons are displayed and the status message is `No persons found!`, because every clue must match.
 
    1. Test case: `find p/`<br>
       Expected: The displayed list is unchanged and the status message is `Phone search clue cannot be empty.`
@@ -903,7 +903,7 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
 
    1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+      Expected: The first person is deleted from the list. The status message shows the deleted person's details.
 
    1. Test case: `delete 0`<br>
       Expected: No person is deleted. The status message shows error details.
@@ -920,31 +920,31 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: Use a disposable test address book containing only Alex Tan with `CS2103` and `NUS Hackers`, Priya Nair with `cs2103` and `CS2103T`, and Marcus Lim with `CS2103T`. All three must be active.
 
    1. Test case: `contexts`<br>
-      Expected: The result display shows `CS2103: 2 people`, `CS2103T: 2 people`, `NUS Hackers: 1 person`, a blank line, and `3 contexts listed.` The contact list is unchanged.
+      Expected: The result display shows `CS2103: 2 people`, `CS2103T: 2 people`, `NUS Hackers: 1 person`, a blank line, and `3 contexts listed.` The person list is unchanged.
 
    1. Test case: `find Priya`, followed by `contexts`<br>
-      Expected: The same counts across all active contacts are shown, and only Priya remains in the displayed list.
+      Expected: The same counts across all active persons are shown, and only Priya remains in the displayed list.
 
    1. Test case: `find Nobody`, followed by `CONTEXTS`<br>
-      Expected: The same counts are shown, and the displayed contact list remains empty.
+      Expected: The same counts are shown, and the displayed person list remains empty.
 
    1. Test case: `list`, `delete 1`, then `contexts`<br>
-      Expected: `NUS Hackers` disappears, and the counts reflect the remaining contacts. The overview uses Priya's spelling `cs2103` for that context.
+      Expected: `NUS Hackers` disappears, and the counts reflect the remaining persons. The overview uses Priya's spelling `cs2103` for that context.
 
 1. Rejecting unexpected arguments
 
    1. Test cases: `contexts CS2103T`, `CONTEXTS c/CS2103T`, `contexts archived` and `contexts 1`<br>
-      Expected: Each command fails with `Invalid command format!` and usage guidance pointing to `find c/CONTEXT`. The saved contacts and displayed list are unchanged.
+      Expected: Each command fails with `Invalid command format!` and usage guidance pointing to `find c/CONTEXT`. The saved persons and displayed list are unchanged.
 
-1. Excluding archived contacts and preserving the archive view
+1. Excluding archived persons and preserving the archive view
 
-   1. Prerequisites: Reset the disposable address book to the three active contacts in the first test group.
+   1. Prerequisites: Reset the disposable address book to the three active persons in the first test group.
 
    1. Test case: `list`, `archive 1`, then `contexts`<br>
       Expected: `cs2103: 1 person`, `CS2103T: 2 people`, a blank line, and `2 contexts listed.` `NUS Hackers` is omitted, and Priya's spelling is used. Only Priya and Marcus remain in the displayed list.
 
    1. Test case: `archives`, then `contexts`<br>
-      Expected: The same active-only overview is shown. Alex remains the only displayed contact, under the Archives header, at index 1.
+      Expected: The same active-only overview is shown. Alex remains the only displayed person, under the Archives header, at index 1.
 
    1. Close and reopen the app, then run `contexts`.<br>
       Expected: The same active-only counts and spelling are shown after reload.
@@ -952,30 +952,30 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `archives`, `unarchive 1`, then `contexts`<br>
       Expected: The original three-context overview is restored, including Alex's spelling `CS2103`.
 
-1. Listing contexts when all contacts are archived
+1. Listing contexts when all persons are archived
 
-   1. Prerequisites: In a disposable address book containing only the three active contacts above, run `list`, then `archive 1` three times.
+   1. Prerequisites: In a disposable address book containing only the three active persons above, run `list`, then `archive 1` three times.
 
    1. Test case: `contexts`<br>
       Expected: `No active contexts found. Run archives to view archived persons, then use unarchive INDEX to include them.` The displayed list remains empty.
 
    1. Test case: `archives`, then `contexts`<br>
-      Expected: The same message, with all three archived contacts still displayed under the Archives header.
+      Expected: The same message, with all three archived persons still displayed under the Archives header.
 
 1. Listing contexts in an empty address book
 
-   1. Prerequisites: Use an empty disposable address book with no active or archived contacts. `clear` alone does not remove archived contacts; use `archives` and delete those contacts individually if any remain.
+   1. Prerequisites: Use an empty disposable address book with no active or archived persons. `clear` alone does not remove archived persons; use `archives` and delete those persons individually if any remain.
 
    1. Test case: `contexts`<br>
-      Expected: `No contexts found. Add a person with c/CONTEXT to get started.` The contact list remains empty.
+      Expected: `No contexts found. Add a person with c/CONTEXT to get started.` The person list remains empty.
 
 1. Checking persistence and long output
 
-   1. Close and reopen the app after saving contacts, then run `contexts`.<br>
-      Expected: The counts and spelling match the stored active contacts.
+   1. Close and reopen the app after saving persons, then run `contexts`.<br>
+      Expected: The counts and spelling match the stored active persons.
 
    1. With enough distinct contexts to exceed the result display's height, run `contexts` and scroll the result.<br>
-      Expected: All context rows and the final summary can be read without changing the displayed contact list.
+      Expected: All context rows and the final summary can be read without changing the displayed person list.
 
 ### Archiving a person
 
@@ -1061,7 +1061,7 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: Close the app and delete the `data` folder.
 
    1. Test case: Start the app<br>
-      Expected: The app starts with the sample contacts. `data/addressbook.json` is not created until a command that changes something, such as `add`, is run.
+      Expected: The app starts with the sample persons. `data/addressbook.json` is not created until a command that changes something, such as `add`, is run.
 
 1. Dealing with corrupted data files
 
