@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import seedu.address.commons.util.StringUtil;
+
 /**
  * Represents an optional alternative name for a person.
  * Guarantees: immutable; valid under the same character and length rules as a {@link Name}.
@@ -16,25 +18,21 @@ public class Alias {
     public final String value;
 
     /**
-     * Constructs an {@code Alias}, removing surrounding spaces and collapsing repeated internal spaces.
+     * Constructs an {@code Alias}, removing surrounding whitespace and collapsing repeated internal whitespace.
      *
      * @param alias A valid alternative name.
      */
     public Alias(String alias) {
         requireNonNull(alias);
         checkArgument(isValidAlias(alias), MESSAGE_CONSTRAINTS);
-        value = normalise(alias);
+        value = StringUtil.collapseWhitespace(alias);
     }
 
     /**
      * Returns whether the normalised alias follows the name constraints.
      */
     public static boolean isValidAlias(String test) {
-        return test != null && Name.isValidName(normalise(test));
-    }
-
-    private static String normalise(String value) {
-        return value.trim().replaceAll(" +", " ");
+        return test != null && Name.isValidName(StringUtil.collapseWhitespace(test));
     }
 
     @Override
