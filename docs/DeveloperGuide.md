@@ -122,11 +122,13 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object), whether they are archived or not.
+* stores the UniContacts data i.e., all `Person` objects (which are contained in a `UniquePersonList` object), whether they are archived or not.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * shows only some of those objects at a time. The filtered list uses a `Predicate<Person>`: `PREDICATE_SHOW_ACTIVE` (persons who are not archived, the normal contact list and the list shown at start-up) or `PREDICATE_SHOW_ARCHIVED`. `Model#showingArchivesProperty()` tells the UI which of the two is in use. See [Archive feature](#archive-feature).
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
+
+The class names `AddressBook`, `ReadOnlyAddressBook` and similar come from AddressBook-Level3, which UniContacts is based on.
 
 ### Storage component
 
@@ -135,7 +137,7 @@ The `Model` component,
 <img src="images/StorageClassDiagram.png" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* can save both contact data and user preference data in JSON format, and read them back into corresponding objects.
 * saves every person, including archived ones, in the same file. A person's `archived` flag is stored as an optional `"archived"` key, which defaults to `false` when it is missing, so data files saved before archiving existed still load.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
@@ -156,7 +158,7 @@ The `contexts` command lists active persons' distinct contexts with person count
 
 `ContextsCommand#execute()` reads `Model#getAddressBook().getPersonList()` rather than the filtered person list. It visits persons in their stored order, skips those that do not match `Model.PREDICATE_SHOW_ACTIVE`, and aggregates the remaining context descriptions in a `TreeMap` using `String.CASE_INSENSITIVE_ORDER`. This groups equivalent names and sorts the output while retaining the spelling from the first active person. Archived persons cannot contribute counts, context names or spelling. `Context` already normalizes surrounding and repeated spaces, and each person's contexts form a set, so a person contributes at most one to each context's count. Separate contacts with the same name are counted separately.
 
-The command returns one line per context followed by a distinct-context summary. An empty address book gets the add-person hint; an address book containing only archived persons gets a separate no-active-contexts message with instructions to view and unarchive persons. It does not update the model or its filter, so the displayed person list, search predicate, Archives header and indices remain unchanged. Even in the archive view, the overview counts all active persons, rather than the displayed archived persons. Counts are recomputed on each execution, and no storage format change is required. Existing `LogicManager` save handling applies as it does for other commands.
+The command returns one line per context followed by a distinct-context summary. An empty contact list gets the add-person hint; a contact list containing only archived persons gets a separate no-active-contexts message with instructions to view and unarchive persons. It does not update the model or its filter, so the displayed person list, search predicate, Archives header and indices remain unchanged. Even in the archive view, the overview counts all active persons, rather than the displayed archived persons. Counts are recomputed on each execution, and no storage format change is required. Existing `LogicManager` save handling applies as it does for other commands.
 
 `ContextsCommandTest` covers normalization, counts, alphabetical order, spelling from the first active person, empty and archived-only data, filtered lists, archive views and changes between executions. Parser tests cover command casing, whitespace and rejected arguments. `LogicManagerTest` verifies filtering, archive/unarchive transitions, preservation of the archive view, rejected input and counts after reloading saved contacts.
 
@@ -178,7 +180,7 @@ Because the shown list is the predicate, no separate "view mode" is stored. The 
 
 The new commands follow the pattern of `delete`:
 
-* `ArchiveCommand` and `UnarchiveCommand` take an `Index` that refers to `Model#getFilteredPersonList()`, that is, to the list on screen. The command finds the person, checks the flag (`archive` refuses a person who is already archived and `unarchive` refuses a person who is not), and replaces the person with `Person#copyWithArchived(boolean)`, which returns a copy with only the flag changed (`Person` is immutable). `LogicManager` then saves the whole address book as after every command.
+* `ArchiveCommand` and `UnarchiveCommand` take an `Index` that refers to `Model#getFilteredPersonList()`, that is, to the list on screen. The command finds the person, checks the flag (`archive` refuses a person who is already archived and `unarchive` refuses a person who is not), and replaces the person with `Person#copyWithArchived(boolean)`, which returns a copy with only the flag changed (`Person` is immutable). `LogicManager` then saves all contacts as after every command.
 * `ViewArchivesCommand` only sets `PREDICATE_SHOW_ARCHIVED`. Unlike the other commands without parameters, `ViewArchivesCommandParser` rejects text after the command word, because `archives` is one letter away from `archive` and `archives 1` is most likely a mistyped `archive 1`.
 
 #### Archiving by context
@@ -200,7 +202,7 @@ The sequence diagram shows what happens when the user enters `archive c/CS2103T`
 
 `unarchive c/CS2103T` is the same, with the flag `false`, so the command calls `copyWithArchived(false)`.
 
-**Why two command classes.** `SetArchivedByIndexCommand` and `SetArchivedByContextCommand` are separate because the two forms behave differently, not only because they read different input. The index form points at one person on screen, so it reads `Model#getFilteredPersonList()` and reports a person who is already in the target state as an error (that is useful feedback for a single person). The context form asks for a group, so it reads the whole address book, skips persons who are already in the target state, and fails only if no person changes. Both build the changed copy with `Person#copyWithArchived(boolean)`. The Javadoc of each class names the other.
+**Why two command classes.** `SetArchivedByIndexCommand` and `SetArchivedByContextCommand` are separate because the two forms behave differently, not only because they read different input. The index form points at one person on screen, so it reads `Model#getFilteredPersonList()` and reports a person who is already in the target state as an error (that is useful feedback for a single person). The context form asks for a group, so it reads all contacts, skips persons who are already in the target state, and fails only if no person changes. Both build the changed copy with `Person#copyWithArchived(boolean)`. The Javadoc of each class names the other.
 
 The command reads `Model#getAddressBook()` and **not** `Model#getFilteredPersonList()`. A context command has no index, so nothing ties it to what is on screen, and an earlier `find` must not change which persons it affects. The persons to change are copied into a list before the loop, because `Model#setPerson` changes the list that they were read from. Only persons whose state really changes are counted, and if there are none the command fails with a message that names the context. The context is matched with `Context#equals`, so it is exact and ignores capitalisation.
 
@@ -224,9 +226,9 @@ Other commands take the archive into account as follows:
 * **Alternative 1 (current choice):** one list with an `archived` flag per person.
   * Pros: one data file and one save, so there is no half-finished move between two files; the duplicate check already covers archived persons; old data files load unchanged.
   * Cons: every command that shows a list must choose a predicate, or archived persons would appear; the flag touches `Person` and `JsonAdaptedPerson`.
-* **Alternative 2:** a second address book and a second data file for the archive.
+* **Alternative 2:** a second contact list and a second data file for the archive.
   * Pros: existing commands never see archived persons, so they cannot forget to filter them.
-  * Cons: archiving writes two files, so a crash between the two writes loses or duplicates a person; the duplicate check must look in both address books; the UI must switch between two lists; and there are two files that can become unreadable.
+  * Cons: archiving writes two files, so a crash between the two writes loses or duplicates a person; the duplicate check must look in both contact lists; the UI must switch between two lists; and there are two files that can become unreadable.
 
 **Aspect: How the app knows that the archives are shown**
 
@@ -653,7 +655,7 @@ The following story is retained to document the scope decision. UniContacts mana
 
 * No contact data is changed, and the displayed contact list is unchanged.
 * Each context appears once, regardless of capitalisation or extra spaces.
-* Counts include every active contact in the address book, regardless of the current search filter or archive view.
+* Counts include every active contact in UniContacts, regardless of the current search filter or archive view.
 * Archived contacts contribute neither counts nor context names. Spelling comes from the first active contact.
 * Each contact contributes at most one to each context's count. Different contacts with the same name count separately.
 
@@ -917,7 +919,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Listing counts and preserving a search filter
 
-   1. Prerequisites: Use a disposable test address book containing only Alex Tan with `CS2103` and `NUS Hackers`, Priya Nair with `cs2103` and `CS2103T`, and Marcus Lim with `CS2103T`. All three must be active.
+   1. Prerequisites: Use a disposable test data file containing only Alex Tan with `CS2103` and `NUS Hackers`, Priya Nair with `cs2103` and `CS2103T`, and Marcus Lim with `CS2103T`. All three must be active.
 
    1. Test case: `contexts`<br>
       Expected: The result display shows `CS2103: 2 people`, `CS2103T: 2 people`, `NUS Hackers: 1 person`, a blank line, and `3 contexts listed.` The contact list is unchanged.
@@ -938,7 +940,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Excluding archived contacts and preserving the archive view
 
-   1. Prerequisites: Reset the disposable address book to the three active contacts in the first test group.
+   1. Prerequisites: Reset the disposable test data file to the three active contacts in the first test group.
 
    1. Test case: `list`, `archive 1`, then `contexts`<br>
       Expected: `cs2103: 1 person`, `CS2103T: 2 people`, a blank line, and `2 contexts listed.` `NUS Hackers` is omitted, and Priya's spelling is used. Only Priya and Marcus remain in the displayed list.
@@ -954,7 +956,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Listing contexts when all contacts are archived
 
-   1. Prerequisites: In a disposable address book containing only the three active contacts above, run `list`, then `archive 1` three times.
+   1. Prerequisites: In a disposable test data file containing only the three active contacts above, run `list`, then `archive 1` three times.
 
    1. Test case: `contexts`<br>
       Expected: `No active contexts found. Run archives to view archived persons, then use unarchive INDEX to include them.` The displayed list remains empty.
@@ -962,9 +964,9 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `archives`, then `contexts`<br>
       Expected: The same message, with all three archived contacts still displayed under the Archives header.
 
-1. Listing contexts in an empty address book
+1. Listing contexts with an empty contact list
 
-   1. Prerequisites: Use an empty disposable address book with no active or archived contacts. `clear` alone does not remove archived contacts; use `archives` and delete those contacts individually if any remain.
+   1. Prerequisites: Use an empty disposable test data file with no active or archived contacts. `clear` alone does not remove archived contacts; use `archives` and delete those contacts individually if any remain.
 
    1. Test case: `contexts`<br>
       Expected: `No contexts found. Add a person with c/CONTEXT to get started.` The contact list remains empty.
