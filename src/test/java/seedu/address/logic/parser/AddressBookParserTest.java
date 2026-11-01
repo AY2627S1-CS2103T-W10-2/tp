@@ -150,7 +150,7 @@ public class AddressBookParserTest {
         FindCommand expectedCommand = new FindCommand(new PersonMatchesCluesPredicate(searchClues));
 
         String clues = "n/Tony p/9123 e/@example.com c/CS2103T a/Toto i/Alice nt/project";
-        String reorderedClues = "nt/project i/Alice a/Toto c/CS2103T e/@example.com p/9123 n/Tony";
+        String reorderedClues = "i/Alice a/Toto c/CS2103T e/@example.com p/9123 n/Tony nt/project";
         assertEquals(expectedCommand, parser.parseCommand("find " + clues));
         assertEquals(expectedCommand, parser.parseCommand("find " + reorderedClues));
         assertEquals(expectedCommand, parser.parseCommand("FIND " + clues));
