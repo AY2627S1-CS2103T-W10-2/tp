@@ -517,7 +517,7 @@ The following story is retained to document the scope decision. UniContacts mana
 **Guarantees**
 
 * No person data is changed.
-* Every saved person with a context matching the request is shown, regardless of capitalisation.
+* Every active person with a context matching the request is shown, regardless of capitalisation.
 
 **MSS**
 
@@ -551,7 +551,7 @@ The following story is retained to document the scope decision. UniContacts mana
 **Guarantees**
 
 * No person data is changed.
-* Every saved person whose name contains the requested name is shown, regardless of capitalisation.
+* Every active person whose name contains the requested name is shown, regardless of capitalisation.
 
 **MSS**
 
@@ -579,18 +579,19 @@ The following story is retained to document the scope decision. UniContacts mana
 **Guarantees**
 
 * No person data is changed.
-* Every displayed person matches every supplied name and context clue, regardless of capitalisation.
+* Every displayed person is active and matches every supplied field-specific clue, regardless of capitalisation.
 
 **MSS**
 
-1.  User requests to find persons using one or more partial name and context clues
-2.  System searches the full person list and shows persons matching every clue
+1.  User requests to find persons using one or more partial field-specific clues (name, phone number, email, context,
+    alias, introducer or note)
+2.  System searches the full active person list and shows persons matching every clue
 
     Use case ends.
 
 **Extensions**
 
-* 1a. User does not provide a name or context clue.
+* 1a. User does not provide any field-specific clue.
 
     * 1a1. System shows an error message with the correct format.
 
