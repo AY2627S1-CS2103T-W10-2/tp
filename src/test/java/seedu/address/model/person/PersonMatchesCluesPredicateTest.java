@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.FindTestUtil.TONY;
+import static seedu.address.testutil.FindTestUtil.createFullSearchClues;
 
 import java.util.List;
 
@@ -12,16 +14,6 @@ import org.junit.jupiter.api.Test;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonMatchesCluesPredicateTest {
-
-    private static final Person TONY = new PersonBuilder()
-            .withName("Tony Zhang")
-            .withPhone("91234567")
-            .withEmail("tony@example.com")
-            .withContexts("CS2103T", "Hack&Roll")
-            .withAlias("Toto")
-            .withIntroducer("Alice Tan")
-            .withNote("Met my project  teammate at Hack&Roll")
-            .build();
 
     @Test
     public void constructor_noClues_throwsAssertionError() {
@@ -41,7 +33,8 @@ public class PersonMatchesCluesPredicateTest {
 
         // differs only in case and spacing -> returns true
         assertTrue(predicate.equals(new PersonMatchesCluesPredicate(
-                createFullSearchClues().withNameClue("  TONY ").withContextClues(List.of("cs2103t")))));
+                createFullSearchClues().withNameClue("  TON ")
+                        .withContextClues(List.of("  2103  ", "HACK")))));
 
         // differs only in name clue -> returns false
         assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
@@ -57,7 +50,7 @@ public class PersonMatchesCluesPredicateTest {
 
         // differs only in context clues -> returns false
         assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
-                createFullSearchClues().withContextClues(List.of("Hack")))));
+                createFullSearchClues().withContextClues(List.of("Internship")))));
 
         // differs only in alias clue -> returns false
         assertFalse(predicate.equals(new PersonMatchesCluesPredicate(
@@ -100,15 +93,7 @@ public class PersonMatchesCluesPredicateTest {
 
     @Test
     public void test_allSupportedCluesMatch_returnsTrue() {
-        PersonSearchClues searchClues = new PersonSearchClues()
-                .withNameClue("ton")
-                .withPhoneClue("1234")
-                .withEmailClue("@EXAMPLE.COM")
-                .withContextClues(List.of("2103", "hack"))
-                .withAliasClue("tot")
-                .withIntroducerClue("alice")
-                .withNoteClue("project teammate");
-        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(searchClues);
+        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(createFullSearchClues());
 
         assertTrue(predicate.test(TONY));
     }
@@ -222,16 +207,5 @@ public class PersonMatchesCluesPredicateTest {
                 + "{nameClue=tony, phoneClue=null, emailClue=null, contextClues=[cs2103t], "
                 + "aliasClue=null, introducerClue=null, noteClue=null}";
         assertEquals(expected, predicate.toString());
-    }
-
-    private static PersonSearchClues createFullSearchClues() {
-        return new PersonSearchClues()
-                .withNameClue("Tony")
-                .withPhoneClue("9123")
-                .withEmailClue("@example.com")
-                .withContextClues(List.of("CS2103T"))
-                .withAliasClue("Toto")
-                .withIntroducerClue("Alice")
-                .withNoteClue("project");
     }
 }
