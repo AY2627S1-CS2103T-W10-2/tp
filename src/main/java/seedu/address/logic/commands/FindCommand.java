@@ -6,7 +6,6 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ACTIVE;
 import java.util.function.Predicate;
 
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
@@ -45,11 +44,13 @@ public class FindCommand extends Command {
         requireNonNull(model);
         // archived persons are never found; they are only shown by the archives command
         model.updateFilteredPersonList(PREDICATE_SHOW_ACTIVE.and(predicate));
-        if (model.getFilteredPersonList().isEmpty()) {
+        int matchCount = model.getFilteredPersonList().size();
+        if (matchCount == 0) {
             return new CommandResult(MESSAGE_NO_PERSONS_FOUND);
         }
-        return new CommandResult(
-                String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
+        String message = matchCount == 1
+                ? ListCommand.MESSAGE_SUCCESS_SINGULAR : ListCommand.MESSAGE_SUCCESS_PLURAL;
+        return new CommandResult(String.format(message, matchCount));
     }
 
     @Override
