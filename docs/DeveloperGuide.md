@@ -9,7 +9,11 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* This project is based on the AddressBook-Level3 project created by the
+  [SE-EDU initiative](https://se-education.org).
+* The application uses [JavaFX](https://openjfx.io/),
+  [Jackson](https://github.com/FasterXML/jackson), and
+  [JUnit 5](https://github.com/junit-team/junit5).
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -378,8 +382,6 @@ The following activity diagram summarizes what happens when a user executes a ne
   itself.
   * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -847,8 +849,6 @@ The following story is retained to document the scope decision. UniContacts mana
 * **Case-insensitive**: No distinctions between uppercase and lowercase inputs including commands, names and contexts.
 * **Session**: A single continuous period of using UniContacts, starting when the application is opened and ending when it is closed.
 
-*{More to be added}*
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Appendix: Instructions for manual testing**
@@ -875,8 +875,6 @@ testers are expected to do more *exploratory* testing.
 
    1. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
-
-1. _{ more test cases …​ }_
 
 ### Finding a person using multiple clues
 
@@ -911,8 +909,6 @@ testers are expected to do more *exploratory* testing.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
-
-1. _{ more test cases …​ }_
 
 ### Viewing all contexts
 
