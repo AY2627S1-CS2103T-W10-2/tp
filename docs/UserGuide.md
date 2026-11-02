@@ -30,7 +30,7 @@ UniContacts is a **desktop contact manager for CS students, optimized for use th
 
    * `contexts` : Lists all active contacts' contexts with the number of contacts linked to each.
 
-   * `add n/John Doe c/CS2103T p/98765432 e/johnd@example.com` : Adds a person named `John Doe` to the address book.
+   * `add n/John Doe c/CS2103T p/98765432 e/johnd@example.com` : Adds a person named `John Doe` to UniContacts.
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
 
@@ -81,7 +81,7 @@ Format: `help`
 
 ### Adding a person: `add`
 
-Adds a person to the address book.
+Adds a person to UniContacts.
 
 Every person has at least one context: how you know them, such as a module, project, CCA, internship or event.
 
