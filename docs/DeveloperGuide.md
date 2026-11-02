@@ -381,8 +381,6 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
-_{more aspects and alternatives to be added}_
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Documentation, logging, testing, dev-ops**
@@ -519,7 +517,7 @@ The following story is retained to document the scope decision. UniContacts mana
 **Guarantees**
 
 * No person data is changed.
-* Every saved person with a context matching the request is shown, regardless of capitalisation.
+* Every active person with a context matching the request is shown, regardless of capitalisation.
 
 **MSS**
 
@@ -553,7 +551,7 @@ The following story is retained to document the scope decision. UniContacts mana
 **Guarantees**
 
 * No person data is changed.
-* Every saved person whose name contains the requested name is shown, regardless of capitalisation.
+* Every active person whose name contains the requested name is shown, regardless of capitalisation.
 
 **MSS**
 
@@ -581,18 +579,19 @@ The following story is retained to document the scope decision. UniContacts mana
 **Guarantees**
 
 * No person data is changed.
-* Every displayed person matches every supplied name and context clue, regardless of capitalisation.
+* Every displayed person is active and matches every supplied field-specific clue, regardless of capitalisation.
 
 **MSS**
 
-1.  User requests to find persons using one or more partial name and context clues
-2.  System searches the full person list and shows persons matching every clue
+1.  User requests to find persons using one or more partial field-specific clues (name, phone number, email, context,
+    alias, introducer or note)
+2.  System searches the full active person list and shows persons matching every clue
 
     Use case ends.
 
 **Extensions**
 
-* 1a. User does not provide a name or context clue.
+* 1a. User does not provide any field-specific clue.
 
     * 1a1. System shows an error message with the correct format.
 
@@ -848,8 +847,6 @@ The following story is retained to document the scope decision. UniContacts mana
 * **Case-insensitive**: No distinctions between uppercase and lowercase inputs including commands, names and contexts.
 * **Session**: A single continuous period of using UniContacts, starting when the application is opened and ending when it is closed.
 
-*{More to be added}*
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Appendix: Instructions for manual testing**
@@ -876,8 +873,6 @@ testers are expected to do more *exploratory* testing.
 
    1. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
-
-1. _{ more test cases …​ }_
 
 ### Finding a person using multiple clues
 
@@ -920,8 +915,6 @@ testers are expected to do more *exploratory* testing.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
-
-1. _{ more test cases …​ }_
 
 ### Viewing all contexts
 
