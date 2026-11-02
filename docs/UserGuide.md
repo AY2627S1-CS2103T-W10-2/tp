@@ -152,7 +152,7 @@ If the person you clash with is archived, the message ends with `This person is 
 
 **If the command fails**
 
-Nothing is added, and your command stays in the command box so that you can fix it. If there are several problems, only the first is shown.
+Nothing is added, and your command stays in the command box so that you can fix it. If there are several problems, only the first is shown. If the person is added but cannot be saved to the data file, the person stays in the list for this session; see [Saving the data](#saving-the-data).
 
 Problem | Example | Message shown
 --------|---------|--------------
@@ -304,7 +304,7 @@ Edited persons are checked for duplicates the same way as in [`add`](#adding-a-p
 
 **If the command fails**
 
-Nothing is changed, and your command stays in the command box so that you can fix it. If there are several problems, only the first is shown.
+Nothing is changed, and your command stays in the command box so that you can fix it. If there are several problems, only the first is shown. If the edit is made but cannot be saved to the data file, the change stays in the list for this session; see [Saving the data](#saving-the-data).
 
 Problem | Example | Message shown
 --------|---------|--------------
