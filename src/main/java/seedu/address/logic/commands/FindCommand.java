@@ -23,6 +23,7 @@ public class FindCommand extends Command {
             + "  KEYWORD [MORE_KEYWORDS]...\n"
             + "  [n/NAME_PART] [p/PHONE_PART] [e/EMAIL_PART] [c/CONTEXT_PART]... "
             + "[a/ALIAS_PART] [i/INTRODUCER_PART] [nt/NOTE_PART]\n"
+            + "nt/NOTE_PART must come last: it takes the rest of the line.\n"
             + "Example: " + COMMAND_WORD + " n/Alex c/CS2103T nt/project";
 
     public static final String MESSAGE_NO_PERSONS_FOUND = "No persons found!";
