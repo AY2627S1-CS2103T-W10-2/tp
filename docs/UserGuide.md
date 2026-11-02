@@ -156,7 +156,7 @@ Nothing is added, and your command stays in the command box so that you can fix 
 
 Problem | Example | Message shown
 --------|---------|--------------
-`n/` or `c/` missing | `add n/Alex Tan` | `Invalid command format!`, followed by how to use `add`
+`n/` or `c/` missing | `add n/Alex Tan p/91234567` | `Invalid command format!`, followed by how to use `add`<br>The message does not say which prefix is missing. Check that both `n/` and `c/` are there.
 Text before the first prefix, or an uppercase prefix | `add Alex n/Alex Tan c/CS2103T`<br>`add N/Alex Tan c/CS2103T` | `Invalid command format!`, followed by how to use `add`
 Any prefix other than `c/` given more than once | `add n/Alex n/Alex Tan c/CS2103T` | `Multiple values specified for the following single-valued field(s): n/`<br>A second `nt/` is not an error: it becomes part of the note.
 Nothing after a prefix | `add n/Alex Tan c/` | Depending on the prefix:<br>`Name cannot be empty.`<br>`Contexts cannot be empty.`<br>`Phone number cannot be empty. Leave out p/ if there is no phone number.`<br>`Email cannot be empty. Leave out e/ if there is no email.`<br>`Alias cannot be empty.`<br>`Introducer cannot be empty.`<br>`Note cannot be empty.`
