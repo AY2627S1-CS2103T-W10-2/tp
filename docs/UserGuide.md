@@ -474,11 +474,13 @@ UniContacts automatically saves data after every command. You do not need to sav
 
 If a command cannot be saved, for example because the data file or the `data` folder is read-only, UniContacts shows an error message. The change stays in the current session but is not in the data file until a later command that changes something is saved successfully. If you close UniContacts before then, the change is lost. Commands that change nothing, such as `list` and `find`, do not need to save.
 
-Each save is written to a temporary file first and then moved over `data/addressbook.json`. If UniContacts is closed or crashes in the middle of a save, your previous data file is left as it was instead of being half-written.
+Each save is written to a temporary file first and then moved over `data/unicontacts.json`. If UniContacts is closed or crashes in the middle of a save, your previous data file is left as it was instead of being half-written.
 
 ### Editing the data file
 
-UniContacts data is saved automatically as a JSON file `data/addressbook.json`, in the folder you start UniContacts from (normally the folder that contains the JAR file). Advanced users are welcome to update data directly by editing that data file.
+UniContacts data is saved automatically as a JSON file `data/unicontacts.json`, in the folder you start UniContacts from (normally the folder that contains the JAR file). Advanced users are welcome to update data directly by editing that data file.
+
+If you used v1.5 or earlier, your data was in `data/addressbook.json`. The first time you start this version, UniContacts copies it to `data/unicontacts.json` if that file does not exist yet, and leaves the old file where it is as a backup. Later starts only use `data/unicontacts.json`.
 
 Each person is stored like this:
 
@@ -512,19 +514,19 @@ Edit the data file only while UniContacts is closed, and only if you are confide
 
 If UniContacts cannot read the data file when it starts (for example, a person has no context or has an invalid phone number or email, two persons share a phone number or email, the file is not valid JSON, or the file was saved by an older version that used addresses and tags), it:
 
-1. renames the file to `addressbook.json.<UTC time>.bak` in the same `data` folder, for example `addressbook.json.20261015T101723Z.bak`, so that your data is not overwritten; and
-2. starts with an empty address book. A new `data/addressbook.json` is created by the first command that changes something, such as `add`.
+1. renames the file to `unicontacts.json.<UTC time>.bak` in the same `data` folder, for example `unicontacts.json.20261015T101723Z.bak`, so that your data is not overwritten; and
+2. starts with an empty address book. A new `data/unicontacts.json` is created by the first command that changes something, such as `add`.
 
 To recover your data:
 
 1. Exit UniContacts.
 2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `unicontacts.log.0`, which is in the folder you started UniContacts from.
-3. If there is a new `addressbook.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
+3. If there is a new `unicontacts.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `unicontacts.json`.
 4. Start UniContacts again. Any persons you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
 If UniContacts cannot rename the file, for example because the `data` folder is read-only, it still starts with an empty address book and leaves the file where it is. It renames the file to a `.bak` file just before its next save, so a save can never overwrite the unreadable file. The same applies when the `data` folder cannot be opened at all: UniContacts starts empty instead of with the sample data.
 
-If UniContacts fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name. If two failures happen in the same second, the later `.bak` file gets `-1` (then `-2`, and so on) before `.bak`, for example `addressbook.json.20261015T101723Z-1.bak`.
+If UniContacts fails to read the data file more than once, each failure keeps its own `.bak` file, because the time is part of the name. If two failures happen in the same second, the later `.bak` file gets `-1` (then `-2`, and so on) before `.bak`, for example `unicontacts.json.20261015T101723Z-1.bak`.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -534,7 +536,7 @@ If UniContacts fails to read the data file more than once, each failure keeps it
 **A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous UniContacts home folder.
 
 **Q**: UniContacts started with an empty list, but I had saved persons. What happened?<br>
-**A**: UniContacts could not read your data file, so it kept the file as `data/addressbook.json.<UTC time>.bak` and started empty. Your data is in that `.bak` file. See [If the data file cannot be read](#if-the-data-file-cannot-be-read) to recover it.
+**A**: UniContacts could not read your data file, so it kept the file as `data/unicontacts.json.<UTC time>.bak` and started empty. Your data is in that `.bak` file. See [If the data file cannot be read](#if-the-data-file-cannot-be-read) to recover it.
 
 --------------------------------------------------------------------------------------------------------------------
 

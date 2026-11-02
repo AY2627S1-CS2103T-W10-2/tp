@@ -1,6 +1,7 @@
 package seedu.address;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -37,7 +38,8 @@ public class MainApp extends Application {
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
+    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "unicontacts.json");
+    private static final Path OLD_ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
 
     protected Ui ui;
     protected Logic logic;
@@ -51,6 +53,7 @@ public class MainApp extends Application {
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
+        copyOldDataFile();
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
@@ -59,6 +62,22 @@ public class MainApp extends Application {
         logic = new LogicManager(model, storage);
 
         ui = new UiManager(logic, storage.getAddressBookFilePath());
+    }
+
+    /**
+     * Copies the data file of v1.5 and earlier to the current data file name, if only the old one exists.
+     * The old file is left in place as a backup.
+     */
+    private void copyOldDataFile() {
+        if (Files.exists(ADDRESS_BOOK_FILE_PATH) || !Files.isRegularFile(OLD_ADDRESS_BOOK_FILE_PATH)) {
+            return;
+        }
+        try {
+            Files.copy(OLD_ADDRESS_BOOK_FILE_PATH, ADDRESS_BOOK_FILE_PATH);
+            logger.info("Copied " + OLD_ADDRESS_BOOK_FILE_PATH + " to " + ADDRESS_BOOK_FILE_PATH);
+        } catch (IOException e) {
+            logger.warning("Could not copy " + OLD_ADDRESS_BOOK_FILE_PATH + ": " + e);
+        }
     }
 
     /**
