@@ -14,8 +14,6 @@ public class ListCommand extends Command {
 
     public static final String MESSAGE_SUCCESS_SINGULAR = "%1$d person listed.";
     public static final String MESSAGE_SUCCESS_PLURAL = "%1$d people listed.";
-    public static final String MESSAGE_SUCCESS = MESSAGE_SUCCESS_PLURAL;
-
 
     @Override
     public CommandResult execute(Model model) {
