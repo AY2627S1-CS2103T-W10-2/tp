@@ -9,11 +9,8 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* This project is based on the AddressBook-Level3 project created by the
-  [SE-EDU initiative](https://se-education.org).
-* The application uses [JavaFX](https://openjfx.io/),
-  [Jackson](https://github.com/FasterXML/jackson), and
-  [JUnit 5](https://github.com/junit-team/junit5).
+* This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
+* Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5).
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -252,11 +249,12 @@ The `find` command supports two search modes while preserving the existing keywo
 * A structured command such as `find n/Alex c/CS2103T nt/project` uses `PersonMatchesCluesPredicate`. A person
   matches only when every supplied clue matches its corresponding field.
 
-`FindCommandParser` uses `ArgumentTokenizer` with `n/`, `p/`, `e/`, `c/`, `a/`, `i/` and `nt/` to select the search
-mode and read the clues. If none of these prefixes is recognised, it creates the existing keyword predicate. If at
-least one is recognised, it creates the structured predicate. The prefixes may appear in any order. `n/`, `p/`, `e/`,
-`a/`, `i/` and `nt/` may each appear at most once, while `c/` is repeatable. Other slash-containing text remains part
-of a keyword or clue rather than being treated as an unsupported prefix.
+`FindCommandParser` uses `ArgumentTokenizer#tokenizeWithRestOfLinePrefix`, with `nt/` as the rest-of-line prefix, to
+select the search mode and read the clues. If none of the supported prefixes is recognised, it creates the existing
+keyword predicate. If at least one is recognised, it creates the structured predicate. `n/`, `p/`, `e/`, `a/` and
+`i/` may each appear at most once, while `c/` is repeatable. The non-note prefixes may appear in any order before
+`nt/`. When present, `nt/` must come last: everything after its first occurrence becomes the note clue, including text
+such as `c/o` or `n/a` that resembles another prefix.
 
 Before constructing `PersonMatchesCluesPredicate`, the parser trims each clue, collapses repeated whitespace and
 removes equivalent repeated context clues case-insensitively. Empty clues and unprefixed text before a recognised
@@ -883,8 +881,9 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: Add a person using `add n/Tony Zhang p/91234567 e/tony@example.com c/CS2103T`
       `c/Hack&Roll a/Toto i/Alice Tan nt/Project teammate`.
 
-   1. Test case: `find nt/project c/Hack p/9123 n/tony i/alice e/@example a/toto c/2103`<br>
-      Expected: Tony Zhang is the only displayed person. The order of the prefixes does not affect the result.
+   1. Test case: `find c/Hack p/9123 n/tony i/alice e/@example a/toto c/2103 nt/project`<br>
+      Expected: Tony Zhang is the only displayed person. The non-note prefixes may appear in any order, but `nt/`
+      must come last because it takes the rest of the line.
 
    1. Test case: `find n/Tony c/CS2103T nt/internship`<br>
       Expected: No persons are displayed and the status message is `No persons found!`, because every clue must match.
@@ -894,6 +893,13 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `find a/Toto a/TZ`<br>
       Expected: The displayed list is unchanged and the status message reports that `a/` was specified more than once.
+
+1. Matching a note clue that contains prefix-like text
+
+   1. Prerequisites: Add a person using `add n/Tom Lee c/CS2103T nt/Lives c/o his aunt`.
+
+   1. Test case: `find nt/Lives c/o`<br>
+      Expected: Tom Lee is the only displayed person.
 
 ### Deleting a person
 

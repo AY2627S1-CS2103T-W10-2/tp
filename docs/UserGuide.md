@@ -59,7 +59,7 @@ UniContacts is a **desktop contact manager for CS students, optimized for use th
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.<br>
-  The exception is `nt/NOTE` in `add` and `edit`, which must come last.
+  The exception is `nt/NOTE` in `add`, `edit` and `find`, which must come last.
 
 * Command words are case-insensitive, but prefixes must be in lowercase.<br>
   For example, `add`, `ADD` and `Add` all work, but `N/John Doe` is not read as `n/John Doe`.
@@ -337,9 +337,11 @@ Formats:
 * In a field-specific search, each prefix searches only its corresponding field: `n/` for name, `p/` for phone,
   `e/` for email, `c/` for contexts, `a/` for alias, `i/` for introducer and `nt/` for note.
   A person is returned only if every supplied clue matches (an `AND` search).
-* `n/`, `p/`, `e/`, `a/`, `i/` and `nt/` may each appear at most once. `c/` is repeatable; every context clue
-  must match at least one of the person's contexts.
-* Prefixes may appear in any order, so `find n/Tony c/CS2103T` and `find c/CS2103T n/Tony` are equivalent.
+* `n/`, `p/`, `e/`, `a/` and `i/` may each appear at most once. `c/` is repeatable; every context clue must match
+  at least one of the person's contexts.
+* Prefixes other than `nt/` may appear in any order, so `find n/Tony c/CS2103T` and
+  `find c/CS2103T n/Tony` are equivalent. `nt/` must come last and takes the rest of the line as the note clue,
+  including text that looks like another prefix, such as `c/o` or `n/a`.
 * Each prefix value is one clue. For example, `n/Tony Zhang` searches for the partial name `Tony Zhang`.
 * Field-specific clues are partial and case-insensitive. They do not need to satisfy the full-field format required by
   `add`; for example, `p/9123` can match the phone number `91234567`.
@@ -360,7 +362,7 @@ Examples:
   `CS2103T`.
 * `find c/CS2103T c/Hack` returns persons matching both context clues.
 * `find c/CS2103T p/9123 a/Toto nt/project` returns persons whose contexts, phone number, alias and note all match
-  their corresponding clues. The prefixes can be supplied in any order.
+  their corresponding clues. The non-note prefixes can be supplied in any order, while `nt/` must come last.
 
 ### Deleting a person: `delete`
 

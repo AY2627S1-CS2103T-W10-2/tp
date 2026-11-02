@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.FindCommand.MESSAGE_NO_PERSONS_FOUND;
+import static seedu.address.testutil.FindTestUtil.TONY;
+import static seedu.address.testutil.FindTestUtil.createFullSearchClues;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.CARL;
 import static seedu.address.testutil.TypicalPersons.ELLE;
@@ -24,7 +26,6 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.model.person.PersonMatchesCluesPredicate;
 import seedu.address.model.person.PersonSearchClues;
-import seedu.address.testutil.PersonBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) for {@code FindCommand}.
@@ -104,33 +105,16 @@ public class FindCommandTest {
 
     @Test
     public void execute_allSupportedClues_matchingPersonFound() {
-        Person tony = new PersonBuilder()
-                .withName("Tony Zhang")
-                .withPhone("91234567")
-                .withEmail("tony@example.com")
-                .withContexts("CS2103T", "Hack&Roll")
-                .withAlias("Toto")
-                .withIntroducer("Alice Tan")
-                .withNote("Project teammate")
-                .build();
         AddressBook addressBook = new AddressBook();
-        addressBook.addPerson(tony);
+        addressBook.addPerson(TONY);
         Model modelWithTony = new ModelManager(addressBook, new UserPrefs());
         Model expectedModelWithTony = new ModelManager(addressBook, new UserPrefs());
-        PersonSearchClues searchClues = new PersonSearchClues()
-                .withNameClue("ton")
-                .withPhoneClue("1234")
-                .withEmailClue("@example")
-                .withContextClues(List.of("2103", "hack"))
-                .withAliasClue("tot")
-                .withIntroducerClue("alice")
-                .withNoteClue("project");
-        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(searchClues);
+        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(createFullSearchClues());
         expectedModelWithTony.updateFilteredPersonList(Model.PREDICATE_SHOW_ACTIVE.and(predicate));
 
         assertCommandSuccess(new FindCommand(predicate), modelWithTony,
                 String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModelWithTony);
-        assertEquals(List.of(tony), modelWithTony.getFilteredPersonList());
+        assertEquals(List.of(TONY), modelWithTony.getFilteredPersonList());
     }
 
     @Test
