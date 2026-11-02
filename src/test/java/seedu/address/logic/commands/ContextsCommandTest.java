@@ -111,6 +111,27 @@ public class ContextsCommandTest {
     }
 
     @Test
+    public void execute_numberedContexts_sortsNaturallyIgnoringCase() {
+        Model model = createModel(createPerson("Sort Test", "Tutorial 2", "Tutorial 10", "Tutorial 1",
+                "group 9", "Group 11"));
+
+        assertCommandSuccess(new ContextsCommand(), model,
+                expectedOverview(contextLine("group 9", 1), contextLine("Group 11", 1),
+                        contextLine("Tutorial 1", 1), contextLine("Tutorial 2", 1), contextLine("Tutorial 10", 1)),
+                new ModelManager(model.getAddressBook(), new UserPrefs()));
+    }
+
+    @Test
+    public void execute_leadingZeros_countsDistinctContextsAndGroupsCaseVariants() {
+        Model model = createModel(createPerson("Alex Tan", "Group 2", "Group 02"),
+                createPerson("Priya Nair", "group 2", "group 02"));
+
+        assertCommandSuccess(new ContextsCommand(), model,
+                expectedOverview(contextLine("Group 02", 2), contextLine("Group 2", 2)),
+                new ModelManager(model.getAddressBook(), new UserPrefs()));
+    }
+
+    @Test
     public void execute_sameNamePersons_countsSeparateContacts() {
         Model model = createModel(createPerson("Alex Tan", "CS2103T"),
                 createPerson("Alex Tan", "CS2103T", "NUS Hackers"));

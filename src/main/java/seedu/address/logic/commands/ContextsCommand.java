@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import seedu.address.commons.util.NaturalOrderComparator;
 import seedu.address.model.Model;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Person;
@@ -52,8 +53,8 @@ public class ContextsCommand extends Command {
      */
     private Map<String, Integer> countContexts(List<Person> persons) {
         // Context descriptions are already normalized, and each person's contexts form a set.
-        // TreeMap groups and sorts ignoring case, retaining the first encountered spelling.
-        Map<String, Integer> contactCounts = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        // TreeMap groups ignoring case and sorts naturally, retaining the first encountered spelling.
+        Map<String, Integer> contactCounts = new TreeMap<>(NaturalOrderComparator.INSTANCE);
         for (Person person : persons) {
             if (!PREDICATE_SHOW_ACTIVE.test(person)) {
                 continue;

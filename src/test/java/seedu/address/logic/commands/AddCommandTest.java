@@ -77,6 +77,14 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_numberedSharedContexts_sortsNoteNaturally() throws Exception {
+        assertNoteAfterAdding(person("Wei Jie", false, "Tutorial 10", "Tutorial 2", "Tutorial 1"),
+                person("Wei Jie", false, "Tutorial 1", "Tutorial 10", "Tutorial 2"),
+                "\nNote: Wei Jie [Tutorial 1] [Tutorial 2] [Tutorial 10] already exists at index 1. "
+                        + "If this is the same person, run delete 2 to remove the new entry and use edit 1 instead.");
+    }
+
+    @Test
     public void execute_existingPersonHasPhone_addedWithNote() throws Exception {
         Person existing = new PersonBuilder().withName("Wei Jie").withContexts("CS2103T")
                 .withPhone("91234567").withoutEmail().build();

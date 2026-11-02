@@ -132,7 +132,7 @@ The list shows all persons again, with the new person at the bottom. The result 
 
 `New person added: Priya Nair; Contexts: [Hack&Roll 2026] [NUS Hackers]; Phone: 91234567; Email: priya@u.nus.edu`
 
-Contexts are listed in alphabetical order, ignoring capitalisation. Missing optional fields are left out. If supplied, alias, introducer and note appear in the result and on the person card.
+Contexts are listed in natural order, ignoring capitalisation: numbers are compared by value, so `Tutorial 2` comes before `Tutorial 10`. Missing optional fields are left out. If supplied, alias, introducer and note appear in the result and on the person card.
 
 **Duplicate persons**
 
@@ -178,7 +178,7 @@ Each person is displayed in the following order:
 3. Phone number, if provided
 4. Email address, if provided
 
-Contexts are displayed in alphabetical order, ignoring capitalisation. Missing phone numbers and email addresses are not displayed.
+Contexts are displayed in natural order, ignoring capitalisation: numbers are compared by value, so `Tutorial 2` comes before `Tutorial 10`. Missing phone numbers and email addresses are not displayed.
 
 After the command is executed, the result display shows the number of persons listed:
 
@@ -212,7 +212,7 @@ Format: `contexts`
 * Archived persons never contribute to counts or displayed context names. Contexts belonging only to archived persons are omitted. This rule also applies when you run `contexts` while viewing `archives`.
 * Each person is counted once per context. Different persons with the same name are counted separately.
 * Contexts that differ only in capitalisation, surrounding spaces or repeated spaces are grouped together.
-* Contexts are sorted alphabetically, ignoring capitalisation. The spelling from the first active person with that context in the stored person list is shown. No stored spelling is changed.
+* Contexts are sorted in natural order, ignoring capitalisation: numbers are compared by value, so `Group 9` comes before `Group 11`, and tutorials appear as `Tutorial 1`, `Tutorial 2`, `Tutorial 10`. The spelling from the first active person with that context in the stored person list is shown. No stored spelling is changed.
 * The displayed person list, search filter, archive view, order and index numbers are unchanged.
 * Counts are recalculated each time you run `contexts`, so they reflect additions, edits, deletions, archiving and unarchiving.
 * The command word is case-insensitive: `CONTEXTS` works. Extra text such as `contexts CS2103T`, `contexts c/CS2103T` or `contexts archived` is rejected with `Invalid command format!` and usage guidance.
