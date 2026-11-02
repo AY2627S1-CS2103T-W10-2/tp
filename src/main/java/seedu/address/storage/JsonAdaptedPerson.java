@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -120,51 +122,20 @@ class JsonAdaptedPerson {
         }
         final Name modelName = new Name(name);
 
-        // phone is optional
-        Phone modelPhone = null;
-        if (phone != null) {
-            if (!Phone.isValidPhone(phone)) {
-                throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
-            }
-            modelPhone = new Phone(phone);
-        }
+        final Phone modelPhone = parseOptional(phone, Phone::isValidPhone, Phone.MESSAGE_CONSTRAINTS, Phone::new);
 
-        // email is optional
-        Email modelEmail = null;
-        if (email != null) {
-            if (!Email.isValidEmail(email)) {
-                throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
-            }
-            modelEmail = new Email(email);
-        }
+        final Email modelEmail = parseOptional(email, Email::isValidEmail, Email.MESSAGE_CONSTRAINTS, Email::new);
 
         if (personContexts.isEmpty()) {
             throw new IllegalValueException(Person.MESSAGE_CONTEXT_REQUIRED);
         }
         final Set<Context> modelContexts = new HashSet<>(personContexts);
-        Alias modelAlias = null;
-        if (alias != null) {
-            if (!Alias.isValidAlias(alias)) {
-                throw new IllegalValueException(Alias.MESSAGE_CONSTRAINTS);
-            }
-            modelAlias = new Alias(alias);
-        }
+        final Alias modelAlias = parseOptional(alias, Alias::isValidAlias, Alias.MESSAGE_CONSTRAINTS, Alias::new);
 
-        Introducer modelIntroducer = null;
-        if (introducer != null) {
-            if (!Introducer.isValidIntroducer(introducer)) {
-                throw new IllegalValueException(Introducer.MESSAGE_CONSTRAINTS);
-            }
-            modelIntroducer = new Introducer(introducer);
-        }
+        final Introducer modelIntroducer = parseOptional(introducer, Introducer::isValidIntroducer,
+                Introducer.MESSAGE_CONSTRAINTS, Introducer::new);
 
-        Note modelNote = null;
-        if (note != null) {
-            if (!Note.isValidNote(note)) {
-                throw new IllegalValueException(Note.MESSAGE_CONSTRAINTS);
-            }
-            modelNote = new Note(note);
-        }
+        final Note modelNote = parseOptional(note, Note::isValidNote, Note.MESSAGE_CONSTRAINTS, Note::new);
 
         // a missing or null "archived" means the person is not archived; anything but true or false is invalid
         if (archived != null && !(archived instanceof Boolean)) {
@@ -173,6 +144,22 @@ class JsonAdaptedPerson {
         final boolean modelArchived = Boolean.TRUE.equals(archived);
         return new Person(modelName, modelPhone, modelEmail, modelContexts,
                 modelAlias, modelIntroducer, modelNote, modelArchived);
+    }
+
+    /**
+     * Returns the field made from {@code value} by {@code constructor}, or null if the optional {@code value} is
+     * missing.
+     * @throws IllegalValueException if {@code value} fails {@code isValid}, with {@code constraintsMessage}.
+     */
+    private static <T> T parseOptional(String value, Predicate<String> isValid, String constraintsMessage,
+            Function<String, T> constructor) throws IllegalValueException {
+        if (value == null) {
+            return null;
+        }
+        if (!isValid.test(value)) {
+            throw new IllegalValueException(constraintsMessage);
+        }
+        return constructor.apply(value);
     }
 
 }
