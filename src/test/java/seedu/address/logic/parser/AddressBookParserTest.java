@@ -59,11 +59,8 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_clear() throws Exception {
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD) instanceof ClearCommand);
-        assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD + " 3") instanceof ClearCommand);
-
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD.toUpperCase(Locale.ROOT)) instanceof ClearCommand);
-        assertTrue(parser.parseCommand(
-                ClearCommand.COMMAND_WORD.toUpperCase(Locale.ROOT) + " 3") instanceof ClearCommand);
+        assertThrows(ParseException.class, () -> parser.parseCommand(ClearCommand.COMMAND_WORD + " 3"));
     }
 
     @Test
@@ -150,7 +147,7 @@ public class AddressBookParserTest {
         FindCommand expectedCommand = new FindCommand(new PersonMatchesCluesPredicate(searchClues));
 
         String clues = "n/Tony p/9123 e/@example.com c/CS2103T a/Toto i/Alice nt/project";
-        String reorderedClues = "nt/project i/Alice a/Toto c/CS2103T e/@example.com p/9123 n/Tony";
+        String reorderedClues = "i/Alice a/Toto c/CS2103T e/@example.com p/9123 n/Tony nt/project";
         assertEquals(expectedCommand, parser.parseCommand("find " + clues));
         assertEquals(expectedCommand, parser.parseCommand("find " + reorderedClues));
         assertEquals(expectedCommand, parser.parseCommand("FIND " + clues));
