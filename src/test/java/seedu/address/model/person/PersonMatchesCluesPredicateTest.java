@@ -93,7 +93,9 @@ public class PersonMatchesCluesPredicateTest {
 
     @Test
     public void test_allSupportedCluesMatch_returnsTrue() {
-        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(createFullSearchClues());
+        PersonSearchClues searchClues = createFullSearchClues()
+                .withEmailClue("@EXAMPLE.COM");
+        PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(searchClues);
 
         assertTrue(predicate.test(TONY));
     }

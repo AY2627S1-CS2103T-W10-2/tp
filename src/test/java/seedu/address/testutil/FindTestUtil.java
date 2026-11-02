@@ -17,7 +17,7 @@ public final class FindTestUtil {
             .withContexts("CS2103T", "Hack&Roll")
             .withAlias("Toto")
             .withIntroducer("Alice Tan")
-            .withNote("Met my project teammate at Hack&Roll")
+            .withNote("Met my project  teammate at Hack&Roll")
             .build();
 
     private FindTestUtil() {}
