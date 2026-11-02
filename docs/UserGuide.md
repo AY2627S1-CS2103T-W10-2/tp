@@ -379,6 +379,10 @@ Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
+<div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
+`delete` runs at once, without asking you to confirm, and is saved straight away. There is no undo, so check the index before you press Enter. To hide a person you might need again, use [`archive`](#archiving-a-person-archive) instead.
+</div>
+
 ### Archiving a person: `archive`
 
 Moves a person out of your normal list without deleting them. Use this for people you no longer need every day, such as a project team that has finished, while keeping them for later.
@@ -461,6 +465,10 @@ Format: `clear`
 
 * Archived persons are kept, so that one `clear` cannot wipe your archive. The result message is `Persons cleared.`, followed by how many archived persons were kept, for example `Persons cleared. 2 archived persons were kept.`
 * To remove an archived person for good, show them with [`archives`](#viewing-archived-persons-archives) and use `delete`.
+
+<div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
+`clear` runs at once, without asking you to confirm, and is saved straight away. There is no undo: every non-archived person and their notes are gone. Before a `clear`, keep a copy of `data/addressbook.json` (see [Editing the data file](#editing-the-data-file)) so that you can restore it, or [`archive`](#archiving-a-person-archive) the persons you might need again.
+</div>
 
 ### Exiting the program: `exit`
 
