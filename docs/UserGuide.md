@@ -333,7 +333,8 @@ Formats:
 * The command word and search are case-insensitive; for example, `FIND cs2103t` works.
 * Partial matches are supported; for example, `Alex` matches both `Alex Tan` and `Alexander Lim`.
 * In a keyword search, a keyword can match either a person's name or any of their contexts. Persons matching at least
-  one keyword are returned (an `OR` search).
+  one keyword are returned (an `OR` search). It does not search phone numbers, emails, aliases, introducers or notes;
+  use the corresponding field-specific prefix to search those fields.
 * In a field-specific search, each prefix searches only its corresponding field: `n/` for name, `p/` for phone,
   `e/` for email, `c/` for contexts, `a/` for alias, `i/` for introducer and `nt/` for note.
   A person is returned only if every supplied clue matches (an `AND` search).
