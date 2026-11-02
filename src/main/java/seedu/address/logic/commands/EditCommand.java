@@ -138,7 +138,7 @@ public class EditCommand extends Command {
         if (isChanged) {
             logger.fine("Edited " + editedPerson.getName());
         } else {
-            logger.info("No changes made to " + editedPerson.getName());
+            logger.info("Edit made no changes");
         }
         if (!unmatchedContexts.isEmpty()) {
             logger.info(unmatchedContexts.size() + " context(s) to remove not found, skipped");
