@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-UniContacts is a **desktop contact manager for CS students, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). Every contact is saved with one or more *contexts* describing how you know them (such as a module, a hackathon or an internship), so you can find people by where you met them. If you type quickly, UniContacts can help you manage contacts faster than traditional GUI applications.
+UniContacts is a **desktop contact manager for CS students, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). Every person is saved with one or more *contexts* describing how you know them (such as a module, a hackathon or an internship), so you can find people by where you met them. If you type quickly, UniContacts can help you manage persons faster than traditional GUI applications.
 
 * Table of Contents
 {:toc}
@@ -28,11 +28,11 @@ UniContacts is a **desktop contact manager for CS students, optimized for use th
 
    * `list` : Lists all persons.
 
-   * `contexts` : Lists all active contacts' contexts with the number of contacts linked to each.
+   * `contexts` : Lists all active persons' contexts with the number of persons linked to each.
 
    * `add n/John Doe c/CS2103T p/98765432 e/johnd@example.com` : Adds a person named `John Doe` to the address book.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `delete 3` : Deletes the 3rd person shown in the current list.
 
    * `clear` : Deletes all persons except archived ones.
 
@@ -108,7 +108,7 @@ Parameter | Rules | Valid | Invalid
 `p/PHONE` | An optional `+`, then 3 to 15 digits. No spaces, hyphens or brackets. | `91234567`, `+6591234567` | `9123-4567`, `+65 9123 4567`, `12`
 `e/EMAIL` | Of the form `local-part@domain`, at most 254 characters. See the email rules below. | `e0123456@u.nus.edu`, `alex.tan+work@gmail.com` | `alex@`, `.alex@gmail.com`, `alex..tan@gmail.com`
 `a/ALIAS` | Alternative name; follows the same character and 100-character rules as `n/NAME`. | `Alex`, `Jean-Luc` | `Alex123`, empty `a/`
-`i/INTRODUCER` | Plain name of the person who introduced this contact; follows the same rules as `n/NAME`. It does not need to be another saved contact. | `Ben Lee` | `Ben123`, empty `i/`
+`i/INTRODUCER` | Plain name of the person who introduced this person; follows the same rules as `n/NAME`. It does not need to be another saved person. | `Ben Lee` | `Ben123`, empty `i/`
 `nt/NOTE` | Short, single-line note of at most 300 characters. No line breaks or control characters. Must be the last parameter; the rest of the line is the note, so it can contain text such as `c/o` or `n/a`. | `Met at Hack&Roll`, `Lives c/o his aunt` | Empty `nt/`, a note over 300 characters
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
@@ -204,20 +204,20 @@ Examples:
 
 ### Viewing all contexts: `contexts`
 
-Shows every distinct context of active contacts (contacts who are not archived) and the number of active contacts linked to it in the result display.
+Shows every distinct context of active persons (persons who are not archived) and the number of active persons linked to it in the result display.
 
 Format: `contexts`
 
-* Counts cover all active contacts in the address book, even if `find` currently shows only some contacts or no contacts.
-* Archived contacts never contribute to counts or displayed context names. Contexts belonging only to archived contacts are omitted. This rule also applies when you run `contexts` while viewing `archives`.
-* Each contact is counted once per context. Different contacts with the same name are counted separately.
+* Counts cover all active persons in the address book, even if `find` currently shows only some persons or no persons.
+* Archived persons never contribute to counts or displayed context names. Contexts belonging only to archived persons are omitted. This rule also applies when you run `contexts` while viewing `archives`.
+* Each person is counted once per context. Different persons with the same name are counted separately.
 * Contexts that differ only in capitalisation, surrounding spaces or repeated spaces are grouped together.
-* Contexts are sorted alphabetically, ignoring capitalisation. The spelling from the first active contact with that context in the stored contact list is shown. No stored spelling is changed.
-* The displayed contact list, search filter, archive view, order and index numbers are unchanged.
+* Contexts are sorted alphabetically, ignoring capitalisation. The spelling from the first active person with that context in the stored person list is shown. No stored spelling is changed.
+* The displayed person list, search filter, archive view, order and index numbers are unchanged.
 * Counts are recalculated each time you run `contexts`, so they reflect additions, edits, deletions, archiving and unarchiving.
 * The command word is case-insensitive: `CONTEXTS` works. Extra text such as `contexts CS2103T`, `contexts c/CS2103T` or `contexts archived` is rejected with `Invalid command format!` and usage guidance.
 
-For example, suppose the address book contains only these active contacts:
+For example, suppose the address book contains only these active persons:
 
 Person | Contexts
 -------|---------
@@ -237,12 +237,12 @@ NUS Hackers: 1 person
 
 The summary says `1 context listed.` when there is exactly one distinct context.
 If the full address book is empty, the result is `No contexts found. Add a person with c/CONTEXT to get started.`
-If all contacts are archived, the result is `No active contexts found. Run archives to view archived persons, then use unarchive INDEX to include them.`
+If all persons are archived, the result is `No active contexts found. Run archives to view archived persons, then use unarchive INDEX to include them.`
 Scroll within the result display if the overview is too long to view at once.
 
 In the example above, archiving Alex makes `NUS Hackers` disappear and reduces `CS2103` to one person, displayed as `cs2103` using Priya's spelling. Unarchiving Alex restores the original counts and spelling.
 
-You can then use `find c/CS2103T` to search active contacts by context. `find` changes the displayed list and supports partial context matches; `contexts` only shows the overview.
+You can then use `find c/CS2103T` to search active persons by context. `find` changes the displayed list and supports partial context matches; `contexts` only shows the overview.
 
 ### Editing a person: `edit`
 
@@ -520,7 +520,7 @@ To recover your data:
 1. Exit UniContacts.
 2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `unicontacts.log.0`, which is in the folder you started UniContacts from.
 3. If there is a new `addressbook.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `addressbook.json`.
-4. Start UniContacts again. Any contacts you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
+4. Start UniContacts again. Any persons you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
 
 If UniContacts cannot rename the file, for example because the `data` folder is read-only, it still starts with an empty address book and leaves the file where it is. It renames the file to a `.bak` file just before its next save, so a save can never overwrite the unreadable file. The same applies when the `data` folder cannot be opened at all: UniContacts starts empty instead of with the sample data.
 
@@ -533,7 +533,7 @@ If UniContacts fails to read the data file more than once, each failure keeps it
 **Q**: How do I transfer my data to another computer?<br>
 **A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous UniContacts home folder.
 
-**Q**: UniContacts started with an empty list, but I had saved contacts. What happened?<br>
+**Q**: UniContacts started with an empty list, but I had saved persons. What happened?<br>
 **A**: UniContacts could not read your data file, so it kept the file as `data/addressbook.json.<UTC time>.bak` and started empty. Your data is in that `.bak` file. See [If the data file cannot be read](#if-the-data-file-cannot-be-read) to recover it.
 
 --------------------------------------------------------------------------------------------------------------------
