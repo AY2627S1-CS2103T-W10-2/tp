@@ -59,11 +59,12 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_clear() throws Exception {
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD) instanceof ClearCommand);
-        assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD + " 3") instanceof ClearCommand);
-
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD.toUpperCase(Locale.ROOT)) instanceof ClearCommand);
-        assertTrue(parser.parseCommand(
-                ClearCommand.COMMAND_WORD.toUpperCase(Locale.ROOT) + " 3") instanceof ClearCommand);
+
+        String invalidFormat = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClearCommand.MESSAGE_USAGE);
+        assertThrows(ParseException.class, invalidFormat, () -> parser.parseCommand(ClearCommand.COMMAND_WORD + " 3"));
+        String clearWithName = ClearCommand.COMMAND_WORD + " Alice";
+        assertThrows(ParseException.class, invalidFormat, () -> parser.parseCommand(clearWithName));
     }
 
     @Test

@@ -64,8 +64,8 @@ UniContacts is a **desktop contact manager for CS students, optimized for use th
 * Command words are case-insensitive, but prefixes must be in lowercase.<br>
   For example, `add`, `ADD` and `Add` all work, but `N/John Doe` is not read as `n/John Doe`.
 
-* Commands that take no parameters, such as `help`, `list`, `exit` and `clear`, ignore anything typed after them.<br>
-  For example, `help 123` is interpreted as `help`. The exceptions are [`contexts`](#viewing-all-contexts-contexts) and [`archives`](#viewing-archived-persons-archives), which reject anything typed after them.
+* Commands that take no parameters, such as `help`, `list` and `exit`, ignore anything typed after them.<br>
+  For example, `help 123` is interpreted as `help`. The exceptions are [`clear`](#clearing-all-non-archived-persons-clear), [`contexts`](#viewing-all-contexts-contexts) and [`archives`](#viewing-archived-persons-archives), which reject anything typed after them, so that a mistyped `clear 1` does not delete everything.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
