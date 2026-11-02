@@ -1002,8 +1002,8 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `archive c/CS2103T`<br>
       Expected: Every person with the context `CS2103T` disappears from the list, whatever else the list showed before. The result display shows `Archived N person(s) with context CS2103T.`, where `N` is the number of those persons.
 
-   1. Test case: `find n/Alex` followed by `archive c/CS2103T`<br>
-      Expected: The persons with the context `CS2103T` are archived, not only the ones that `find` showed.
+   1. Test case: Restore the persons archived above by running `unarchive c/CS2103T` and then `list`. Then run `find n/Alex` followed by `archive c/CS2103T`<br>
+      Expected: `find` shows Alex Yeoh. The persons with the context `CS2103T` are archived, not only the ones that `find` showed.
 
    1. Test case: `archive c/cs2103t` after the test case above<br>
       Expected: Nothing changes. The result display shows `No persons to archive with context cs2103t.` The context is matched ignoring capitalisation, so it was the same context, and everyone with it is archived already.
@@ -1078,7 +1078,8 @@ testers are expected to do more *exploratory* testing.
 
 1. Dealing with a data file that cannot be written
 
-   1. Prerequisites: Close the app and make sure the `data` folder exists (see the prerequisites of the test above). Make the `data` folder read-only (for example, `chmod 555 data` on macOS or Linux), and then start the app. Afterwards, make it writable again (for example, `chmod 755 data`).
+   1. Prerequisites: Close the app and make sure the `data` folder exists (see the prerequisites of the test above). Make the `data` folder read-only (for example, `chmod 555 data` on macOS or Linux), and then start the app. Afterwards, make it writable again (for example, `chmod 755 data`).<br>
+      On Windows, a read-only folder does not stop programs from writing in it, so make the file read-only instead: run `attrib +r data\addressbook.json` before starting the app, and `attrib -r data\addressbook.json` afterwards.
 
    1. Test case: `add n/Test c/CS2103T`<br>
       Expected: The result display shows an error saying the data could not be saved because of insufficient permissions. The new person still appears in the list for this session, but is not in `data/addressbook.json`.

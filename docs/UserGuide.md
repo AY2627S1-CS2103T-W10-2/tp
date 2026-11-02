@@ -472,7 +472,7 @@ Format: `exit`
 
 UniContacts automatically saves data after every command. You do not need to save manually.
 
-If a command cannot be saved, for example because the `data` folder is read-only, UniContacts shows an error message. The change stays in the current session but is not in the data file until a later command that changes something is saved successfully. If you close UniContacts before then, the change is lost. Commands that change nothing, such as `list` and `find`, do not need to save.
+If a command cannot be saved, for example because the data file or the `data` folder is read-only, UniContacts shows an error message. The change stays in the current session but is not in the data file until a later command that changes something is saved successfully. If you close UniContacts before then, the change is lost. Commands that change nothing, such as `list` and `find`, do not need to save.
 
 Each save is written to a temporary file first and then moved over `data/addressbook.json`. If UniContacts is closed or crashes in the middle of a save, your previous data file is left as it was instead of being half-written.
 
