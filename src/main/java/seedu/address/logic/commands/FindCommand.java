@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
@@ -55,7 +54,9 @@ public class FindCommand extends Command {
         if (matchCount == 0) {
             return new CommandResult(MESSAGE_NO_PERSONS_FOUND);
         }
-        return new CommandResult(String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, matchCount));
+        String message = matchCount == 1
+                ? ListCommand.MESSAGE_SUCCESS_SINGULAR : ListCommand.MESSAGE_SUCCESS_PLURAL;
+        return new CommandResult(String.format(message, matchCount));
     }
 
     @Override

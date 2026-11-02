@@ -3,9 +3,10 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.FindCommand.MESSAGE_NO_PERSONS_FOUND;
+import static seedu.address.logic.commands.ListCommand.MESSAGE_SUCCESS_PLURAL;
+import static seedu.address.logic.commands.ListCommand.MESSAGE_SUCCESS_SINGULAR;
 import static seedu.address.testutil.FindTestUtil.TONY;
 import static seedu.address.testutil.FindTestUtil.createFullSearchClues;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -72,7 +73,7 @@ public class FindCommandTest {
 
     @Test
     public void execute_multipleKeywords_multiplePersonsFound() {
-        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3);
+        String expectedMessage = String.format(MESSAGE_SUCCESS_PLURAL, 3);
         PersonContainsKeywordsPredicate predicate = preparePredicate("Kurz Elle Kunz");
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
@@ -82,7 +83,7 @@ public class FindCommandTest {
 
     @Test
     public void execute_multipleClues_matchingPersonFound() {
-        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1);
+        String expectedMessage = String.format(MESSAGE_SUCCESS_SINGULAR, 1);
         PersonMatchesCluesPredicate predicate = new PersonMatchesCluesPredicate(
                 new PersonSearchClues().withNameClue("Alice").withContextClues(List.of("2103")));
         FindCommand command = new FindCommand(predicate);
@@ -113,7 +114,7 @@ public class FindCommandTest {
         expectedModelWithTony.updateFilteredPersonList(Model.PREDICATE_SHOW_ACTIVE.and(predicate));
 
         assertCommandSuccess(new FindCommand(predicate), modelWithTony,
-                String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModelWithTony);
+                String.format(MESSAGE_SUCCESS_SINGULAR, 1), expectedModelWithTony);
         assertEquals(List.of(TONY), modelWithTony.getFilteredPersonList());
     }
 

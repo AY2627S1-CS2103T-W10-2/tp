@@ -352,6 +352,8 @@ Formats:
 * Each `find` command searches the full person list, even if a previous command filtered the displayed results.
 * Extra spaces before, between, or after keywords and clues are ignored. Repeated spaces inside a clue are treated as
   one space.
+* If exactly one person matches, the app shows `1 person listed.`
+* If more than one person matches, the app shows `NUMBER people listed.`
 * If no persons match, the app shows `No persons found!`.
 
 Examples:
