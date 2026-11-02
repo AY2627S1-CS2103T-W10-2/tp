@@ -981,7 +981,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Archiving, viewing and unarchiving
 
-   1. Prerequisites: Start with the sample data (delete `data/unicontacts.json` first if there is one). Run `list`.
+   1. Prerequisites: Start with the sample data (delete `data/unicontacts.json` and `data/addressbook.json` first if there are any, because UniContacts copies a leftover `addressbook.json` of v1.5 when `unicontacts.json` does not exist). Run `list`.
 
    1. Test case: `archive 2`<br>
       Expected: The 2nd person disappears from the list. The result display shows `Archived person:` and the person's details.
@@ -1032,6 +1032,8 @@ testers are expected to do more *exploratory* testing.
 
 1. Incorrect commands
 
+   1. Prerequisites: Start with the sample data (see the first test above). Run `list`. No person is archived yet.
+
    1. Test case: `unarchive 1` while the normal list is shown<br>
       Expected: Nothing changes. The result display shows `That person is not archived. Run archives to see archived persons, then use unarchive INDEX.`
 
@@ -1058,7 +1060,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Dealing with a missing data file
 
-   1. Prerequisites: Close the app and delete the `data` folder.
+   1. Prerequisites: Close the app and delete the `data` folder (this also removes a leftover `addressbook.json`, which would otherwise be copied).
 
    1. Test case: Start the app<br>
       Expected: The app starts with the sample persons. `data/unicontacts.json` is not created until a command that changes something, such as `add`, is run.

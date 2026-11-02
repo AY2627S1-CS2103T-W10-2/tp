@@ -53,8 +53,7 @@ public class MainApp extends Application {
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        copyOldDataFile();
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(chooseDataFile());
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
         model = initModelManager(storage, userPrefs);
@@ -65,18 +64,21 @@ public class MainApp extends Application {
     }
 
     /**
-     * Copies the data file of v1.5 and earlier to the current data file name, if only the old one exists.
-     * The old file is left in place as a backup.
+     * Returns the data file to use. If only the data file of v1.5 and earlier exists, it is copied to the current
+     * data file name and the old file is left in place as a backup. If it cannot be copied, the old file is used
+     * for this run instead, so that the user's contacts are not replaced by the sample data.
      */
-    private void copyOldDataFile() {
+    private Path chooseDataFile() {
         if (Files.exists(ADDRESS_BOOK_FILE_PATH) || !Files.isRegularFile(OLD_ADDRESS_BOOK_FILE_PATH)) {
-            return;
+            return ADDRESS_BOOK_FILE_PATH;
         }
         try {
             Files.copy(OLD_ADDRESS_BOOK_FILE_PATH, ADDRESS_BOOK_FILE_PATH);
             logger.info("Copied " + OLD_ADDRESS_BOOK_FILE_PATH + " to " + ADDRESS_BOOK_FILE_PATH);
+            return ADDRESS_BOOK_FILE_PATH;
         } catch (IOException e) {
-            logger.warning("Could not copy " + OLD_ADDRESS_BOOK_FILE_PATH + ": " + e);
+            logger.warning("Could not copy " + OLD_ADDRESS_BOOK_FILE_PATH + ", using it directly: " + e);
+            return OLD_ADDRESS_BOOK_FILE_PATH;
         }
     }
 

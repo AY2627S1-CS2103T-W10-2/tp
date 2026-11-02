@@ -533,7 +533,7 @@ If UniContacts fails to read the data file more than once, each failure keeps it
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous UniContacts home folder.
+**A**: Install the app on the other computer and overwrite the data file `data/unicontacts.json` it creates with the data file from your previous UniContacts home folder. If your previous data file is still named `addressbook.json` (v1.5 and earlier), copy it to the other computer's `data` folder and delete any `data/unicontacts.json` there, so that UniContacts copies it on the next start.
 
 **Q**: UniContacts started with an empty list, but I had saved persons. What happened?<br>
 **A**: UniContacts could not read your data file, so it kept the file as `data/unicontacts.json.<UTC time>.bak` and started empty. Your data is in that `.bak` file. See [If the data file cannot be read](#if-the-data-file-cannot-be-read) to recover it.
