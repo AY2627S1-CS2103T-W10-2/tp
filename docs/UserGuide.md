@@ -348,7 +348,9 @@ Formats:
 * If a person does not have an optional field, they do not match a clue for that field. For example, a person without
   an alias does not match `a/Toto`.
 * Keywords and prefixed clues cannot be mixed in one command.
-* Archived persons are never found, whichever kind of search you use. Use [`archives`](#viewing-archived-persons-archives) to see them.
+* Archived persons are never found, whichever kind of search you use. Running `find` while viewing `archives` switches
+  back to search results containing active persons only. Use [`archives`](#viewing-archived-persons-archives) to see
+  archived persons.
 * Each `find` command searches the full person list, even if a previous command filtered the displayed results.
 * Extra spaces before, between, or after keywords and clues are ignored. Repeated spaces inside a clue are treated as
   one space.
@@ -422,6 +424,10 @@ Format: `archives`
 * The heading **Archives** is shown above the list while the archived persons are displayed.
 * The numbers on the cards start from 1 again, and refer to this list. Use them with `unarchive` and `delete`.
 * Use `list` to go back to your normal list. `add`, `find` and `clear` also take you back to it.
+* The archived list cannot be filtered or searched with `find`. To locate a specific archived person, run `archives`
+  and browse the displayed list.
+* If you know the person's exact context, use `unarchive c/CONTEXT` to restore every archived person with that context,
+  then search them normally with `find`. The context must match exactly, ignoring capitalisation.
 * If there are no archived persons, the result display shows `No archived persons.` and the list is empty.
 * Otherwise the result display shows `Listed 1 archived person.` when there is one archived person, and `Listed N archived persons.` when there are more, where `N` is the number of archived persons.
 * Unlike `list`, `archives` does not ignore anything typed after it, because it is one letter away from `archive`. `archives 1` shows an `Invalid command format!` message instead of quietly switching to the archived list when `archive 1` was meant.
