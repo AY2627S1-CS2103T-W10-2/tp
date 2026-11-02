@@ -885,8 +885,9 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: Add a contact using `add n/Tony Zhang p/91234567 e/tony@example.com c/CS2103T`
       `c/Hack&Roll a/Toto i/Alice Tan nt/Project teammate`.
 
-   1. Test case: `find nt/project c/Hack p/9123 n/tony i/alice e/@example a/toto c/2103`<br>
-      Expected: Tony Zhang is the only displayed contact. The order of the prefixes does not affect the result.
+   1. Test case: `find c/Hack p/9123 n/tony i/alice e/@example a/toto c/2103 nt/project`<br>
+      Expected: Tony Zhang is the only displayed contact. The non-note prefixes may appear in any order, but `nt/`
+      must come last because it takes the rest of the line.
 
    1. Test case: `find n/Tony c/CS2103T nt/internship`<br>
       Expected: No contacts are displayed and the status message is `No persons found!`, because every clue must match.
@@ -896,6 +897,13 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `find a/Toto a/TZ`<br>
       Expected: The displayed list is unchanged and the status message reports that `a/` was specified more than once.
+
+1. Matching a note clue that contains prefix-like text
+
+   1. Prerequisites: Add a contact using `add n/Tom Lee c/CS2103T nt/Lives c/o his aunt`.
+
+   1. Test case: `find nt/Lives c/o`<br>
+      Expected: Tom Lee is the only displayed contact.
 
 ### Deleting a person
 
