@@ -314,6 +314,12 @@ The numbers of the persons after them in the results go down by one. A person wh
 
 Edited persons are checked for duplicates the same way as in [`add`](#adding-a-person-add): the edit is rejected if another person has the same phone number or email. A person is never a duplicate of themselves, so `edit 2 p/99272758` on Bernice Yu, who already has that number, is accepted.
 
+If the edited person has no phone number and no email, and another person has the same name and at least one context in common, the edit is still made, with an extra line. For example, if Cara Dee with context Alpha is at index 7, `edit 8 +c/Alpha` on another Cara Dee adds this line:
+
+`Note: Cara Dee [Alpha] already exists at index 7.`
+
+If that person is archived, the note is the same as in `add`. No note is shown if nothing was changed.
+
 **If the command fails**
 
 Nothing is changed, and your command stays in the command box so that you can fix it. If there are several problems, only the first is shown. If the edit is made but cannot be saved to the data file, the change stays in the list for this session; see [Saving the data](#saving-the-data).
