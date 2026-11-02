@@ -12,6 +12,9 @@ import seedu.address.commons.util.ToStringBuilder;
 public class PersonContainsKeywordsPredicate implements Predicate<Person> {
     private final List<String> keywords;
 
+    /**
+     * Creates a predicate that matches a person's name or contexts against {@code keywords}.
+     */
     public PersonContainsKeywordsPredicate(List<String> keywords) {
         this.keywords = keywords;
     }
