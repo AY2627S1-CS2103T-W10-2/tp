@@ -22,9 +22,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
@@ -86,6 +88,8 @@ public class EditCommand extends Command {
     public static final String MESSAGE_NO_LONGER_MATCHES =
             "Note: %1$s no longer matches the current search. Run list to see all persons.";
 
+    private static final Logger logger = LogsCenter.getLogger(EditCommand.class);
+
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
 
@@ -117,7 +121,31 @@ public class EditCommand extends Command {
             model.setPerson(personToEdit, editedPerson);
         }
 
-        return new CommandResult(buildFeedback(model, personToEdit, editedPerson, isChanged));
+        List<Context> unmatchedContexts = findUnmatchedContexts(personToEdit, editPersonDescriptor);
+        List<Context> skippedContexts = findSkippedContexts(personToEdit, editPersonDescriptor);
+        logOutcome(editedPerson, isChanged, unmatchedContexts, skippedContexts);
+
+        return new CommandResult(
+                buildFeedback(model, personToEdit, editedPerson, isChanged, unmatchedContexts, skippedContexts));
+    }
+
+    /**
+     * Logs the outcome of the edit at INFO if no change was made or some contexts were skipped,
+     * and at FINE if the person was edited.
+     */
+    private static void logOutcome(Person editedPerson, boolean isChanged,
+            List<Context> unmatchedContexts, List<Context> skippedContexts) {
+        if (isChanged) {
+            logger.fine("Edited " + editedPerson.getName());
+        } else {
+            logger.info("Edit made no changes");
+        }
+        if (!unmatchedContexts.isEmpty()) {
+            logger.info(unmatchedContexts.size() + " context(s) to remove not found, skipped");
+        }
+        if (!skippedContexts.isEmpty()) {
+            logger.info(skippedContexts.size() + " context(s) to add already present, skipped");
+        }
     }
 
     /**
@@ -145,16 +173,15 @@ public class EditCommand extends Command {
      * then a note for each of the unmatched and skipped contexts, if any, and a note if the edited person
      * no longer matches the search whose results {@code model} shows.
      */
-    private String buildFeedback(Model model, Person personToEdit, Person editedPerson, boolean isChanged) {
+    private String buildFeedback(Model model, Person personToEdit, Person editedPerson, boolean isChanged,
+            List<Context> unmatchedContexts, List<Context> skippedContexts) {
         String feedback = isChanged
                 ? String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
                 : String.format(MESSAGE_NO_CHANGES, personToEdit.getName());
-        List<Context> unmatchedContexts = findUnmatchedContexts(personToEdit, editPersonDescriptor);
         if (!unmatchedContexts.isEmpty()) {
             feedback += "\n" + String.format(MESSAGE_CONTEXTS_NOT_FOUND_SKIPPED,
                     editedPerson.getName(), Messages.formatContexts(unmatchedContexts));
         }
-        List<Context> skippedContexts = findSkippedContexts(personToEdit, editPersonDescriptor);
         if (!skippedContexts.isEmpty()) {
             feedback += "\n" + String.format(MESSAGE_CONTEXTS_SKIPPED,
                     editedPerson.getName(), Messages.formatContexts(skippedContexts));

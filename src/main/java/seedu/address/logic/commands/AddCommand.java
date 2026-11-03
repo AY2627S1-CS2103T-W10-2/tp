@@ -14,7 +14,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -53,6 +55,8 @@ public class AddCommand extends Command {
     public static final String MESSAGE_SIMILAR_PERSON_ARCHIVED_NOTE =
             "Note: %1$s %2$s already exists.";
 
+    private static final Logger logger = LogsCenter.getLogger(AddCommand.class);
+
     private final Person toAdd;
 
     /**
@@ -74,8 +78,11 @@ public class AddCommand extends Command {
 
         Optional<Person> similarPerson = findSimilarPerson(model);
         model.addPerson(toAdd);
+        logger.fine("Added " + toAdd.getName());
         String feedback = String.format(MESSAGE_SUCCESS, Messages.format(toAdd));
         if (similarPerson.isPresent()) {
+            String status = similarPerson.get().isArchived() ? "archived" : "active";
+            logger.info("Added person but a similar " + status + " person already exists");
             feedback += "\n" + formatSimilarPersonNote(model, similarPerson.get());
         }
         return new CommandResult(feedback);
