@@ -16,6 +16,9 @@ import seedu.address.model.person.Phone;
  * Contains utility methods for populating {@code AddressBook} with sample data.
  */
 public class SampleDataUtil {
+    /**
+     * Returns an array of sample persons.
+     */
     public static Person[] getSamplePersons() {
         return new Person[] {
             new Person(new Name("Alex Yeoh"), new Phone("87438807"), new Email("alexyeoh@example.com"),
@@ -35,6 +38,9 @@ public class SampleDataUtil {
         };
     }
 
+    /**
+     * Returns an address book populated with sample persons.
+     */
     public static ReadOnlyAddressBook getSampleAddressBook() {
         AddressBook sampleAb = new AddressBook();
         for (Person samplePerson : getSamplePersons()) {
