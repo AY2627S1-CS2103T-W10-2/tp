@@ -3,6 +3,7 @@ package seedu.address.logic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -58,6 +59,25 @@ public class MessagesTest {
         Person person = new PersonBuilder().withContexts("hiking club", "CS2103T", "Hack&Roll 2026").build();
         assertEquals("Amy Bee; Contexts: [CS2103T] [Hack&Roll 2026] [hiking club]; Phone: 85355255; "
                 + "Email: amy@gmail.com", Messages.format(person));
+    }
+
+    @Test
+    public void format_numberedContexts_sortedNaturallyInBrackets() {
+        Person person = new PersonBuilder().withContexts("Tutorial 2", "Tutorial 10", "Tutorial 1",
+                "group 9", "Group 11").withoutPhone().withoutEmail().build();
+        assertEquals("Amy Bee; Contexts: [group 9] [Group 11] [Tutorial 1] [Tutorial 2] [Tutorial 10]",
+                Messages.format(person));
+    }
+
+    @Test
+    public void formatContextsSorted_emptyContexts_returnsEmptyString() {
+        assertEquals("", Messages.formatContextsSorted(Set.of()));
+    }
+
+    @Test
+    public void formatContextsSorted_leadingZeros_preservesDistinctContexts() {
+        assertEquals("[Group 02] [Group 2] [Group 10]", Messages.formatContextsSorted(
+                Set.of(new Context("Group 2"), new Context("Group 10"), new Context("Group 02"))));
     }
 
     @Test

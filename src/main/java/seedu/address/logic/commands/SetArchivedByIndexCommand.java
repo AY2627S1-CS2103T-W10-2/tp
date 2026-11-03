@@ -85,6 +85,7 @@ public class SetArchivedByIndexCommand extends Command {
     public String toString() {
         return new ToStringBuilder(this)
                 .add("targetIndex", targetIndex)
+                .add("archived", archived)
                 .toString();
     }
 }
