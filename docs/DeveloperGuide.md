@@ -9,8 +9,16 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
-* Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5).
+* UniContacts is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the [SE-EDU initiative](https://se-education.org). Its base application architecture, code, documentation, and diagrams were adapted for this project.
+* The project uses [JavaFX](https://openjfx.io/) and [Jackson](https://github.com/FasterXML/jackson); its tests use [JUnit 5](https://junit.org/junit5/).
+* Some JavaFX-related code was adapted from [Marco Jakob's JavaFX tutorial](https://code.makery.ch/library/javafx-tutorial/).
+* The Metro-style button CSS in `DarkTheme.css` was adapted from [Pedro Duque Vieira's JMetro article](https://pixelduke.wordpress.com/2012/10/23/jmetro-windows-8-controls-on-java/).
+* The `address_book_32.png` icon was created by [Susumu Yoshida](http://www.mcdodesign.com/), and `calendar.png` was created by [Jan Kovařík (GLYPHICONS)](https://www.glyphicons.com/).
+
+**Notable uses of AI:**
+
+* Anthropic Claude was used extensively to assist with code implementation, testing, and code review.
+* OpenAI Codex was used to assist with preliminary code reviews and minor Developer Guide wording improvements.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -303,88 +311,6 @@ same because every removable field goes through the same checks in `EditCommandP
 error messages, and the parser for the value. Adding another removable field means adding one more `OptionalField`, not
 another parse method. The value itself is parsed by `ParserUtil#parseIfPresent`, which `AddCommandParser` uses as well.
 
-### \[Proposed\] Undo/redo feature
-
-#### Proposed Implementation
-
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
-
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
-
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
-
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
-
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
-
-![UndoRedoState0](images/UndoRedoState0.png)
-
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
-
-![UndoRedoState1](images/UndoRedoState1.png)
-
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
-
-![UndoRedoState2](images/UndoRedoState2.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
-
-</div>
-
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
-
-![UndoRedoState3](images/UndoRedoState3.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
-
-</div>
-
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Logic.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-
-</div>
-
-Similarly, how an undo operation goes through the `Model` component is shown below:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
-
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
-
-</div>
-
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
-
-![UndoRedoState4](images/UndoRedoState4.png)
-
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
-
-![UndoRedoState5](images/UndoRedoState5.png)
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<img src="images/CommitActivityDiagram.png" width="250" />
-
-#### Design considerations:
-
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Documentation, logging, testing, dev-ops**
@@ -427,7 +353,7 @@ US1 to US22 retain the identifiers from the Project Notes.
 
 | ID | Priority | As a ... | I want to ... | So that I can ... |
 | --- | --- | --- | --- | --- |
-| US1 | `* * *` | CS student who meets people at hackathons or datathons | record where and how I met someone when adding their person | recall the connection even if I later forget their name |
+| US1 | `* * *` | CS student who meets people at hackathons or datathons | record where and how I met someone when adding them to UniContacts | recall the connection even if I later forget their name |
 | US4 | `* * *` | CS student with limited time | quickly add a person with a name and context, even when I do not yet have their phone number or email | capture people I meet before I forget their details |
 | US5 | `* * *` | CS student who meets people through different activities | organise persons using contexts such as modules, clubs, internships, and events | remember which parts of my network each person belongs to |
 | US10 | `* * *` | CS student who remembers an activity but not someone's name | search persons by their associated module, event, project, or organisation | find the right person using the context I remember |
@@ -467,7 +393,7 @@ The other stories remain possible future enhancements.
 
 #### Considered but excluded
 
-The following story is retained to document the scope decision. UniContacts manages a student's personal persons; social discovery is outside its intended scope. The priority records the desirability of the idea, not a commitment to implement it.
+The following story is retained to document the scope decision. UniContacts manages the people in a student's personal network; social discovery is outside its intended scope. The priority records the desirability of the idea, not a commitment to implement it.
 
 | ID | Priority | As a ... | I want to ... | So that I can ... |
 | --- | --- | --- | --- | --- |
@@ -928,11 +854,15 @@ The following story is retained to document the scope decision. UniContacts mana
 * **Duplicate**: The input is considered as a duplicate when the email/phone number inputted matches one of stored emails/phone numbers in the database. Inputs with same name matched is allowed and will not be considered as a duplicate.
 * **Capitalisation**: Whether the letters in a context name are uppercase or lowercase.
 * **Person**: A saved record representing a specific person within the user's academic, professional, or social network.
+* **Alias**: An optional alternative name recorded for a person.
+* **Introducer**: An optional plain-text name recording who introduced the saved person to the user; it does not need to refer to another person saved in UniContacts.
+* **Note**: An optional single-line text field about a person, limited to 300 characters.
 * **Context**: A descriptive tag representing the shared environment, activity, or relationship (such as a school module, project team, CCA, internship, or event) that explains how or where the user knows a specific person.
 * **Archived person**: A person that has been set aside with `archive`. It stays saved but is left out of the normal person list and out of `find` results, and it is shown only by `archives`.
 * **Index**: A numerical value used to identify and select a specific person based on its position in the currently displayed person list.
 * **Partial-match**: A name/context input can match to multiple persons in the local JSON.
 * **Case-insensitive**: No distinctions between uppercase and lowercase inputs including commands, names and contexts.
+* **Command Line Interface (CLI)**: A text-based interface through which a user operates UniContacts by typing commands into the command box.
 * **Session**: A single continuous period of using UniContacts, starting when the application is opened and ending when it is closed.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -945,6 +875,8 @@ Given below are instructions to test the app manually.
 testers are expected to do more *exploratory* testing.
 
 </div>
+
+When a test requires the six sample persons, use a disposable app folder or back up the existing data first. Close the app, move both `data/unicontacts.json` and any legacy `data/addressbook.json` out of the folder, and relaunch the app to load the sample data.
 
 ### Launch and shutdown
 
@@ -961,6 +893,73 @@ testers are expected to do more *exploratory* testing.
 
    1. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
+
+### Viewing help
+
+1. Opening the help window
+
+   1. Prerequisites: Start the app and close the help window if it is already open.
+
+   1. Test case: `help`<br>
+      Expected: A help window opens showing `Refer to the user guide: https://ay2627s1-cs2103t-w10-2.github.io/tp/UserGuide.html` and a button for copying the URL. The result display shows `Opened help window.`
+
+   1. Test case: Close the help window, then enter `HELP anything`<br>
+      Expected: The help window opens again. Command words are case-insensitive, and `help` ignores additional text.
+
+### Adding a person
+
+1. Adding a person with all optional fields
+
+   1. Prerequisites: Use a disposable address book with no archived persons. Run `clear`, and make sure no saved person uses the phone number `+6598765432` or email `manual.test@example.com`.
+
+   1. Test case: `add n/Manual Test Person c/Manual Testing p/+6598765432 e/manual.test@example.com a/Tester i/Alex Tan nt/Added during manual testing`<br>
+      Expected: The person appears at the bottom of the list with every supplied field. The result display shows `New person added: Manual Test Person; Contexts: [Manual Testing]; Phone: +6598765432; Email: manual.test@example.com; Alias: Tester; Introduced by: Alex Tan; Note: Added during manual testing`.
+
+1. Rejecting an incomplete or duplicate person
+
+   1. Prerequisites: Complete the successful test case above.
+
+   1. Test case: `add n/No Context`<br>
+      Expected: No person is added. The result display shows `Invalid command format!` followed by the usage of `add`.
+
+   1. Test case: `add n/Another Person c/Manual Testing p/+6598765432`<br>
+      Expected: No person is added. The result display shows `This person already exists: Manual Test Person has the same phone number (+6598765432).`
+
+### Listing active persons
+
+1. Restoring the full active-person list after a search
+
+   1. Prerequisites: Start with the six sample persons. Run `list`, `archive 2`, and then `find Alex`.
+
+   1. Test case: `list`<br>
+      Expected: All five active persons are displayed again in their original order, while the archived Bernice Yu remains hidden. The result display shows `5 people listed.`
+
+### Editing a person
+
+1. Editing a person selected from filtered results
+
+   1. Prerequisites: Start with the six sample persons. Run `find Bernice`.
+
+   1. Test case: `edit 1 +c/NUS Hackers`<br>
+      Expected: Bernice Yu gains the context `NUS Hackers` and remains the only displayed person. The result display shows `Edited person: Bernice Yu; Contexts: [CS2103T] [Hiking club] [NUS Hackers]; Phone: 99272758; Email: berniceyu@example.com`.
+
+   1. Test case: `edit 1`<br>
+      Expected: No person is changed. The result display begins with `At least one field to edit must be provided.` and then shows the usage of `edit`.
+
+### Finding persons using general keywords
+
+1. Matching names or contexts using OR semantics
+
+   1. Prerequisites: Start with the six sample persons, with none archived.
+
+   1. Test case: `find Alex Hiking`<br>
+      Expected: Alex Yeoh is shown because the first keyword matches his name, and Bernice Yu is shown because the second keyword matches her `Hiking club` context. The result display shows `2 people listed.`
+
+   1. Test case: `FIND cs2103t`<br>
+      Expected: Alex Yeoh and Bernice Yu are shown, demonstrating that the command and matching are case-insensitive.
+
+   1. Test case: `find 87438807`<br>
+      Expected: No persons are displayed and the result display shows `No persons found!`, because a general keyword search checks names and contexts, not phone numbers.
 
 ### Finding a person using multiple clues
 
@@ -1147,6 +1146,18 @@ testers are expected to do more *exploratory* testing.
    1. Test case: Close the app, change a person's `"archived"` value in `data/unicontacts.json` to `"yes"`, and start the app<br>
       Expected: The data file cannot be read, so the app starts with an empty list and keeps the file as `unicontacts.json.<UTC time>.bak`.
 
+### Clearing non-archived persons
+
+1. Rejecting arguments and preserving archived persons
+
+   1. Prerequisites: Use disposable test data or back up `data/unicontacts.json`, because `clear` cannot be undone. Start with the six sample persons, with none archived.
+
+   1. Test case: `clear 1`<br>
+      Expected: No person is removed. The result display shows `Invalid command format!` followed by the usage of `clear`.
+
+   1. Test case: Run `list`, `archive 2`, and then `clear`<br>
+      Expected: Every active person is removed, while Bernice Yu remains archived. The active-person list is empty and the result display shows `Persons cleared. 1 archived person was kept.` Run `archives` to confirm that Bernice Yu remains saved.
+
 ### Saving data
 
 1. Dealing with a missing data file
@@ -1179,3 +1190,15 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `list`<br>
       Expected: The command succeeds, because commands that change nothing do not save.
+
+### Exiting the application
+
+1. Exiting after a saved change
+
+   1. Prerequisites: Use disposable test data and ensure no person uses the email `exit.test@example.com`. Run `add n/Exit Test Person c/Manual Testing e/exit.test@example.com`.
+
+   1. Test case: `exit`<br>
+      Expected: The main window closes and the application exits.
+
+   1. Relaunch the app and run `find e/exit.test@example.com`.<br>
+      Expected: Exit Test Person is displayed, confirming that the change made before exiting was saved.
