@@ -14,7 +14,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
-import static seedu.address.model.Model.PREDICATE_SHOW_ACTIVE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,9 +22,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
@@ -84,6 +85,10 @@ public class EditCommand extends Command {
     public static final String MESSAGE_NO_CONTEXT_LEFT = "A person must have at least one context. "
             + "Add a new context with +c/ before removing the last one.";
     public static final String MESSAGE_CONTEXTS_SKIPPED = "Note: %1$s already has context(s): %2$s. Skipped.";
+    public static final String MESSAGE_NO_LONGER_MATCHES =
+            "Note: %1$s no longer matches the current search. Run list to see all persons.";
+
+    private static final Logger logger = LogsCenter.getLogger(EditCommand.class);
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -115,9 +120,32 @@ public class EditCommand extends Command {
         if (isChanged) {
             model.setPerson(personToEdit, editedPerson);
         }
-        model.updateFilteredPersonList(PREDICATE_SHOW_ACTIVE);
 
-        return new CommandResult(buildFeedback(personToEdit, editedPerson, isChanged));
+        List<Context> unmatchedContexts = findUnmatchedContexts(personToEdit, editPersonDescriptor);
+        List<Context> skippedContexts = findSkippedContexts(personToEdit, editPersonDescriptor);
+        logOutcome(editedPerson, isChanged, unmatchedContexts, skippedContexts);
+
+        return new CommandResult(
+                buildFeedback(model, personToEdit, editedPerson, isChanged, unmatchedContexts, skippedContexts));
+    }
+
+    /**
+     * Logs the outcome of the edit at INFO if no change was made or some contexts were skipped,
+     * and at FINE if the person was edited.
+     */
+    private static void logOutcome(Person editedPerson, boolean isChanged,
+            List<Context> unmatchedContexts, List<Context> skippedContexts) {
+        if (isChanged) {
+            logger.fine("Edited " + editedPerson.getName());
+        } else {
+            logger.info("Edit made no changes");
+        }
+        if (!unmatchedContexts.isEmpty()) {
+            logger.info(unmatchedContexts.size() + " context(s) to remove not found, skipped");
+        }
+        if (!skippedContexts.isEmpty()) {
+            logger.info(skippedContexts.size() + " context(s) to add already present, skipped");
+        }
     }
 
     /**
@@ -142,23 +170,35 @@ public class EditCommand extends Command {
 
     /**
      * Returns the message to show after the edit: the success or no-change message,
-     * then a note for each of the unmatched and skipped contexts, if any.
+     * then a note for each of the unmatched and skipped contexts, if any, and a note if the edited person
+     * no longer matches the search whose results {@code model} shows.
      */
-    private String buildFeedback(Person personToEdit, Person editedPerson, boolean isChanged) {
+    private String buildFeedback(Model model, Person personToEdit, Person editedPerson, boolean isChanged,
+            List<Context> unmatchedContexts, List<Context> skippedContexts) {
         String feedback = isChanged
                 ? String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
                 : String.format(MESSAGE_NO_CHANGES, personToEdit.getName());
-        List<Context> unmatchedContexts = findUnmatchedContexts(personToEdit, editPersonDescriptor);
         if (!unmatchedContexts.isEmpty()) {
             feedback += "\n" + String.format(MESSAGE_CONTEXTS_NOT_FOUND_SKIPPED,
                     editedPerson.getName(), Messages.formatContexts(unmatchedContexts));
         }
-        List<Context> skippedContexts = findSkippedContexts(personToEdit, editPersonDescriptor);
         if (!skippedContexts.isEmpty()) {
             feedback += "\n" + String.format(MESSAGE_CONTEXTS_SKIPPED,
                     editedPerson.getName(), Messages.formatContexts(skippedContexts));
         }
+        // an unchanged person was not replaced, so only a changed person can have dropped out of the list
+        if (isChanged && !isShown(model, editedPerson)) {
+            feedback += "\n" + String.format(MESSAGE_NO_LONGER_MATCHES, editedPerson.getName());
+        }
         return feedback;
+    }
+
+    /**
+     * Returns true if {@code person} is in the filtered person list of {@code model}. The very same object is
+     * looked for, because two persons without a phone number or email can be equal.
+     */
+    private static boolean isShown(Model model, Person person) {
+        return model.getFilteredPersonList().stream().anyMatch(shownPerson -> shownPerson == person);
     }
 
     /**
@@ -238,8 +278,7 @@ public class EditCommand extends Command {
             EditPersonDescriptor editPersonDescriptor) {
         assert personToEdit != null;
 
-        Set<Context> keptContexts = new LinkedHashSet<>(personToEdit.getContexts());
-        keptContexts.removeAll(editPersonDescriptor.getContextsToRemove().orElse(Set.of()));
+        Set<Context> keptContexts = getContextsAfterRemovals(personToEdit, editPersonDescriptor);
         Set<Context> contextsToAdd = editPersonDescriptor.getContextsToAdd().orElse(Set.of());
 
         List<Context> skippedContexts = new ArrayList<>();
@@ -254,6 +293,19 @@ public class EditCommand extends Command {
     }
 
     /**
+     * Returns a new set of the contexts of {@code personToEdit} left after removing the contexts in
+     * {@code editPersonDescriptor} to remove. A context the person does not have is not removed.
+     */
+    private static Set<Context> getContextsAfterRemovals(Person personToEdit,
+            EditPersonDescriptor editPersonDescriptor) {
+        assert personToEdit != null;
+
+        Set<Context> remainingContexts = new LinkedHashSet<>(personToEdit.getContexts());
+        remainingContexts.removeAll(editPersonDescriptor.getContextsToRemove().orElse(Set.of()));
+        return remainingContexts;
+    }
+
+    /**
      * Returns the contexts of {@code personToEdit} after removing and then adding the contexts in
      * {@code editPersonDescriptor}. A context the person does not have is not removed, and a context
      * the person already has is not added again.
@@ -262,8 +314,7 @@ public class EditCommand extends Command {
      */
     private static Set<Context> applyContextChanges(Person personToEdit, EditPersonDescriptor editPersonDescriptor)
             throws CommandException {
-        Set<Context> updatedContexts = new LinkedHashSet<>(personToEdit.getContexts());
-        updatedContexts.removeAll(editPersonDescriptor.getContextsToRemove().orElse(Set.of()));
+        Set<Context> updatedContexts = getContextsAfterRemovals(personToEdit, editPersonDescriptor);
         // Set#add keeps the existing spelling when the person already has the context
         updatedContexts.addAll(editPersonDescriptor.getContextsToAdd().orElse(Set.of()));
 

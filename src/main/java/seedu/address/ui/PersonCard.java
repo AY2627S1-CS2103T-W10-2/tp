@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import seedu.address.commons.util.NaturalOrderComparator;
 import seedu.address.model.person.Person;
 
 /**
@@ -60,14 +61,14 @@ public class PersonCard extends UiPart<Region> {
         setOptionalLabel(introducer, person.getIntroducer().map(i -> "Introduced by: " + i.value));
         setOptionalLabel(note, person.getNote().map(n -> "Note: " + n.value));
         person.getContexts().stream()
-                .sorted(Comparator.comparing(context -> context.description, String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator.comparing(context -> context.description, NaturalOrderComparator.INSTANCE))
                 .forEach(context -> contexts.getChildren().add(new Label(context.description)));
     }
 
     /**
      * Displays {@code text} when present and removes the label from the layout otherwise.
      * An invisible JavaFX node can still occupy space, so both visibility and management
-     * must be disabled for a missing optional contact detail.
+     * must be disabled for a missing optional detail.
      */
     private static void setOptionalLabel(Label label, Optional<String> text) {
         boolean isPresent = text.isPresent();

@@ -12,10 +12,7 @@ import seedu.address.model.person.Person;
  * The API of the Model component.
  */
 public interface Model {
-    /** {@code Predicate} that always evaluates to true */
-    Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
-
-    /** {@code Predicate} that shows the persons who are not archived. This is the normal contact list. */
+    /** {@code Predicate} that shows the persons who are not archived. This is the normal person list. */
     Predicate<Person> PREDICATE_SHOW_ACTIVE = person -> !person.isArchived();
 
     /** {@code Predicate} that shows only the archived persons. */

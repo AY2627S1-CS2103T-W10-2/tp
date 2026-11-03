@@ -3,7 +3,9 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -26,6 +28,8 @@ public class SetArchivedByIndexCommand extends Command {
     public static final String MESSAGE_UNARCHIVE_PERSON_SUCCESS = "Unarchived person: %1$s";
     public static final String MESSAGE_NOT_ARCHIVED = "That person is not archived. "
             + "Run archives to see archived persons, then use unarchive INDEX.";
+
+    private static final Logger logger = LogsCenter.getLogger(SetArchivedByIndexCommand.class);
 
     private final Index targetIndex;
     private final boolean archived;
@@ -55,7 +59,9 @@ public class SetArchivedByIndexCommand extends Command {
         }
 
         Person changedPerson = personToChange.copyWithArchived(archived);
+        assert changedPerson.isArchived() == archived : "the changed person must be in the target state";
         model.setPerson(personToChange, changedPerson);
+        logger.info("Set archived to " + archived + " for the person at displayed index " + targetIndex.getOneBased());
         String successMessage = archived ? MESSAGE_ARCHIVE_PERSON_SUCCESS : MESSAGE_UNARCHIVE_PERSON_SUCCESS;
         return new CommandResult(String.format(successMessage, Messages.format(changedPerson)));
     }
@@ -79,6 +85,7 @@ public class SetArchivedByIndexCommand extends Command {
     public String toString() {
         return new ToStringBuilder(this)
                 .add("targetIndex", targetIndex)
+                .add("archived", archived)
                 .toString();
     }
 }

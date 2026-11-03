@@ -77,6 +77,13 @@ public class UnarchiveCommandTest {
     }
 
     @Test
+    public void toStringMethod() {
+        UnarchiveCommand command = new UnarchiveCommand(INDEX_FIRST_PERSON);
+        assertEquals(UnarchiveCommand.class.getCanonicalName() + "{targetIndex=" + INDEX_FIRST_PERSON
+                + ", archived=false}", command.toString());
+    }
+
+    @Test
     public void equals() {
         UnarchiveCommand unarchiveFirstCommand = new UnarchiveCommand(INDEX_FIRST_PERSON);
         assertTrue(unarchiveFirstCommand.equals(unarchiveFirstCommand));

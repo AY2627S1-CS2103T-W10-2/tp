@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import seedu.address.commons.util.NaturalOrderComparator;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Person;
@@ -19,7 +20,6 @@ public class Messages {
     public static final String MESSAGE_UNKNOWN_COMMAND = "Unknown command.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
     public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The person index provided is invalid.";
-    public static final String MESSAGE_PERSONS_LISTED_OVERVIEW = "%1$d person(s) listed!";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists: %1$s has the same %2$s (%3$s).";
@@ -72,12 +72,12 @@ public class Messages {
     }
 
     /**
-     * Formats {@code contexts} as {@code [A] [B]}, sorted by description ignoring case, as in the person
+     * Formats {@code contexts} as {@code [A] [B]}, sorted in natural order ignoring case, as in the person
      * details shown to the user.
      */
     public static String formatContextsSorted(Collection<Context> contexts) {
         List<Context> sortedContexts = contexts.stream()
-                .sorted(Comparator.comparing(Context::toString, String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator.comparing(Context::toString, NaturalOrderComparator.INSTANCE))
                 .toList();
         return formatContexts(sortedContexts);
     }

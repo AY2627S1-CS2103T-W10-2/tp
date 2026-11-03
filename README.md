@@ -11,10 +11,10 @@ UniContacts is optimised for fast typists: you work through a command box, while
 
 ## Features
 
-* Add a contact with a name, at least one context, and an optional phone and email
+* Add a person with a name, at least one context, and an optional phone and email
 * List all persons, with every context shown on each card
-* Find contacts by part of their name or context
-* Delete a contact by its index in the list
+* Find persons by part of their name or context
+* Delete a person by its index in the list
 * Save data automatically after every change
 
 ## Links
