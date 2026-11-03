@@ -13,6 +13,10 @@ import seedu.address.model.person.Person;
 public class ClearCommand extends Command {
 
     public static final String COMMAND_WORD = "clear";
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Clears all persons that are not archived.\n"
+            + "Parameters: none\n"
+            + "Example: " + COMMAND_WORD;
     public static final String MESSAGE_SUCCESS = "Persons cleared.";
     public static final String MESSAGE_SUCCESS_KEEPING_ONE_ARCHIVED = "Persons cleared. 1 archived person was kept.";
     public static final String MESSAGE_SUCCESS_KEEPING_ARCHIVED = "Persons cleared. %1$d archived persons were kept.";
