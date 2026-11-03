@@ -865,7 +865,7 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case resumes at step 1.
 
-* 3c. System detects an error in the entered details, for example no detail to change is given or a detail breaks its rules.
+* 3c. System detects an error in the entered details, for example, because no detail to change was provided or a detail violates its validation rules.
 
     * 3c1. System shows an error message with the correct format.
 
@@ -883,9 +883,11 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case ends.
 
-* 4a. The request removes a context the person does not have, or adds a context the person already has.
+* 4a. The request removes a context the person does not have, or adds a context the person still has after the requested removals.
 
-    * 4a1. System skips those contexts, makes the rest of the changes, and tells the user which contexts were skipped.
+    * 4a1. System skips those contexts and makes the rest of the changes.
+
+    * 4a2. System tells the user which contexts were skipped. If the skipped contexts were the only requested change, System also tells the user that no changes were made.
 
       Use case ends.
 
