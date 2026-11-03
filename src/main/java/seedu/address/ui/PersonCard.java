@@ -67,7 +67,7 @@ public class PersonCard extends UiPart<Region> {
     /**
      * Displays {@code text} when present and removes the label from the layout otherwise.
      * An invisible JavaFX node can still occupy space, so both visibility and management
-     * must be disabled for a missing optional contact detail.
+     * must be disabled for a missing optional detail.
      */
     private static void setOptionalLabel(Label label, Optional<String> text) {
         boolean isPresent = text.isPresent();
