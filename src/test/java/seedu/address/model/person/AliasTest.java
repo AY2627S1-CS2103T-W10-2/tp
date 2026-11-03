@@ -15,6 +15,12 @@ public class AliasTest {
     }
 
     @Test
+    public void constructor_collapsesTabsAndOtherWhitespace() {
+        assertEquals("Alex Tan", new Alias("Alex\tTan").value);
+        assertEquals("Alex Tan", new Alias("\t Alex \t\n Tan\r\n").value);
+    }
+
+    @Test
     public void constructor_invalidAlias_throwsIllegalArgumentException() {
         assertThrows(NullPointerException.class, () -> new Alias(null));
         assertThrows(IllegalArgumentException.class, () -> new Alias("  "));
@@ -27,6 +33,9 @@ public class AliasTest {
         assertFalse(Alias.isValidAlias(null));
         assertFalse(Alias.isValidAlias("-Alex"));
         assertTrue(Alias.isValidAlias("  Jean-Luc  "));
+        assertTrue(Alias.isValidAlias("Alex\tTan")); // tab counts as a space
+        assertFalse(Alias.isValidAlias("\t"));
+        assertFalse(Alias.isValidAlias("Alex\t123"));
         assertTrue(Alias.isValidAlias("A".repeat(100)));
     }
 
@@ -36,6 +45,7 @@ public class AliasTest {
         Alias sameAlias = new Alias(" Alex   Tan ");
         assertEquals(alias, sameAlias);
         assertEquals(alias.hashCode(), sameAlias.hashCode());
+        assertEquals(alias, new Alias("Alex\tTan"));
         assertFalse(alias.equals(new Alias("Alex Lim")));
     }
 }
