@@ -64,6 +64,70 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_similarPersonAfterEdit_editedWithNote() throws Exception {
+        Model testModel = new ModelManager();
+        testModel.addPerson(personWithoutPhoneAndEmail("Cara Dee", false, "Alpha"));
+        testModel.addPerson(personWithoutPhoneAndEmail("Cara Dee", false, "Beta"));
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withContextsToAdd("Alpha").build();
+
+        CommandResult result = new EditCommand(INDEX_SECOND_PERSON, descriptor).execute(testModel);
+
+        assertEquals(String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(testModel.getFilteredPersonList().get(1)))
+                + "\nNote: Cara Dee [Alpha] already exists at index 1.", result.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_archivedSimilarPersonAfterEdit_editedWithArchivedNote() throws Exception {
+        Model testModel = new ModelManager();
+        testModel.addPerson(personWithoutPhoneAndEmail("Cara Dee", true, "Alpha"));
+        testModel.addPerson(personWithoutPhoneAndEmail("Cara", false, "Alpha"));
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName("Cara Dee").build();
+
+        CommandResult result = new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(testModel);
+
+        assertEquals(String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(testModel.getFilteredPersonList().get(0)))
+                + "\nNote: Cara Dee [Alpha] already exists. This person is archived; run archives to see them.",
+                result.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_similarPersonWithPhoneAfterEdit_editedWithNote() throws Exception {
+        Model testModel = new ModelManager();
+        testModel.addPerson(new PersonBuilder().withName("Cara Dee").withContexts("Alpha")
+                .withPhone("11111111").withoutEmail().build());
+        testModel.addPerson(new PersonBuilder().withName("Cara Dee").withContexts("Beta")
+                .withPhone("22222222").withoutEmail().build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withContextsToAdd("Alpha").build();
+
+        CommandResult result = new EditCommand(INDEX_SECOND_PERSON, descriptor).execute(testModel);
+
+        assertEquals(String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(testModel.getFilteredPersonList().get(1)))
+                + "\nNote: Cara Dee [Alpha] already exists at index 1.", result.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_noSimilarPersonAfterEdit_noNote() throws Exception {
+        Model testModel = new ModelManager();
+        testModel.addPerson(personWithoutPhoneAndEmail("Cara Dee", false, "Alpha"));
+        testModel.addPerson(personWithoutPhoneAndEmail("Cara Dee", false, "Beta"));
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withContextsToAdd("Gamma").build();
+
+        // the edited person is not similar to themselves, and shares no context with the other Cara Dee
+        CommandResult result = new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(testModel);
+
+        assertEquals(String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(testModel.getFilteredPersonList().get(0))), result.getFeedbackToUser());
+    }
+
+    private static Person personWithoutPhoneAndEmail(String name, boolean isArchived, String... contexts) {
+        return new PersonBuilder().withName(name).withContexts(contexts).withoutPhone().withoutEmail()
+                .withArchived(isArchived).build();
+    }
+
+    @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
         Person editedPerson = new PersonBuilder().withAlias(VALID_ALIAS_AMY)
                 .withIntroducer(VALID_INTRODUCER_AMY).withNote(VALID_NOTE_AMY).build();

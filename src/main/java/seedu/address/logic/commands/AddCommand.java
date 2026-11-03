@@ -76,33 +76,36 @@ public class AddCommand extends Command {
             throw new CommandException(Messages.getErrorMessageForDuplicatePerson(existingPerson.get(), toAdd));
         }
 
-        Optional<Person> similarPerson = findSimilarPerson(model);
+        Optional<Person> similarPerson = findSimilarPerson(model, toAdd);
         model.addPerson(toAdd);
         logger.fine("Added " + toAdd.getName());
         String feedback = String.format(MESSAGE_SUCCESS, Messages.format(toAdd));
         if (similarPerson.isPresent()) {
             String status = similarPerson.get().isArchived() ? "archived" : "active";
             logger.info("Added person but a similar " + status + " person already exists");
-            feedback += "\n" + formatSimilarPersonNote(model, similarPerson.get());
+            feedback += "\n" + formatSimilarPersonNote(model, similarPerson.get(), toAdd,
+                    MESSAGE_SIMILAR_PERSON_ACTIVE_NOTE);
         }
         return new CommandResult(feedback);
     }
 
     /**
      * Returns the note telling the user that {@code similar} already exists. {@code model} must already
-     * contain the person to add, so that the indexes shown match the list shown after the command.
+     * contain {@code person}, so that the indexes shown match the list shown after the command.
+     * {@code activeNote} is filled with the name, shared contexts, index of {@code similar} and index of
+     * {@code person}, in that order.
      */
-    private String formatSimilarPersonNote(Model model, Person similar) {
+    static String formatSimilarPersonNote(Model model, Person similar, Person person, String activeNote) {
         String name = similar.getName().toString();
         String sharedContexts = Messages.formatContextsSorted(similar.getContexts().stream()
-                .filter(toAdd.getContexts()::contains)
+                .filter(person.getContexts()::contains)
                 .toList());
         if (similar.isArchived()) {
             return String.format(MESSAGE_SIMILAR_PERSON_ARCHIVED_NOTE, name, sharedContexts)
                     + " " + Messages.MESSAGE_ARCHIVED_PERSON_HINT;
         }
-        return String.format(MESSAGE_SIMILAR_PERSON_ACTIVE_NOTE, name, sharedContexts,
-                getDisplayedIndex(model, similar), getDisplayedIndex(model, toAdd));
+        return String.format(activeNote, name, sharedContexts,
+                getDisplayedIndex(model, similar), getDisplayedIndex(model, person));
     }
 
     /**
@@ -120,15 +123,17 @@ public class AddCommand extends Command {
     }
 
     /**
-     * Returns an existing person in {@code model} with the same name (ignoring case and repeated spaces) and
-     * at least one context in common with the person to add, whatever their phone numbers and emails.
+     * Returns another person in {@code model} with the same name (ignoring case and repeated spaces) and
+     * at least one context in common with {@code person}, whatever their phone numbers and emails.
      * An active person is preferred over an archived one, then the first in address book order.
      */
-    private Optional<Person> findSimilarPerson(Model model) {
-        String normalisedName = normalise(toAdd.getName().fullName);
+    static Optional<Person> findSimilarPerson(Model model, Person person) {
+        String normalisedName = normalise(person.getName().fullName);
+        // the very same object is skipped, so an edited person is not similar to themselves
         return model.getAddressBook().getPersonList().stream()
-                .filter(existing -> normalise(existing.getName().fullName).equals(normalisedName)
-                        && !Collections.disjoint(existing.getContexts(), toAdd.getContexts()))
+                .filter(existing -> existing != person
+                        && normalise(existing.getName().fullName).equals(normalisedName)
+                        && !Collections.disjoint(existing.getContexts(), person.getContexts()))
                 .min(Comparator.comparing(Person::isArchived));
     }
 

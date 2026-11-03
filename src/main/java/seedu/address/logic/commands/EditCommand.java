@@ -87,6 +87,7 @@ public class EditCommand extends Command {
     public static final String MESSAGE_CONTEXTS_SKIPPED = "Note: %1$s already has context(s): %2$s. Skipped.";
     public static final String MESSAGE_NO_LONGER_MATCHES =
             "Note: %1$s no longer matches the current search. Run list to see all persons.";
+    public static final String MESSAGE_SIMILAR_PERSON_ACTIVE_NOTE = "Note: %1$s %2$s already exists at index %3$d.";
 
     private static final Logger logger = LogsCenter.getLogger(EditCommand.class);
 
@@ -125,8 +126,16 @@ public class EditCommand extends Command {
         List<Context> skippedContexts = findSkippedContexts(personToEdit, editPersonDescriptor);
         logOutcome(editedPerson, isChanged, unmatchedContexts, skippedContexts);
 
-        return new CommandResult(
-                buildFeedback(model, personToEdit, editedPerson, isChanged, unmatchedContexts, skippedContexts));
+        String feedback =
+                buildFeedback(model, personToEdit, editedPerson, isChanged, unmatchedContexts, skippedContexts);
+        Optional<Person> similarPerson = isChanged
+                ? AddCommand.findSimilarPerson(model, editedPerson)
+                : Optional.empty();
+        if (similarPerson.isPresent()) {
+            feedback += "\n" + AddCommand.formatSimilarPersonNote(model, similarPerson.get(), editedPerson,
+                    MESSAGE_SIMILAR_PERSON_ACTIVE_NOTE);
+        }
+        return new CommandResult(feedback);
     }
 
     /**
