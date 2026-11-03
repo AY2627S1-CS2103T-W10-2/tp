@@ -118,7 +118,7 @@ Parameter | Rules | Valid | Invalid
 Email rules:
 * The local part (before the `@`) may contain letters, digits and `+` `_` `.` `-`, but cannot start or end with a symbol, or have two symbols in a row.
 * The domain (after the `@`) is one or more parts separated by periods, such as `u.nus.edu`. Each part may contain letters, digits and hyphens, but cannot start or end with a hyphen. The last part must be at least 2 characters long.
-* The only length limit is 254 characters for the whole email. The local part has no separate limit, so a local part longer than the 64 characters most mail servers allow is still accepted.
+* An email can be at most 254 characters long. The local part and domain have no separate maximum, so a local part longer than the 64 characters most mail servers allow is still accepted.
 
 How values are saved:
 * Names, contexts and emails keep the capitalisation you typed.
