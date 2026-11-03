@@ -148,6 +148,25 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_editTwiceAfterFind_editsPersonsByFindResultIndex() throws Exception {
+        logic.execute("add n/Irfan Ibrahim p/90000001 c/CS2103T");
+        logic.execute("add n/Bernice Yu p/90000002 c/CS2103T");
+        logic.execute("add n/Roy Balakrishnan p/90000003 c/CS2103T");
+        logic.execute("find Irfan Roy");
+
+        logic.execute("edit 1 p/90000021");
+        logic.execute("edit 2 e/roy.b@example.com");
+
+        // the find results stay after each edit, so the 2nd person is still Roy and not Bernice
+        List<Person> shownPersons = model.getFilteredPersonList();
+        assertEquals(List.of("Irfan Ibrahim", "Roy Balakrishnan"),
+                shownPersons.stream().map(person -> person.getName().fullName).toList());
+        assertEquals("90000021", shownPersons.get(0).getPhone().orElseThrow().value);
+        assertEquals("roy.b@example.com", shownPersons.get(1).getEmail().orElseThrow().value);
+        assertTrue(model.getAddressBook().getPersonList().get(1).getEmail().isEmpty());
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));

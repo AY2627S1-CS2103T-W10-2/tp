@@ -42,7 +42,9 @@ public class FindCommandParser implements Parser<FindCommand> {
             throw invalidFormat();
         }
 
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + trimmedArgs, SEARCH_PREFIXES);
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenizeWithRestOfLinePrefix(
+                " " + trimmedArgs, PREFIX_NOTE, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
+                PREFIX_CONTEXT, PREFIX_ALIAS, PREFIX_INTRODUCER);
         if (!hasSupportedPrefix(argMultimap)) {
             return parseKeywordSearch(trimmedArgs);
         }
@@ -61,7 +63,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(
-                PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ALIAS, PREFIX_INTRODUCER, PREFIX_NOTE);
+                PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ALIAS, PREFIX_INTRODUCER);
 
         PersonSearchClues searchClues = new PersonSearchClues();
         parseClue(argMultimap, PREFIX_NAME, FindCommand.MESSAGE_EMPTY_NAME_CLUE)
