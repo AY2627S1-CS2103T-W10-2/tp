@@ -314,7 +314,7 @@ The numbers of the persons after them in the results go down by one. A person wh
 
 Edited persons are checked for duplicates the same way as in [`add`](#adding-a-person-add): the edit is rejected if another person has the same phone number or email. A person is never a duplicate of themselves, so `edit 2 p/99272758` on Bernice Yu, who already has that number, is accepted.
 
-If the edited person has no phone number and no email, and another person has the same name and at least one context in common, the edit is still made, with an extra line. For example, if Cara Dee with context Alpha is at index 7, `edit 8 +c/Alpha` on another Cara Dee adds this line:
+If another person has the same name and at least one context in common with the edited person, they may be the same person (a near duplicate), so the edit is still made, with a warning line. This happens whatever the phone numbers and emails of the two persons are. For example, if Cara Dee with context Alpha is at index 7, `edit 8 +c/Alpha` on another Cara Dee adds this line:
 
 `Note: Cara Dee [Alpha] already exists at index 7.`
 

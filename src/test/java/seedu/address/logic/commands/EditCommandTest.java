@@ -93,6 +93,22 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_similarPersonWithPhoneAfterEdit_editedWithNote() throws Exception {
+        Model testModel = new ModelManager();
+        testModel.addPerson(new PersonBuilder().withName("Cara Dee").withContexts("Alpha")
+                .withPhone("11111111").withoutEmail().build());
+        testModel.addPerson(new PersonBuilder().withName("Cara Dee").withContexts("Beta")
+                .withPhone("22222222").withoutEmail().build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withContextsToAdd("Alpha").build();
+
+        CommandResult result = new EditCommand(INDEX_SECOND_PERSON, descriptor).execute(testModel);
+
+        assertEquals(String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(testModel.getFilteredPersonList().get(1)))
+                + "\nNote: Cara Dee [Alpha] already exists at index 1.", result.getFeedbackToUser());
+    }
+
+    @Test
     public void execute_noSimilarPersonAfterEdit_noNote() throws Exception {
         Model testModel = new ModelManager();
         testModel.addPerson(personWithoutPhoneAndEmail("Cara Dee", false, "Alpha"));
