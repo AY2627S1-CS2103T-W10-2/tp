@@ -25,7 +25,7 @@ public class ViewArchivesCommandTest {
     }
 
     @Test
-    public void execute_noArchivedContacts_showsEmptyMessage() {
+    public void execute_noArchivedPersons_showsEmptyMessage() {
         ModelManager expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         expectedModel.updateFilteredPersonList(Model.PREDICATE_SHOW_ARCHIVED);
 
@@ -35,7 +35,7 @@ public class ViewArchivesCommandTest {
     }
 
     @Test
-    public void execute_oneArchivedContact_showsOnlyThatContact() {
+    public void execute_oneArchivedPerson_showsOnlyThatPerson() {
         archive(0);
         Person archived = model.getAddressBook().getPersonList().stream().filter(Person::isArchived).findFirst().get();
 
@@ -48,7 +48,7 @@ public class ViewArchivesCommandTest {
     }
 
     @Test
-    public void execute_severalArchivedContacts_showsOnlyArchivedOnes() {
+    public void execute_severalArchivedPersons_showsOnlyArchivedOnes() {
         archive(0);
         archive(0);
 

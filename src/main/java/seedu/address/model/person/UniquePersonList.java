@@ -102,6 +102,9 @@ public class UniquePersonList implements Iterable<Person> {
         internalList.remove(index);
     }
 
+    /**
+     * Replaces the contents of this list with those of {@code replacement}.
+     */
     public void setPersons(UniquePersonList replacement) {
         requireNonNull(replacement);
         internalList.setAll(replacement.internalList);

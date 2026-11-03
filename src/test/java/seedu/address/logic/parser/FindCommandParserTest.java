@@ -5,7 +5,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_ALIAS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INTRODUCER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -52,7 +51,7 @@ public class FindCommandParserTest {
     }
 
     @Test
-    public void parse_allStructuredFieldsInAnyOrder_returnsFindCommand() {
+    public void parse_allStructuredFieldsWithNoteLast_returnsFindCommand() {
         PersonSearchClues searchClues = new PersonSearchClues()
                 .withNameClue("Tony Zhang")
                 .withPhoneClue("9123")
@@ -63,8 +62,8 @@ public class FindCommandParserTest {
                 .withNoteClue("project teammate");
         FindCommand expectedFindCommand = new FindCommand(new PersonMatchesCluesPredicate(searchClues));
 
-        assertParseSuccess(parser, "nt/project   teammate c/CS2103T a/Toto p/9123 "
-                + "n/Tony Zhang i/Alice Tan e/@u.nus.edu c/Hack", expectedFindCommand);
+        assertParseSuccess(parser, "c/CS2103T a/Toto p/9123 n/Tony Zhang i/Alice Tan "
+                + "e/@u.nus.edu c/Hack nt/project   teammate", expectedFindCommand);
     }
 
     @Test
@@ -119,8 +118,6 @@ public class FindCommandParserTest {
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ALIAS));
         assertParseFailure(parser, "i/Alice i/Bob",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_INTRODUCER));
-        assertParseFailure(parser, "nt/project nt/friend",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NOTE));
     }
 
     @Test
@@ -135,6 +132,17 @@ public class FindCommandParserTest {
                 new PersonSearchClues().withNoteClue("pizza and/or burgers")));
 
         assertParseSuccess(parser, "nt/pizza and/or burgers", expectedFindCommand);
+    }
+
+    @Test
+    public void parse_supportedPrefixTextInsideNote_returnsFindCommand() {
+        FindCommand expectedCSlashCommand = new FindCommand(new PersonMatchesCluesPredicate(
+                new PersonSearchClues().withNoteClue("Lives c/o his aunt")));
+        FindCommand expectedNSlashCommand = new FindCommand(new PersonMatchesCluesPredicate(
+                new PersonSearchClues().withNoteClue("Owes me n/a")));
+
+        assertParseSuccess(parser, "nt/Lives c/o his aunt", expectedCSlashCommand);
+        assertParseSuccess(parser, "nt/Owes me n/a", expectedNSlashCommand);
     }
 
     @Test

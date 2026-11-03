@@ -36,11 +36,23 @@ public class ContextTest {
     }
 
     @Test
+    public void constructor_collapsesTabsAndOtherWhitespace() {
+        assertEquals("CS2040S Lab", new Context("CS2040S\tLab").description);
+        assertEquals("NUS Hackers", new Context("\tNUS \t \n Hackers\r\n").description);
+    }
+
+    @Test
     public void isValidDescription() {
         assertFalse(Context.isValidDescription(null));
         assertFalse(Context.isValidDescription(" "));
         assertTrue(Context.isValidDescription("CS2103T"));
         assertTrue(Context.isValidDescription("Hiking club 2026"));
+
+        // tabs and other whitespace count as spaces
+        assertTrue(Context.isValidDescription("CS2040S\tLab"));
+        assertTrue(Context.isValidDescription("\tHiking \n club\t"));
+        assertFalse(Context.isValidDescription("\t"));
+        assertFalse(Context.isValidDescription("CS2103T/\tT09"));
 
         // spec examples
         assertTrue(Context.isValidDescription("Hack&Roll 2026"));
@@ -99,6 +111,8 @@ public class ContextTest {
         assertEquals(context.hashCode(), new Context("cs2103t").hashCode());
         assertEquals(new Context("NUS Hackers"), new Context("nus   hackers"));
         assertEquals(new Context("NUS Hackers").hashCode(), new Context("nus   hackers").hashCode());
+        assertEquals(new Context("NUS Hackers"), new Context("nus\thackers"));
+        assertEquals(new Context("NUS Hackers").hashCode(), new Context("nus\thackers").hashCode());
         assertNotEquals(context, new Context("CS2101"));
         assertNotEquals(context, null);
     }

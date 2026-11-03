@@ -4,10 +4,13 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 
 import java.util.Locale;
 
+import seedu.address.commons.util.StringUtil;
+
 /**
  * Represents a context (e.g. a module, club or event) that a {@code Person} is linked to.
  * Guarantees: immutable; description is valid as declared in {@link #isValidDescription(String)}.
- * Two contexts are equal if their descriptions match, ignoring capitalisation, surrounding spaces and repeated spaces.
+ * Two contexts are equal if their descriptions match, ignoring capitalisation, surrounding whitespace and repeated
+ * whitespace.
  */
 public class Context {
 
@@ -22,26 +25,20 @@ public class Context {
     /**
      * Constructs a {@code Context}.
      *
-     * @param description A valid description. Surrounding spaces are removed and repeated spaces are collapsed
-     *                    to one; the casing is kept as typed.
+     * @param description A valid description. Surrounding whitespace is removed and each run of whitespace is
+     *                    collapsed to one space; the casing is kept as typed.
      */
     public Context(String description) {
         checkArgument(isValidDescription(description), MESSAGE_CONSTRAINTS);
-        this.description = normalise(description);
+        this.description = StringUtil.collapseWhitespace(description);
     }
 
     /**
-     * Returns true if a given string is a valid context description once trimmed and repeated spaces are collapsed.
+     * Returns true if a given string is a valid context description once trimmed and each run of whitespace is
+     * collapsed to one space.
      */
     public static boolean isValidDescription(String test) {
-        return test != null && normalise(test).matches(VALIDATION_REGEX);
-    }
-
-    /**
-     * Returns {@code description} with surrounding spaces removed and repeated spaces collapsed to one.
-     */
-    private static String normalise(String description) {
-        return description.trim().replaceAll(" +", " ");
+        return test != null && StringUtil.collapseWhitespace(test).matches(VALIDATION_REGEX);
     }
 
     @Override

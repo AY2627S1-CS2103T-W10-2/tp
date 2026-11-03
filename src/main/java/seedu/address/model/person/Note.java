@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
 /**
- * Represents an optional single-line personal note about a contact.
+ * Represents an optional single-line personal note about a person.
  * Guarantees: immutable; non-blank after trimming and no longer than 300 characters.
  */
 public class Note {

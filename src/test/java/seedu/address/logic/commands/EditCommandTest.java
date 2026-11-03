@@ -8,6 +8,7 @@ import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ALIAS_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ALIAS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CONTEXT_HUSBAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_INTRODUCER_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_INTRODUCER_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
@@ -21,7 +22,11 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.DANIEL;
+import static seedu.address.testutil.TypicalPersons.KEYWORD_MATCHING_MEIER;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +38,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonContainsKeywordsPredicate;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -62,17 +68,12 @@ public class EditCommandTest {
         Person editedPerson = new PersonBuilder().withAlias(VALID_ALIAS_AMY)
                 .withIntroducer(VALID_INTRODUCER_AMY).withNote(VALID_NOTE_AMY).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 
         // the first person already has the default context, so it is skipped
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
-                + "\n" + String.format(EditCommand.MESSAGE_CONTEXTS_SKIPPED, editedPerson.getName(),
-                        "[" + PersonBuilder.DEFAULT_CONTEXT + "]");
+        String note = String.format(EditCommand.MESSAGE_CONTEXTS_SKIPPED, editedPerson.getName(),
+                "[" + PersonBuilder.DEFAULT_CONTEXT + "]");
 
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(model.getFilteredPersonList().get(0), editedPerson);
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedPerson, note);
     }
 
     @Test
@@ -87,14 +88,8 @@ public class EditCommandTest {
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB)
                 .withPhone(VALID_PHONE_BOB).withContextsToAdd(VALID_CONTEXT_HUSBAND).build();
-        EditCommand editCommand = new EditCommand(indexLastPerson, descriptor);
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(lastPerson, editedPerson);
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEditSuccess(indexLastPerson, descriptor, editedPerson);
     }
 
     @Test
@@ -111,12 +106,104 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        // the new name does not match the search, so the person leaves the list and a note says so
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                + "\n" + String.format(EditCommand.MESSAGE_NO_LONGER_MATCHES, editedPerson.getName());
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showPersonAtIndex(expectedModel, INDEX_FIRST_PERSON);
         expectedModel.setPerson(personInFilteredList, editedPerson);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_fullList_keepsFullListWithoutNote() {
+        Person alice = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person editedPerson = new PersonBuilder(alice).withName(VALID_NAME_BOB).build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(alice, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_twoEditsAfterFind_editsPersonsByFindResultIndex() {
+        showFindResults(model);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showFindResults(expectedModel);
+
+        // the find results are Benson and Daniel, so index 1 is Benson
+        Person editedBenson = new PersonBuilder(BENSON).withPhone(VALID_PHONE_BOB).build();
+        expectedModel.setPerson(BENSON, editedBenson);
+        assertCommandSuccess(new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build()), model,
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedBenson)), expectedModel);
+
+        // the find results stay, so index 2 is still Daniel and not the second person of the full list
+        Person editedDaniel = new PersonBuilder(DANIEL).withEmail(VALID_EMAIL_BOB).build();
+        expectedModel.setPerson(DANIEL, editedDaniel);
+        assertCommandSuccess(new EditCommand(INDEX_SECOND_PERSON,
+                new EditPersonDescriptorBuilder().withEmail(VALID_EMAIL_BOB).build()), model,
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedDaniel)), expectedModel);
+    }
+
+    @Test
+    public void execute_editMakesPersonStopMatchingFind_personLeavesListWithNote() {
+        showFindResults(model);
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withName("Benson Lim").build());
+        Person editedBenson = new PersonBuilder(BENSON).withName("Benson Lim").build();
+
+        // "Benson Lim" does not contain "Meier", so Benson leaves the find results; the note comes last
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedBenson))
+                + "\n" + String.format(EditCommand.MESSAGE_NO_LONGER_MATCHES, "Benson Lim");
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showFindResults(expectedModel);
+        expectedModel.setPerson(BENSON, editedBenson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        // Daniel is the only find result left, so he is now at index 1
+        assertEquals(List.of(DANIEL), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_editMakesPersonStopMatchingFindWithSkippedContext_noteComesLast() {
+        showFindResults(model);
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
+                .withName("Benson Lim").withContextsToAdd("cs2103t").build());
+        Person editedBenson = new PersonBuilder(BENSON).withName("Benson Lim").build();
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedBenson))
+                + "\nNote: Benson Lim already has context(s): [CS2103T]. Skipped."
+                + "\n" + String.format(EditCommand.MESSAGE_NO_LONGER_MATCHES, "Benson Lim");
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showFindResults(expectedModel);
+        expectedModel.setPerson(BENSON, editedBenson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_noChangeAfterFind_keepsFindResultsWithoutNote() {
+        showFindResults(model);
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone("98765432").build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, BENSON.getName());
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showFindResults(expectedModel);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEquals(List.of(BENSON, DANIEL), model.getFilteredPersonList());
     }
 
     @Test
@@ -126,17 +213,12 @@ public class EditCommandTest {
                 .withAlias("Al").withIntroducer("Ben Lim").withNote("Met at NUS Hackers").build();
         model.setPerson(alice, aliceWithDetails);
 
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
 
         // only the phone changes; alias, introducer and note are kept
         Person editedPerson = new PersonBuilder(aliceWithDetails).withPhone(VALID_PHONE_BOB).build();
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(aliceWithDetails, editedPerson);
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedPerson);
     }
 
     @Test
@@ -218,15 +300,10 @@ public class EditCommandTest {
     @Test
     public void execute_addExistingContext_noChangeWithNote() {
         // Alice already has "CS2103T", so "cs2103t" is skipped, nothing changes and the note shows "CS2103T"
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withContextsToAdd("cs2103t").build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withContextsToAdd("cs2103t").build();
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, ALICE.getName())
-                + "\nNote: Alice Pauline already has context(s): [CS2103T]. Skipped.";
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertNoChange(INDEX_FIRST_PERSON, descriptor,
+                "Note: Alice Pauline already has context(s): [CS2103T]. Skipped.");
     }
 
     @Test
@@ -260,97 +337,65 @@ public class EditCommandTest {
     @Test
     public void execute_addExistingAndNewContexts_notesOnlySkippedContexts() {
         // Benson has "Hiking club" and "CS2103T"; the note keeps the typed order and Benson's spelling
-        EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, new EditPersonDescriptorBuilder()
-                .withContextsToAdd("cs2103t", "NUS Hackers", "hiking CLUB").build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withContextsToAdd("cs2103t", "NUS Hackers", "hiking CLUB").build();
         Person editedBenson = new PersonBuilder(BENSON).withContexts("Hiking club", "CS2103T", "NUS Hackers").build();
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
-                Messages.format(editedBenson))
-                + "\nNote: Benson Meier already has context(s): [CS2103T] [Hiking club]. Skipped.";
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(BENSON, editedBenson);
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEditSuccess(INDEX_SECOND_PERSON, descriptor, editedBenson,
+                "Note: Benson Meier already has context(s): [CS2103T] [Hiking club]. Skipped.");
     }
 
     @Test
     public void execute_renameAndAddExistingContext_noteUsesNewName() {
         // the note names the person after the edit, matching the success message above it
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
-                .withName("Alice Tan").withContextsToAdd("cs2103t").build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withName("Alice Tan").withContextsToAdd("cs2103t").build();
         Person editedAlice = new PersonBuilder(ALICE).withName("Alice Tan").build();
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice))
-                + "\nNote: Alice Tan already has context(s): [CS2103T]. Skipped.";
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(ALICE, editedAlice);
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedAlice,
+                "Note: Alice Tan already has context(s): [CS2103T]. Skipped.");
     }
 
     @Test
     public void execute_unmatchedContextToRemove_skippedWithNote() {
         // "CS2130T" is a typo of Alice's "CS2103T", so it is skipped and the phone is still changed
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
-                .withContextsToRemove("CS2130T").withPhone(VALID_PHONE_BOB).build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withContextsToRemove("CS2130T").withPhone(VALID_PHONE_BOB).build();
         Person editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build();
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice))
-                + "\nNote: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped.";
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(ALICE, editedAlice);
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedAlice,
+                "Note: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped.");
     }
 
     @Test
     public void execute_matchedAndUnmatchedContextsToRemove_notesOnlyUnmatchedContexts() {
         // Benson has "Hiking club" and "CS2103T"; only the typos are noted, in the typed order
-        EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON, new EditPersonDescriptorBuilder()
-                .withContextsToRemove("NUS Hackers", "hiking club", "CS2130T").build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withContextsToRemove("NUS Hackers", "hiking club", "CS2130T").build();
         Person editedBenson = new PersonBuilder(BENSON).withContexts("CS2103T").build();
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
-                Messages.format(editedBenson))
-                + "\nNote: Benson Meier does not have context(s): [NUS Hackers] [CS2130T]. "
-                + "Check the spelling. Skipped.";
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(BENSON, editedBenson);
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEditSuccess(INDEX_SECOND_PERSON, descriptor, editedBenson,
+                "Note: Benson Meier does not have context(s): [NUS Hackers] [CS2130T]. Check the spelling. Skipped.");
     }
 
     @Test
     public void execute_onlyUnmatchedContextToRemove_noChangeWithNote() {
         // the only change is a typo that is skipped, so nothing changes and the note still shows
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withContextsToRemove("CS2130T").build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withContextsToRemove("CS2130T").build();
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, ALICE.getName())
-                + "\nNote: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped.";
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertNoChange(INDEX_FIRST_PERSON, descriptor,
+                "Note: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped.");
     }
 
     @Test
     public void execute_unmatchedContextToRemoveAndExistingContextToAdd_notesRemovalFirst() {
         // both kinds of skipped context are noted, the -c/ note before the +c/ note
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
-                .withContextsToRemove("CS2130T").withContextsToAdd("cs2103t").build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withContextsToRemove("CS2130T").withContextsToAdd("cs2103t").build();
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, ALICE.getName())
-                + "\nNote: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped."
-                + "\nNote: Alice Pauline already has context(s): [CS2103T]. Skipped.";
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertNoChange(INDEX_FIRST_PERSON, descriptor,
+                "Note: Alice Pauline does not have context(s): [CS2130T]. Check the spelling. Skipped.",
+                "Note: Alice Pauline already has context(s): [CS2103T]. Skipped.");
     }
 
     @Test
@@ -425,30 +470,19 @@ public class EditCommandTest {
     public void execute_removePhone_success() {
         // Alice keeps her email and contexts
         Person editedAlice = new PersonBuilder(ALICE).withoutPhone().build();
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withPhoneRemoved().build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhoneRemoved().build();
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice));
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(ALICE, editedAlice);
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedAlice);
     }
 
     @Test
     public void execute_removePhoneAndEmail_success() {
         // a person may end up with neither phone nor email
         Person editedAlice = new PersonBuilder(ALICE).withoutPhone().withoutEmail().build();
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withPhoneRemoved().withEmailRemoved().build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withPhoneRemoved().withEmailRemoved().build();
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice));
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(ALICE, editedAlice);
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedAlice);
     }
 
     @Test
@@ -458,15 +492,10 @@ public class EditCommandTest {
         model.setPerson(BENSON, bensonWithoutPhoneAndEmail);
 
         Person editedAlice = new PersonBuilder(ALICE).withoutPhone().withoutEmail().build();
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withPhoneRemoved().withEmailRemoved().build());
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withPhoneRemoved().withEmailRemoved().build();
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedAlice));
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(ALICE, editedAlice);
-
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEditSuccess(INDEX_FIRST_PERSON, descriptor, editedAlice);
     }
 
     @Test
@@ -547,14 +576,24 @@ public class EditCommandTest {
     }
 
     /**
-     * Executes an edit of the person at {@code index} with {@code descriptor} and checks that
-     * the person is replaced by {@code editedPerson}.
+     * Shows in {@code targetModel} the persons that {@code find Meier} shows: Benson and Daniel.
      */
-    private void assertEditSuccess(Index index, EditPersonDescriptor descriptor, Person editedPerson) {
+    private static void showFindResults(Model targetModel) {
+        new FindCommand(new PersonContainsKeywordsPredicate(List.of(KEYWORD_MATCHING_MEIER))).execute(targetModel);
+    }
+
+    /**
+     * Executes an edit of the person at {@code index} with {@code descriptor} and checks that
+     * the person is replaced by {@code editedPerson}. The result must end with each of {@code notes},
+     * one per line, in the order given.
+     */
+    private void assertEditSuccess(Index index, EditPersonDescriptor descriptor, Person editedPerson,
+            String... notes) {
         Person personToEdit = model.getFilteredPersonList().get(index.getZeroBased());
         EditCommand editCommand = new EditCommand(index, descriptor);
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage = appendNotes(
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)), notes);
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personToEdit, editedPerson);
@@ -564,17 +603,30 @@ public class EditCommandTest {
 
     /**
      * Executes an edit of the person at {@code index} with {@code descriptor} and checks that
-     * nothing changes and the result says so.
+     * nothing changes and the result says so. The result must end with each of {@code notes},
+     * one per line, in the order given.
      */
-    private void assertNoChange(Index index, EditPersonDescriptor descriptor) {
+    private void assertNoChange(Index index, EditPersonDescriptor descriptor, String... notes) {
         Person personToEdit = model.getFilteredPersonList().get(index.getZeroBased());
         EditCommand editCommand = new EditCommand(index, descriptor);
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_NO_CHANGES, personToEdit.getName());
+        String expectedMessage = appendNotes(
+                String.format(EditCommand.MESSAGE_NO_CHANGES, personToEdit.getName()), notes);
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    /**
+     * Returns {@code message} followed by each of {@code notes} on a new line.
+     */
+    private static String appendNotes(String message, String... notes) {
+        StringBuilder result = new StringBuilder(message);
+        for (String note : notes) {
+            result.append("\n").append(note);
+        }
+        return result.toString();
     }
 
 }

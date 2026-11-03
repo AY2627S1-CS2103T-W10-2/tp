@@ -3,7 +3,9 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
@@ -24,6 +26,8 @@ public class SetArchivedByContextCommand extends Command {
     public static final String MESSAGE_NO_PERSONS_TO_ARCHIVE = "No persons to archive with context %1$s.";
     public static final String MESSAGE_UNARCHIVE_SUCCESS = "Unarchived %1$d person(s) with context %2$s.";
     public static final String MESSAGE_NO_PERSONS_TO_UNARCHIVE = "No archived persons with context %1$s.";
+
+    private static final Logger logger = LogsCenter.getLogger(SetArchivedByContextCommand.class);
 
     private final Context context;
     private final boolean archived;
@@ -51,9 +55,11 @@ public class SetArchivedByContextCommand extends Command {
             throw new CommandException(String.format(noMatchMessage, context));
         }
 
+        assert targets.stream().noneMatch(person -> person.isArchived() == archived) : "targets must change state";
         for (Person person : targets) {
             model.setPerson(person, person.copyWithArchived(archived));
         }
+        logger.info("Set archived to " + archived + " for " + targets.size() + " person(s) with context " + context);
         String successMessage = archived ? MESSAGE_ARCHIVE_SUCCESS : MESSAGE_UNARCHIVE_SUCCESS;
         return new CommandResult(String.format(successMessage, targets.size(), context));
     }
