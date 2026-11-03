@@ -6,8 +6,10 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ACTIVE;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.NaturalOrderComparator;
 import seedu.address.model.Model;
 import seedu.address.model.person.Context;
@@ -36,53 +38,57 @@ public class ContextsCommand extends Command {
     public static final String MESSAGE_SUCCESS_SINGULAR = "%1$d context listed.";
     public static final String MESSAGE_SUCCESS_PLURAL = "%1$d contexts listed.";
 
+    private static final Logger logger = LogsCenter.getLogger(ContextsCommand.class);
+
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
 
         List<Person> persons = model.getAddressBook().getPersonList();
-        Map<String, Integer> contactCounts = countContexts(persons);
-        if (contactCounts.isEmpty()) {
+        Map<String, Integer> personCountsByContext = countContexts(persons);
+        logger.fine(() -> "Listing " + personCountsByContext.size() + " active contexts from "
+                + persons.size() + " stored persons.");
+        if (personCountsByContext.isEmpty()) {
             return new CommandResult(persons.isEmpty() ? MESSAGE_NO_CONTEXTS : MESSAGE_NO_ACTIVE_CONTEXTS);
         }
-        return new CommandResult(formatOverview(contactCounts));
+        return new CommandResult(formatOverview(personCountsByContext));
     }
 
     /**
      * Counts active persons' contexts, grouping equivalent descriptions and retaining the first active spelling.
      */
-    private Map<String, Integer> countContexts(List<Person> persons) {
+    private static Map<String, Integer> countContexts(List<Person> persons) {
         // Context descriptions are already normalized, and each person's contexts form a set.
         // TreeMap groups ignoring case and sorts naturally, retaining the first encountered spelling.
-        Map<String, Integer> contactCounts = new TreeMap<>(NaturalOrderComparator.INSTANCE);
+        Map<String, Integer> personCountsByContext = new TreeMap<>(NaturalOrderComparator.INSTANCE);
         for (Person person : persons) {
             if (!PREDICATE_SHOW_ACTIVE.test(person)) {
                 continue;
             }
             for (Context context : person.getContexts()) {
-                contactCounts.merge(context.description, 1, Integer::sum);
+                personCountsByContext.merge(context.description, 1, Integer::sum);
             }
         }
 
-        return contactCounts;
+        return personCountsByContext;
     }
 
     /**
      * Formats the counted contexts in map order, followed by the distinct-context summary.
      */
-    private String formatOverview(Map<String, Integer> contactCounts) {
-        String contextLines = contactCounts.entrySet().stream()
+    private static String formatOverview(Map<String, Integer> personCountsByContext) {
+        String contextLines = personCountsByContext.entrySet().stream()
                 .map(entry -> formatContext(entry.getKey(), entry.getValue()))
                 .collect(Collectors.joining("\n"));
-        String summaryFormat = contactCounts.size() == 1 ? MESSAGE_SUCCESS_SINGULAR : MESSAGE_SUCCESS_PLURAL;
-        String summary = String.format(summaryFormat, contactCounts.size());
+        String summaryFormat = personCountsByContext.size() == 1 ? MESSAGE_SUCCESS_SINGULAR : MESSAGE_SUCCESS_PLURAL;
+        String summary = String.format(summaryFormat, personCountsByContext.size());
         return contextLines + "\n\n" + summary;
     }
 
     /**
      * Formats a context's count using person/people wording.
      */
-    private String formatContext(String context, int count) {
+    private static String formatContext(String context, int count) {
         String messageFormat = count == 1 ? MESSAGE_CONTEXT_SINGULAR : MESSAGE_CONTEXT_PLURAL;
         return String.format(messageFormat, context, count);
     }

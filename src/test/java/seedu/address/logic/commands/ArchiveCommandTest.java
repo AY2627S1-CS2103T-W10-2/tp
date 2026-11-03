@@ -72,6 +72,13 @@ public class ArchiveCommandTest {
     }
 
     @Test
+    public void toStringMethod() {
+        ArchiveCommand command = new ArchiveCommand(INDEX_FIRST_PERSON);
+        assertEquals(ArchiveCommand.class.getCanonicalName() + "{targetIndex=" + INDEX_FIRST_PERSON
+                + ", archived=true}", command.toString());
+    }
+
+    @Test
     public void equals() {
         ArchiveCommand archiveFirstCommand = new ArchiveCommand(INDEX_FIRST_PERSON);
         assertTrue(archiveFirstCommand.equals(archiveFirstCommand));
