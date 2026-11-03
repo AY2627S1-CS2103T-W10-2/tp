@@ -824,6 +824,90 @@ The following story is retained to document the scope decision. UniContacts mana
 
       Use case ends.
 
+**Use case: UC10 - Edit a person**
+
+**Guarantees**
+
+* If the user does not identify an active person in the displayed list, or the requested change is not valid, no person is changed.
+* Only the identified person is changed; other persons are unchanged.
+* Details the user does not mention stay as they were.
+* The edited person still has at least one context and does not duplicate another person.
+
+**MSS**
+
+1.  User requests to list persons
+2.  System shows a list of persons
+3.  User requests to edit a specific person in the list, providing the details to change
+4.  System edits the person and shows the details of the edited person
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. User finds the person by context (UC02) or by name (UC03) instead.
+
+  Use case resumes at step 3.
+
+* 1b. User views the archived persons (UC08) instead.
+
+  Use case resumes at step 3.
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The requested person is not in the displayed list.
+
+    * 3a1. System shows an error message.
+
+      Use case resumes at step 2.
+
+* 3b. The requested person is archived.
+
+    * 3b1. System shows an error message that tells the user to unarchive the person first.
+
+    * 3b2. User unarchives the person (UC09).
+
+      Use case resumes at step 1.
+
+* 3c. System detects an error in the entered details, for example, because no detail to change was provided or a detail violates its validation rules.
+
+    * 3c1. System shows an error message with the correct format.
+
+      Use case resumes at step 3.
+
+* 3d. The change would leave the person with no context.
+
+    * 3d1. System shows an error message that tells the user to add a new context before removing the last one.
+
+      Use case resumes at step 3.
+
+* 3e. The phone number or email matches another person, whether that person is archived or not.
+
+    * 3e1. System informs the user that the person already exists.
+
+      Use case ends.
+
+* 4a. The request removes a context the person does not have, or adds a context the person still has after the requested removals.
+
+    * 4a1. System skips those contexts and makes the rest of the changes.
+
+    * 4a2. System tells the user which contexts were skipped. If the skipped contexts were the only requested change, System also tells the user that no changes were made.
+
+      Use case ends.
+
+* 4b. The request leaves the person exactly as it was, for example by repeating its current phone number. A change in capitalisation counts as a change.
+
+    * 4b1. System tells the user that no changes were made. This is not an error.
+
+      Use case ends.
+
+* 4c. System is unable to save the change.
+
+    * 4c1. System edits the person for the current session and warns the user that the change may be lost when the app is closed.
+
+      Use case ends.
+
 ### Non-Functional Requirements
 
 1.  UniContacts should work on Windows, Linux, and macOS computers with Java `25` installed.
