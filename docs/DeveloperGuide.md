@@ -13,11 +13,11 @@ title: Developer Guide
 * The project uses [JavaFX](https://openjfx.io/) and [Jackson](https://github.com/FasterXML/jackson); its tests use [JUnit 5](https://junit.org/junit5/).
 * Some JavaFX-related code was adapted from [Marco Jakob's JavaFX tutorial](https://code.makery.ch/library/javafx-tutorial/).
 * The Metro-style button CSS in `DarkTheme.css` was adapted from [Pedro Duque Vieira's JMetro article](https://pixelduke.wordpress.com/2012/10/23/jmetro-windows-8-controls-on-java/).
-* The `address_book_32.png` icon was created by [Susumu Yoshida](http://www.mcdodesign.com/), and `calendar.png` was created by [Jan Jan Kovařík (GLYPHICONS)](https://www.glyphicons.com/).
+* The `address_book_32.png` icon was created by [Susumu Yoshida](http://www.mcdodesign.com/), and `calendar.png` was created by [Jan Kovařík (GLYPHICONS)](https://www.glyphicons.com/).
 
 **Notable uses of AI:**
 
-* Anthropic Claude was used to assist with code implementation, testing, and code review.
+* Anthropic Claude was used extensively to assist with code implementation, testing, and code review.
 * OpenAI Codex was used to assist with preliminary code reviews and minor Developer Guide wording improvements.
 
 --------------------------------------------------------------------------------------------------------------------
