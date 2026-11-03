@@ -14,7 +14,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE_REMOVE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE_REMOVE;
-import static seedu.address.model.Model.PREDICATE_SHOW_ACTIVE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -84,6 +83,8 @@ public class EditCommand extends Command {
     public static final String MESSAGE_NO_CONTEXT_LEFT = "A person must have at least one context. "
             + "Add a new context with +c/ before removing the last one.";
     public static final String MESSAGE_CONTEXTS_SKIPPED = "Note: %1$s already has context(s): %2$s. Skipped.";
+    public static final String MESSAGE_NO_LONGER_MATCHES =
+            "Note: %1$s no longer matches the current search. Run list to see all persons.";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -115,9 +116,8 @@ public class EditCommand extends Command {
         if (isChanged) {
             model.setPerson(personToEdit, editedPerson);
         }
-        model.updateFilteredPersonList(PREDICATE_SHOW_ACTIVE);
 
-        return new CommandResult(buildFeedback(personToEdit, editedPerson, isChanged));
+        return new CommandResult(buildFeedback(model, personToEdit, editedPerson, isChanged));
     }
 
     /**
@@ -142,9 +142,10 @@ public class EditCommand extends Command {
 
     /**
      * Returns the message to show after the edit: the success or no-change message,
-     * then a note for each of the unmatched and skipped contexts, if any.
+     * then a note for each of the unmatched and skipped contexts, if any, and a note if the edited person
+     * no longer matches the search whose results {@code model} shows.
      */
-    private String buildFeedback(Person personToEdit, Person editedPerson, boolean isChanged) {
+    private String buildFeedback(Model model, Person personToEdit, Person editedPerson, boolean isChanged) {
         String feedback = isChanged
                 ? String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
                 : String.format(MESSAGE_NO_CHANGES, personToEdit.getName());
@@ -158,7 +159,19 @@ public class EditCommand extends Command {
             feedback += "\n" + String.format(MESSAGE_CONTEXTS_SKIPPED,
                     editedPerson.getName(), Messages.formatContexts(skippedContexts));
         }
+        // an unchanged person was not replaced, so only a changed person can have dropped out of the list
+        if (isChanged && !isShown(model, editedPerson)) {
+            feedback += "\n" + String.format(MESSAGE_NO_LONGER_MATCHES, editedPerson.getName());
+        }
         return feedback;
+    }
+
+    /**
+     * Returns true if {@code person} is in the filtered person list of {@code model}. The very same object is
+     * looked for, because two persons without a phone number or email can be equal.
+     */
+    private static boolean isShown(Model model, Person person) {
+        return model.getFilteredPersonList().stream().anyMatch(shownPerson -> shownPerson == person);
     }
 
     /**
