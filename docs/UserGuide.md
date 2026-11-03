@@ -312,7 +312,7 @@ The numbers of the persons after them in the results go down by one. A person wh
 
 **Duplicate persons**
 
-Edited persons are checked for duplicates the same way as in [`add`](#adding-a-person-add): the edit is rejected if another person has the same phone number or email. A person is never a duplicate of themselves, so `edit 1 p/87438807` on Alex Yeoh, who already has that number, is accepted.
+Edited persons are checked for duplicates the same way as in [`add`](#adding-a-person-add): the edit is rejected if another person has the same phone number or email. A person is never a duplicate of themselves, so `edit 2 p/99272758` on Bernice Yu, who already has that number, is accepted.
 
 **If the command fails**
 
