@@ -193,7 +193,7 @@ Examples:
 
 * `list` — Displays all saved persons.
 * `LIST` — Command words are case-insensitive, so this also displays all persons.
-* If `find Tony` currently shows only persons matching `Tony`, entering `list` restores the complete person list.
+* If `find Bernice` currently shows only persons matching `Bernice`, entering `list` restores the complete person list.
 
 <div markdown="block" class="alert alert-info">
 
@@ -312,7 +312,7 @@ The numbers of the persons after them in the results go down by one. A person wh
 
 **Duplicate persons**
 
-Edited persons are checked for duplicates the same way as in [`add`](#adding-a-person-add): the edit is rejected if another person has the same phone number or email. A person is never a duplicate of themselves, so `edit 1 p/87438807` on Alex Yeoh, who already has that number, is accepted.
+Edited persons are checked for duplicates the same way as in [`add`](#adding-a-person-add): the edit is rejected if another person has the same phone number or email. A person is never a duplicate of themselves, so `edit 2 p/99272758` on Bernice Yu, who already has that number, is accepted.
 
 **If the command fails**
 
@@ -343,7 +343,7 @@ Formats:
   `[i/INTRODUCER_PART] [nt/NOTE_PART]`
 
 * The command word and search are case-insensitive; for example, `FIND cs2103t` works.
-* Partial matches are supported; for example, `Alex` matches both `Alex Tan` and `Alexander Lim`.
+* Partial matches are supported; for example, `li` matches both `David Li` and `Charlotte Oliveiro`.
 * In a keyword search, a keyword can match either a person's name or any of their contexts. Persons matching at least
   one keyword are returned (an `OR` search). It does not search phone numbers, emails, aliases, introducers or notes;
   use the corresponding field-specific prefix to search those fields.
@@ -352,14 +352,14 @@ Formats:
   A person is returned only if every supplied clue matches (an `AND` search).
 * `n/`, `p/`, `e/`, `a/` and `i/` may each appear at most once. `c/` is repeatable; every context clue must match
   at least one of the person's contexts.
-* Prefixes other than `nt/` may appear in any order, so `find n/Tony c/CS2103T` and
-  `find c/CS2103T n/Tony` are equivalent. `nt/` must come last and takes the rest of the line as the note clue,
+* Prefixes other than `nt/` may appear in any order, so `find n/Bernice c/CS2103T` and
+  `find c/CS2103T n/Bernice` are equivalent. `nt/` must come last and takes the rest of the line as the note clue,
   including text that looks like another prefix, such as `c/o` or `n/a`.
-* Each prefix value is one clue. For example, `n/Tony Zhang` searches for the partial name `Tony Zhang`.
+* Each prefix value is one clue. For example, `n/Bernice Yu` searches for the partial name `Bernice Yu`.
 * Field-specific clues are partial and case-insensitive. They do not need to satisfy the full-field format required by
   `add`; for example, `p/9123` can match the phone number `91234567`.
 * If a person does not have an optional field, they do not match a clue for that field. For example, a person without
-  an alias does not match `a/Toto`.
+  an alias does not match `a/Bern`.
 * Keywords and prefixed clues cannot be mixed in one command.
 * Archived persons are never found, whichever kind of search you use. Running `find` while viewing `archives` switches
   back to search results containing active persons only. Use [`archives`](#viewing-archived-persons-archives) to see
@@ -372,14 +372,15 @@ Formats:
 * If no persons match, the app shows `No persons found!`.
 
 Examples:
-* `find Alex` returns persons such as `Alex Tan` and `Alexander Lim`.
+* `find li` returns persons such as `David Li` and `Charlotte Oliveiro`.
 * `find CS2103T` returns persons with `CS2103T` as a context.
-* `find Alex CS2103T` returns persons matching either `Alex` or `CS2103T`.
-* `find n/Tony Zhang c/CS2103T` returns persons whose name contains `Tony Zhang` and who have a context containing
+* `find David CS2103T` returns persons matching either `David` or `CS2103T`.
+* `find n/Bernice Yu c/CS2103T` returns persons whose name contains `Bernice Yu` and who have a context containing
   `CS2103T`.
-* `find c/CS2103T c/Hack` returns persons matching both context clues.
-* `find c/CS2103T p/9123 a/Toto nt/project` returns persons whose contexts, phone number, alias and note all match
-  their corresponding clues. The non-note prefixes can be supplied in any order, while `nt/` must come last.
+* `find c/CS2103T c/Hiking` returns persons matching both context clues.
+* If Bernice Yu has been given an alias and a note with `edit`, `find c/CS2103T p/9927 a/Bern nt/hiking` returns
+  persons whose contexts, phone number, alias and note all match their corresponding clues. The non-note prefixes
+  can be supplied in any order, while `nt/` must come last.
 
 ### Deleting a person: `delete`
 
@@ -396,7 +397,7 @@ Format: `delete INDEX`
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the person list.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `find Bernice` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 `delete` runs at once, without asking you to confirm, and is saved straight away. There is no undo, so check the index before you press Enter. To hide a person you might need again, use [`archive`](#archiving-a-person-archive) instead.
@@ -590,7 +591,7 @@ Action | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ALIAS] [i/INTRODUCER] [-p/] [-e/] [-a/] [-i/] [-nt/] [+c/CONTEXT]…​ [-c/CONTEXT]…​ [nt/NOTE]`<br> e.g., `edit 2 p/91234567 +c/NUS Hackers -c/Hiking club`
 **Exit** | `exit`
-**Find** | `find KEYWORD [MORE_KEYWORDS]…` or `find [n/NAME_PART] [p/PHONE_PART] [e/EMAIL_PART] [c/CONTEXT_PART]… [a/ALIAS_PART] [i/INTRODUCER_PART] [nt/NOTE_PART]`<br> e.g., `find n/Tony Zhang c/CS2103T a/Toto`
+**Find** | `find KEYWORD [MORE_KEYWORDS]…` or `find [n/NAME_PART] [p/PHONE_PART] [e/EMAIL_PART] [c/CONTEXT_PART]… [a/ALIAS_PART] [i/INTRODUCER_PART] [nt/NOTE_PART]`<br> e.g., `find n/Bernice Yu c/CS2103T a/Bern`
 **List** | `list`
 **Help** | `help`
 **Unarchive** | `unarchive INDEX` or `unarchive c/CONTEXT`<br> e.g., `unarchive 1`, `unarchive c/CS2103T`
