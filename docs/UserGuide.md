@@ -521,8 +521,8 @@ To recover your data:
 
 1. Exit UniContacts.
 2. Open the `.bak` file in a text editor and fix the problem. The reason is written in the log file `unicontacts.log.0`, which is in the folder you started UniContacts from.
-3. If there is a new `unicontacts.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `addressbook-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `unicontacts.json`.
-4. Start UniContacts again. Any persons you added after the failed start are still in `addressbook-new.json`; add them again if you need them.
+3. If there is a new `unicontacts.json` (it exists if you ran a command that changes something, such as `add`, after the failed start), rename it to `unicontacts-new.json` so that it is not overwritten. Then rename the fixed `.bak` file to `unicontacts.json`.
+4. Start UniContacts again. Any persons you added after the failed start are still in `unicontacts-new.json`; add them again if you need them.
 
 If UniContacts cannot rename the file, for example because the `data` folder is read-only, it still starts with an empty address book and leaves the file where it is. It renames the file to a `.bak` file just before its next save, so a save can never overwrite the unreadable file. The same applies when the `data` folder cannot be opened at all: UniContacts starts empty instead of with the sample data.
 

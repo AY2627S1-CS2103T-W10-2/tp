@@ -53,7 +53,8 @@ public class MainApp extends Application {
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(chooseDataFile());
+        Path dataFile = chooseDataFile(ADDRESS_BOOK_FILE_PATH, OLD_ADDRESS_BOOK_FILE_PATH);
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(dataFile);
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
         model = initModelManager(storage, userPrefs);
@@ -64,21 +65,22 @@ public class MainApp extends Application {
     }
 
     /**
-     * Returns the data file to use. If only the data file of v1.5 and earlier exists, it is copied to the current
-     * data file name and the old file is left in place as a backup. If it cannot be copied, the old file is used
-     * for this run instead, so that the user's contacts are not replaced by the sample data.
+     * Returns the data file to use. If only {@code oldDataFile}, the data file of v1.5 and earlier, exists, it is
+     * copied to {@code dataFile} and left in place as a backup. The copy is written through a temporary file, so a
+     * failed copy never leaves a partial {@code dataFile}. If it fails, {@code oldDataFile} is used for this run
+     * instead, so that the user's contacts are not replaced by the sample data.
      */
-    private Path chooseDataFile() {
-        if (Files.exists(ADDRESS_BOOK_FILE_PATH) || !Files.isRegularFile(OLD_ADDRESS_BOOK_FILE_PATH)) {
-            return ADDRESS_BOOK_FILE_PATH;
+    static Path chooseDataFile(Path dataFile, Path oldDataFile) {
+        if (Files.exists(dataFile) || !Files.isRegularFile(oldDataFile)) {
+            return dataFile;
         }
         try {
-            Files.copy(OLD_ADDRESS_BOOK_FILE_PATH, ADDRESS_BOOK_FILE_PATH);
-            logger.info("Copied " + OLD_ADDRESS_BOOK_FILE_PATH + " to " + ADDRESS_BOOK_FILE_PATH);
-            return ADDRESS_BOOK_FILE_PATH;
+            FileUtil.writeToFile(dataFile, FileUtil.readFromFile(oldDataFile));
+            logger.info("Copied " + oldDataFile + " to " + dataFile);
+            return dataFile;
         } catch (IOException e) {
-            logger.warning("Could not copy " + OLD_ADDRESS_BOOK_FILE_PATH + ", using it directly: " + e);
-            return OLD_ADDRESS_BOOK_FILE_PATH;
+            logger.warning("Could not copy " + oldDataFile + ", using it directly: " + e);
+            return oldDataFile;
         }
     }
 
