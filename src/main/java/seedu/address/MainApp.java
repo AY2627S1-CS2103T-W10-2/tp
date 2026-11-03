@@ -1,6 +1,7 @@
 package seedu.address;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -37,7 +38,8 @@ public class MainApp extends Application {
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
+    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "unicontacts.json");
+    private static final Path OLD_ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
 
     protected Ui ui;
     protected Logic logic;
@@ -51,7 +53,8 @@ public class MainApp extends Application {
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
+        Path dataFile = chooseDataFile(ADDRESS_BOOK_FILE_PATH, OLD_ADDRESS_BOOK_FILE_PATH);
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(dataFile);
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
         model = initModelManager(storage, userPrefs);
@@ -59,6 +62,26 @@ public class MainApp extends Application {
         logic = new LogicManager(model, storage);
 
         ui = new UiManager(logic, storage.getAddressBookFilePath());
+    }
+
+    /**
+     * Returns the data file to use. If only {@code oldDataFile}, the data file of v1.5 and earlier, exists, it is
+     * copied to {@code dataFile} and left in place as a backup. The copy is written through a temporary file, so a
+     * failed copy never leaves a partial {@code dataFile}. If it fails, {@code oldDataFile} is used for this run
+     * instead, so that the user's contacts are not replaced by the sample data.
+     */
+    static Path chooseDataFile(Path dataFile, Path oldDataFile) {
+        if (Files.exists(dataFile) || !Files.isRegularFile(oldDataFile)) {
+            return dataFile;
+        }
+        try {
+            FileUtil.writeToFile(dataFile, FileUtil.readFromFile(oldDataFile));
+            logger.info("Copied " + oldDataFile + " to " + dataFile);
+            return dataFile;
+        } catch (IOException e) {
+            logger.warning("Could not copy " + oldDataFile + ", using it directly: " + e);
+            return oldDataFile;
+        }
     }
 
     /**
