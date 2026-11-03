@@ -125,7 +125,7 @@ public class FileUtil {
 
     /**
      * Backs up {@code file} by renaming it to a sibling file named {@code <name>.<UTC time>.bak}, for example
-     * {@code unicontacts.json.20261015T101723Z.bak}. {@code file} no longer exists afterwards, so a later write to
+     * {@code addressbook.json.20261015T101723Z.bak}. {@code file} no longer exists afterwards, so a later write to
      * it cannot overwrite the backup. A backup made earlier is never replaced: if a backup
      * with the same name exists (made in the same second), {@code -1}, {@code -2} and so on is added before
      * {@code .bak}.
