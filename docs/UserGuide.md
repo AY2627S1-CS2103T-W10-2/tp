@@ -374,12 +374,13 @@ Formats:
 Examples:
 * `find li` returns persons such as `David Li` and `Charlotte Oliveiro`.
 * `find CS2103T` returns persons with `CS2103T` as a context.
-* `find Bernice CS2103T` returns persons matching either `Bernice` or `CS2103T`.
+* `find David CS2103T` returns persons matching either `David` or `CS2103T`.
 * `find n/Bernice Yu c/CS2103T` returns persons whose name contains `Bernice Yu` and who have a context containing
   `CS2103T`.
 * `find c/CS2103T c/Hiking` returns persons matching both context clues.
 * If Bernice Yu has been given an alias and a note with `edit`, `find c/CS2103T p/9927 a/Bern nt/hiking` returns
-  persons whose contexts, phone number, alias and note all match their corresponding clues. The non-note prefixes can be supplied in any order, while `nt/` must come last.
+  persons whose contexts, phone number, alias and note all match their corresponding clues. The non-note prefixes
+  can be supplied in any order, while `nt/` must come last.
 
 ### Deleting a person: `delete`
 
