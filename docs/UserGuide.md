@@ -177,8 +177,11 @@ Each person is displayed in the following order:
 2. Contexts
 3. Phone number, if provided
 4. Email address, if provided
+5. `Alias: ALIAS`, if provided
+6. `Introduced by: INTRODUCER`, if provided
+7. `Note: NOTE`, if provided
 
-Contexts are displayed in alphabetical order, ignoring capitalisation. Missing phone numbers and email addresses are not displayed.
+Contexts are displayed in alphabetical order, ignoring capitalisation. Missing optional fields are not displayed.
 
 After the command is executed, the result display shows the number of persons listed:
 
@@ -257,12 +260,14 @@ The format is split over lines to make it easier to read. Type the whole command
 * `INDEX` is the number shown beside the person in the displayed list, such as `1` or `2`. After a `find`, it refers to the filtered list.
 * At least one of the other parameters must be given. Anything you leave out stays as it is.
 * `n/NAME`, `p/PHONE`, `e/EMAIL`, `a/ALIAS`, `i/INTRODUCER` and `nt/NOTE` set or replace the current value. Their values follow the same rules as in [`add`](#adding-a-person-add).
-* `-p/`, `-e/`, `-a/`, `-i/` and `-nt/` remove the phone number, email, alias, introducer and note. They take no value after them, and cannot be given with the prefix that sets the same field, such as `p/` with `-p/`. Removing a field the person does not have changes nothing.
+* `-p/`, `-e/`, `-a/`, `-i/` and `-nt/` remove the phone number, email, alias, introducer and note. They take no value after them. Except for the note ordering described below, a removal prefix cannot be given with the prefix that sets the same field, such as `p/` with `-p/`. Removing a field the person does not have changes nothing.
 * `+c/CONTEXT` adds a context and `-c/CONTEXT` removes one. Repeat them to add or remove several contexts, one context each.
 * `-c/` is applied before `+c/`, so you can swap a person's only context in one command.
 * A person must keep at least one context.
 * Every prefix other than `+c/` and `-c/` can be given only once.
-* `nt/NOTE` must be the last parameter. Everything after `nt/` is the note, even text that looks like a prefix, such as `n/a`.
+* `nt/NOTE` must be the last parameter. Everything after `nt/` is the note, even text that looks like a prefix. Hence,
+  `edit 1 -nt/ nt/x` is rejected because it tries to remove and set the note, while `edit 1 nt/x -nt/` saves the note
+  as `x -nt/` because the apparent `-nt/` is part of the note.
 * An archived person cannot be edited: UniContacts shows `This person is archived and can't be edited. Unarchive the person first.` Use [`unarchive`](#unarchiving-a-person-unarchive) first.
 
 Examples:
@@ -416,7 +421,8 @@ The person is already archived | `That person is already archived.`
 Success with `c/CONTEXT` | `Archived N person(s) with context CONTEXT.`
 No person to archive has that context | `No persons to archive with context CONTEXT.`
 `c/CONTEXT` is combined with an index or another prefix, or `c/` is repeated | `Invalid command format!` followed by the usage of `archive`
-`CONTEXT` is empty or not a valid context | The message about what a valid context is
+`CONTEXT` is empty | `Contexts cannot be empty.`
+`CONTEXT` is not valid | `Contexts should start with a letter or digit, contain only letters, digits, spaces and & - . ' #, and be at most 50 characters long.`
 
 ### Viewing archived persons: `archives`
 
@@ -462,7 +468,8 @@ The person is not archived | `That person is not archived. Run archives to see a
 Success with `c/CONTEXT` | `Unarchived N person(s) with context CONTEXT.`
 No archived person has that context | `No archived persons with context CONTEXT.`
 `c/CONTEXT` is combined with an index or another prefix, or `c/` is repeated | `Invalid command format!` followed by the usage of `unarchive`
-`CONTEXT` is empty or not a valid context | The message about what a valid context is
+`CONTEXT` is empty | `Contexts cannot be empty.`
+`CONTEXT` is not valid | `Contexts should start with a letter or digit, contain only letters, digits, spaces and & - . ' #, and be at most 50 characters long.`
 
 ### Clearing all non-archived persons: `clear`
 
