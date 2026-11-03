@@ -118,11 +118,12 @@ Parameter | Rules | Valid | Invalid
 Email rules:
 * The local part (before the `@`) may contain letters, digits and `+` `_` `.` `-`, but cannot start or end with a symbol, or have two symbols in a row.
 * The domain (after the `@`) is one or more parts separated by periods, such as `u.nus.edu`. Each part may contain letters, digits and hyphens, but cannot start or end with a hyphen. The last part must be at least 2 characters long.
+* An email can be at most 254 characters long. The local part and domain have no separate maximum, so a local part longer than the 64 characters most mail servers allow is still accepted.
 
 How values are saved:
 * Names, contexts and emails keep the capitalisation you typed.
 * Several spaces in a row inside a context are saved as one space. For example, if you type `NUS`, three spaces, then `Hackers`, the context is saved as `NUS Hackers`. The 50-character limit is checked after this, so extra spaces never make a context too long.
-* Names are saved exactly as typed, including several spaces in a row.
+* Names are saved exactly as typed, including several spaces in a row. So `Ann  Lee` (two spaces) is saved and shown with both spaces, and is a different name from `Ann Lee`. If you typed extra spaces by mistake, fix the name with [`edit`](#editing-a-person-edit).
 * Aliases and introducer names have surrounding spaces removed and repeated spaces inside collapsed to one. Notes have surrounding spaces removed.
 * Contexts that differ only in capitalisation or repeated spaces count as the same context. If you give the same context twice, such as `c/CS2103T c/cs2103t`, the person gets it once, spelt as you first typed it.
 
