@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import seedu.address.commons.util.NaturalOrderComparator;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.model.person.Context;
 import seedu.address.model.person.Person;
@@ -71,12 +72,12 @@ public class Messages {
     }
 
     /**
-     * Formats {@code contexts} as {@code [A] [B]}, sorted by description ignoring case, as in the person
+     * Formats {@code contexts} as {@code [A] [B]}, sorted in natural order ignoring case, as in the person
      * details shown to the user.
      */
     public static String formatContextsSorted(Collection<Context> contexts) {
         List<Context> sortedContexts = contexts.stream()
-                .sorted(Comparator.comparing(Context::toString, String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator.comparing(Context::toString, NaturalOrderComparator.INSTANCE))
                 .toList();
         return formatContexts(sortedContexts);
     }
